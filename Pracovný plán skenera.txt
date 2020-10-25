@@ -1,41 +1,38 @@
 Pracovný plán skenera
 Skener (lexikálny analyzátor) - konečný automat, rozdelí celý zdrojový kód na lexémy
-1. Vytvoriť struct na tabuľku symbolov a naplniť ju dátami základných kľúčových slov - bude prístupná skeneru aj parseru
+1. Vytvoriť struct na tabuľku symbolov (zatiaľ nebude používaná, ale bude treba na parser)
     Tabuľka symbolov nech je ideálne abecedne zoradený list (abecedne zoradený aby sa dalo binárne vyhľadávať)
     Potrebné funkcie: 
         a) nech sa doňho dá pridávať (automaticky na správne miesto)
         b) nech sa doňho dá pristupovať cez indexy (nech vracia hodnotu do pointra na struct kľúčového slova)
-        c) nech sa v ňom dá vyhľadávať podľa názvu kľúčového slova
+        c) nech sa v ňom dá vyhľadávať podľa názvu symbolu
         d) ofc, dynamické alokovanie pamäte - jednosmerne alebo obojsmerne previazaný list, nech sa dá jednoducho vkladať doprostred
         e) mazanie stačí celú tabuľku naraz, nemalo by sa odtiaľ nič odstraňovať po jednom
         f) bude treba implementovať aj možnosť editovania jednotlivých položiek
     Dáta, ktoré budú uložené v structe kľúčového slova:
-        a) typ kľúčového slova (if, else, float64, int, identifikátor funkcie/premennej...) - na toto spraviť enum
-        b) názov kľúčového slova - string toho jak je to slovo písané (u else "else")
-        c) dátový typ kľúčového slova - toto sa u lexikálneho analyzátora ešte používať nebude, ale bude to treba pri parseri,
-            keď sa budú do tabuľky symbolov dopĺňať názvy funkcií a premenných - musí byť pointer na pole enumov, lebo funkcie vedia vracať aj viac hodnôt naraz.
+        a) typ identifikátoru - na toto spraviť enum
+        b) názov identifikátoru - string toho jak je to slovo písané (u ignac "ignac")
+        c) dátový typ kľúčového slova - treba spraviť ako pole enumov, lebo funkcia môže vracať viac parametrov
         d) začiatok platného scope - číslo riadka (bude iba u premenných, bude sa priraďovať podľa toho, medzi akými zátvorkami sa deklarovali)
         e) koniec platného scope
         f) ID - ak by mali nejaké identifikátory rovnaký názov, toto bude u každého jedinečné
     
-    Tabuľku treba na začiatku naplniť základnými funkciami jazyka IFJ2020 ako main, kľúčovými slovami (if, else, package, atd).
-    Všetky hodnoty dátového typu budú NULL, hodnoty scope "global".
-    Väčšinu z dát v structoch kľúčového slova nebude treba používať pri skeneri.
-    Parser bude 2-prechodový, v prvom prechode doplní tabuľku symbolov identifikátormi a v druhom prechode bude reálne parsovať.
+    Myslel som že to bude actually treba u skenera ale spravím to, aj keď to stačí iba u parsera. U skenera to netreba, lebo kľúčové slová
+    sa dajú dostatočne jednoducho identifikovať aj bez zbytočne komplikovanej tabuľky.
 
-2. Vytvoriť struct na samotné ukladanie lexémov v postupnosti v akej sú v súbore - bude sa posielať na vstup parseru
-    Struct na ukladanie lexémov by malo byť ideálne nafukovacie pole, každá jeho položka bude struct jedného lexému.
+2. Vytvoriť struct na samotné ukladanie tokenov v postupnosti v akej sú v súbore - bude sa posielať na vstup parseru
+    Struct na ukladanie tokenov by malo byť ideálne nafukovacie pole, každá jeho položka bude struct jedného tokenu.
     Lexémy musia byť po skenovaní zoradené tak, ako v zdrojáku.
     Potrebné funkcie:
         a) nech sa doňho dá pridávať (automaticky na koniec)
         b) nech sa dá pristupovať cez indexy (nech vracia hodnotu prvku do pointra na struct lexému)
-        c) dynamické alokovanie pamäte - nafukovacie pole, nech sa nemusí často mallocovať/freeovať
+        c) dynamické alokovanie pamäte - nafukovacie pole, nech sa nemusí často mallocovať, alebo jednosmerne previazaný list pre šetrenie pamäte
         d) editovanie hodnôt nie je treba, vloží sa a potom sa k tomu bude iba pristupovať
         e) mazanie stačí celé pole naraz, nemalo by sa odtiaľ nič odstraňovať po jednom
     Dáta, ktoré budú uložené v structe lexému:
         a) typ lexému - napr. kľúčové slovo, identifikátor funkcie/premennej, biely znak, EOL, zátvorka, literál... - na toto spraviť enum
         b) názov lexému - to isté ako u kľúčových slov, proste string
 
-3. Samotné skenovanie a naplnenie poľa lexémov, ktoré sa odošle parseru
+3. Samotné skenovanie a naplnenie poľa tokenov, ktoré sa odošle parseru
     Je to v podstate iba jedna veľká postupnosť regulárnych výrazov, ktoré musia identifikovať a priradiť každé slovo, zátvorku, prázdny znak,
     EOL, všetko ku správnemu typu a potom to strčiť do poľa. Asi by mohol spraviť Maťo, keďže podobnú vec už robil u IVS projektu.
