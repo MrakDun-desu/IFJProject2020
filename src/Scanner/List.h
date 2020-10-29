@@ -6,15 +6,17 @@
 #define SRC_LIST_H
 #include "../String/DynamicString.h"
 
-typedef enum Type {STRING, FLOAT, ELSE, IF} type; // doplň enum ostatnými hodnotami čo budú treba
+typedef enum Type {STRING, ELSE, FLOAT, FOR, FUNC, IF, INT, PACKAGE, RETURN, VAR_ID, FUNC_ID, BRACKET_CURLY, BRACKET_ROUND, EOL, OPERATOR, INT_LIT, STRING_LIT, FLOAT_LIT  } type;
 
 typedef struct TToken {
+    struct TToken* nextToken;
     type tokenType; /// type of the token
     string tokenName; /// string name of the token
 } token;
 
 typedef struct TList {
     token* first; /// pointer to first element in the list
+    token* last; /// pointer to first element in the list
     size_t size; /// size of the list (empty list has size 0)
 } list;
 
@@ -44,6 +46,6 @@ void getToken(list* l, size_t pos, token* t);
  * @param t Token which will be added in to list l.
  * @return If item was added successfully, returns 0, otherwise returns 1.
  */
-int addToken(list* l, token t);
+int addToken(list* l, token* t);
 
 #endif //SRC_LIST_H
