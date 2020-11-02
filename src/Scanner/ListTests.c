@@ -52,6 +52,9 @@ int main (){
     printf("-------------------------\n");
 
     printf("Everything should be 0 / 00000000\n");
+    destroyString(&t1.tokenName);
+    destroyString(&t3.tokenName);
+    destroyString(&t2.tokenName);
 
 
     return 0;
