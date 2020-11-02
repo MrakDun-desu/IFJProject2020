@@ -1,5 +1,5 @@
 //
-// Created by praca on 28. 10. 2020.
+// Created by xfudor00 on 28. 10. 2020.
 //
 
 #include "List.h"
@@ -14,6 +14,7 @@ void deleteList(list* l){
     token *tToken = l->first;
     while(tToken != NULL){
         l->first = l->first->nextToken;
+        destroyString(&tToken->tokenName);
         free(tToken);
         tToken = l->first;
     }
@@ -24,27 +25,38 @@ void deleteList(list* l){
 void getToken(list* l, size_t pos, token* t){
     if(pos >= l->size){
         t = NULL;
+        t->nextToken= NULL;
     }else{
-        t = l->first;
-        for(int i = 0; i < pos; i++){
-            t = t->nextToken;
+        int i = 0;
+        for(token* temp = l->first; i <= pos; temp = temp->nextToken ){
+            initString(&t->tokenName);
+            makeString(temp->tokenName.data, &t->tokenName);
+            t->nextToken = temp->nextToken;
+            t->tokenType = temp->tokenType;
+            i++;
         }
     }
 }
 
-int addToken(list* l, token* t){
+int addToken(list* l, type tType, char* tName ){
 
-    t = malloc(sizeof(token));
-    if(t == NULL){
+    token *tNew;
+    tNew = malloc(sizeof(token));
+    if(tNew == NULL){
+        printf("Allocation went wrong!\n");
         return 1;
     }
+    tNew->tokenType = tType;
+    initString(&tNew->tokenName);
+    makeString(tName, &tNew->tokenName);
+    tNew->nextToken = NULL;
+
     if(l->last != NULL){
-        l->last->nextToken = t;
+        l->last->nextToken = tNew;
     }
-    t->nextToken = NULL;
-    l->last = t;
+    l->last = tNew;
     if(l->size == 0){
-        l->first = t;
+        l->first = tNew;
     }
     l->size++;
     return 0;
