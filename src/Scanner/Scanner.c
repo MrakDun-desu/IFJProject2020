@@ -25,8 +25,8 @@ destroyString(&temp);
 
 
 void LexemAutomat(list* sortedList, string lexem) {
-printf("Lexem Automat\n");
-printf("Hello :%s \n", lexem.data);
+
+printf("%s | ", lexem.data);
 }
 
 void LexemAppend() {
@@ -36,10 +36,12 @@ void LexemAppend() {
 void CodeAnalyzer(list* sortedList, string code) {
     printf("Code Analyzer\n");
     char currentChar;
+
     string currentLexem;
     initString(&currentLexem);
+    makeString("", &currentLexem);
 
-    char operators[] = "{}()*/-+.'=";
+    const char operators[] = "{}()*/-+.'=;";
 
     bool comment = false;
     bool lineComment = false;
@@ -70,7 +72,7 @@ void CodeAnalyzer(list* sortedList, string code) {
         }
             //check for identificator, literals
         else if (isalnum(currentChar) || currentChar == '_') {
-            printf("isalnum\n");
+
             CharConcat(&currentLexem, currentChar);
 
         } else {
@@ -93,43 +95,42 @@ void CodeAnalyzer(list* sortedList, string code) {
                 }
             }
             if (currentChar == ' ' && currentLexem.data != NULL) {
-                printf("space\n");
+
+                if(currentLexem.len >= 1){
+                    CharConcat(&currentLexem, '\0');
+
+                    LexemAutomat(sortedList, currentLexem);
+
+                    destroyString(&currentLexem);
+                    initString(&currentLexem);
+                    makeString("", &currentLexem);
+                }
+            }
+            if (strchr(operators,currentChar) != NULL) {
+
+                if(currentLexem.len >= 1){
+                    CharConcat(&currentLexem, '\0');
+                    LexemAutomat(sortedList, currentLexem);
+
+                    destroyString(&currentLexem);
+                    initString(&currentLexem);
+                    makeString("", &currentLexem);
+                }
+
+                CharConcat(&currentLexem, currentChar);
+
                 CharConcat(&currentLexem, '\0');
 
-                LexemAutomat(sortedList, currentLexem);
 
-                destroyString(&currentLexem);
-                initString(&currentLexem);
-            }
-            if (currentChar == ';') {
-                printf(";\n");
-                CharConcat(&currentLexem, '\0');
 
                 LexemAutomat(sortedList, currentLexem);
 
                 destroyString(&currentLexem);
                 initString(&currentLexem);
+                makeString("", &currentLexem);
 
-                makeString(&currentChar, &currentLexem);
-
-                LexemAutomat(sortedList, currentLexem);
-
-                destroyString(&currentLexem);
-                initString(&currentLexem);
             }
 
-
-            if (strchr(operators, currentChar) != NULL) {
-                printf("+-*/=\n");
-
-                makeString(&currentChar, &currentLexem);
-
-                LexemAutomat(sortedList, currentLexem);
-
-                destroyString(&currentLexem);
-                initString(&currentLexem);
-
-            }
 
         }
 
@@ -150,10 +151,13 @@ void ScannerHandler() {
 
     string tempCode; //THIS SHOULD BE CHANGED LATER
     initString(&tempCode);
-    makeString("if(Jakub.location == doma){ } else{ Jakub smirdi while corona true}", &tempCode);
+    makeString("if(Jakub.location == doma){ } else{ Jakub smrdi while corona true} \"\n"
+               "               \"sranda();pecka = 1;", &tempCode);
 
     list sortedList;
     initList(&sortedList);
+
+
 
     CodeAnalyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
 }
