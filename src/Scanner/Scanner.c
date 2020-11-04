@@ -1,0 +1,167 @@
+//
+// Created by xolsia00 on 3. 11. 2020.
+//
+
+#include <stdio.h>
+#include <ctype.h>
+#include "List.h"
+#include "../String/DynamicString.h"
+#include <stdbool.h>
+
+
+void CharConcat(string* target, char addition) {
+
+
+string temp;
+initString(&temp);
+makeString(&addition, &temp);
+
+concatenate(target, &temp, target);
+
+destroyString(&temp);
+
+
+}
+
+
+void LexemAutomat(list* sortedList, string lexem) {
+
+printf("%s | ", lexem.data);
+}
+
+void LexemAppend() {
+
+}
+
+void CodeAnalyzer(list* sortedList, string code) {
+    printf("Code Analyzer\n");
+    char currentChar;
+
+    string currentLexem;
+    initString(&currentLexem);
+    makeString("", &currentLexem);
+
+    const char operators[] = "{}()*/-+.'=;";
+
+    bool comment = false;
+    bool lineComment = false;
+
+
+    //read code char by char
+    for (int i = 0; i < code.len; i++) {
+
+        currentChar = code.data[i];
+
+        //comment check
+        if (comment == true) {
+            printf("Comment\n");
+            if (lineComment) {
+                if (currentChar == '\n') {
+                    lineComment = false;
+                    comment = false;
+                }
+                if (currentChar == '*') {
+                    if (code.len >= ++i) {
+                        if (code.data[++i] == '/') {
+                            comment = false;
+                        }
+                    }
+                }
+            }
+            continue;
+        }
+            //check for identificator, literals
+        else if (isalnum(currentChar) || currentChar == '_') {
+
+            CharConcat(&currentLexem, currentChar);
+
+        } else {
+            if (currentChar == '/') {
+
+                if (code.len >= ++i) {
+                    if (code.data[++i] == '*') {
+                        printf("/*\n");
+                        comment = true;
+                        continue;
+                    } else if (code.data[++i] == '/') {
+                        printf("//\n");
+                        comment = true;
+                        lineComment = true;
+                        continue;
+                    } else {
+
+                        //CALL LEXICAL ERROR
+                    }
+                }
+            }
+            if (currentChar == ' ' && currentLexem.data != NULL) {
+
+                if(currentLexem.len >= 1){
+                    CharConcat(&currentLexem, '\0');
+
+                    LexemAutomat(sortedList, currentLexem);
+
+                    destroyString(&currentLexem);
+                    initString(&currentLexem);
+                    makeString("", &currentLexem);
+                }
+            }
+            if (strchr(operators,currentChar) != NULL) {
+
+                if(currentLexem.len >= 1){
+                    CharConcat(&currentLexem, '\0');
+                    LexemAutomat(sortedList, currentLexem);
+
+                    destroyString(&currentLexem);
+                    initString(&currentLexem);
+                    makeString("", &currentLexem);
+                }
+
+                CharConcat(&currentLexem, currentChar);
+
+                CharConcat(&currentLexem, '\0');
+
+
+
+                LexemAutomat(sortedList, currentLexem);
+
+                destroyString(&currentLexem);
+                initString(&currentLexem);
+                makeString("", &currentLexem);
+
+            }
+
+
+        }
+
+    }
+
+}
+
+// YOU HAVE TO APPEND . AND TWO NUMBERS NEXT TO IT
+// ALSO IF + / - IS BEFORE A NUMBER AND THERE IS NO NUMBER BEFORE IT APPEND THAT TOO
+// ALSO APPEND LITERALS BETWEEN "" or ''
+
+
+
+
+
+
+void ScannerHandler() {
+
+    string tempCode; //THIS SHOULD BE CHANGED LATER
+    initString(&tempCode);
+    makeString("if(Jakub.location == doma){ } else{ Jakub smrdi while corona true} \"\n"
+               "               \"sranda();pecka = 1;", &tempCode);
+
+    list sortedList;
+    initList(&sortedList);
+
+
+
+    CodeAnalyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
+}
+
+int main(int argc, char *argv[]){
+    ScannerHandler();
+}

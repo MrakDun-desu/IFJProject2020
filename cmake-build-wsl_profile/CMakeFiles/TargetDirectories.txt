@@ -1,0 +1,3 @@
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/edit_cache.dir
