@@ -20,9 +20,9 @@ void ScannerHandler();
  * @param code List pointer where analyzed lexems are stored
  */
 
-void CodeAnalyzer(TList *sortedList, String code);
+void CodeAnalyzer(list *sortedList, string code);
 
-void LexemAutomat(TList* sortedList, string lexem);
+void LexemAutomat(list* sortedList, string lexem);
 
 void CharConcat(string target, char addition);
 

@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/List.c
+List.h
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/List.h
+
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/List.h
+../String/DynamicString.h
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.h
+
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/Scanner.c
+stdio.h
+-
+ctype.h
+-
+List.h
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/List.h
+../String/DynamicString.h
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.h
+stdbool.h
+-
+
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.c
+DynamicString.h
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.h
+
+/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.h
+string.h
+-
+stdlib.h
+-
+stdio.h
+-
+
