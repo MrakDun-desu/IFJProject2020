@@ -6,28 +6,29 @@
 #include <ctype.h>
 #include "List.h"
 #include "../String/DynamicString.h"
+#include <stdbool.h>
 
 
 
 void ScannerHandler() {
 
 	string tempCode; //THIS SHOULD BE CHANGED LATER
-	initString(tempCode);
+	initString(&tempCode);
 	makeString("if(Jakub.location == doma){ } else{ Jakub smirdi while corona true}", &tempCode);
 
 	list sortedList;
-	initList(sortedList);
+	initList(&sortedList);
 
-	Analyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
+	CodeAnalyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
 }
 
-void Analyzer(TList* sortedList, string code) {
+void CodeAnalyzer(list* sortedList, string code) {
 
 	char currentChar;
 	string currentLexem;
-	initString(currentLexem);
+	initString(&currentLexem);
 
-	char operators[] = "{}()*/-+.'"";
+	char operators[] = "{}()*/-+.'";
 
 		bool comment = false;
 	bool lineComment = false;
@@ -68,16 +69,42 @@ void Analyzer(TList* sortedList, string code) {
 				if (code.len >= ++i) {
 					if (code.data[++i] == '*') {
 						comment = true;
+						continue;
 					}
 					else if (code.data[++i] == '/') {
 						comment = true;
 						lineComment = true;
+						continue;
 					}
 					else if (code.data[++i] == '/t') {
-						//SAVE THIS AS NEW LEXEM
+						CharConcat(currentLexem, '\0');
+
+						LexemAutomat(&sortedList, currentLexem);
+
+						destroyString(&currentLexem);
+						initString(&currentLexem);
+
+						CharConcat(currentLexem, code.data[++i]);
+
+						LexemAutomat(&sortedList, currentLexem);
+
+						destroyString(&currentLexem);
+						initString(&currentLexem);
 					}
 					else if (code.data[++i] == '/"') {
-						//SAVE THIS AS NEW LEXEM
+						CharConcat(currentLexem, '\0');
+
+						LexemAutomat(&sortedList, currentLexem);
+
+						destroyString(&currentLexem);
+						initString(&currentLexem);
+
+						CharConcat(currentLexem, code.data[++i]);
+
+						LexemAutomat(&sortedList, currentLexem);
+
+						destroyString(&currentLexem);
+						initString(&currentLexem);
 					}
 					else {
 
@@ -89,8 +116,8 @@ void Analyzer(TList* sortedList, string code) {
 
 				LexemAutomat(&sortedList, currentLexem);
 
-				destroyString(currentLexem);
-				initString(currentLexem);
+				destroyString(&currentLexem);
+				initString(&currentLexem);
 
 				if (strchr(operators, currentChar) != NULL)
 				{
@@ -116,8 +143,9 @@ void Analyzer(TList* sortedList, string code) {
 // ALSO IF + / - IS BEFORE A NUMBER AND THERE IS NO NUMBER BEFORE IT APPEND THAT TOO
 // ALSO APPEND LITERALS BETWEEN "" or ''
 
-void LexemAutomat(TList* sortedList, string lexem) {
+void LexemAutomat(list* sortedList, string lexem) {
 
+	printf("%s", lexem);
 }
 
 void LexemAppend() {
@@ -126,9 +154,9 @@ void LexemAppend() {
 
 void CharConcat(string target, char addition) {
 	string temp;
-	initString(temp);
+	initString(&temp);
 	makeString(addition, &temp);
 	concatenate(&target, &temp, &target);
-	destroyString(&temp;)
+	destroyString(&temp);
 }
 
