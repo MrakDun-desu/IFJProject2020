@@ -11,10 +11,13 @@
 
 void CharConcat(string* target, char addition) {
 
+char pChar[2];
+pChar[0] = addition;
+pChar[1] = '\0';
 
 string temp;
 initString(&temp);
-makeString(&addition, &temp);
+makeString(pChar, &temp);
 
 concatenate(target, &temp, target);
 
@@ -26,7 +29,7 @@ destroyString(&temp);
 
 void LexemAutomat(list* sortedList, string lexem) {
 
-printf("%s | ", lexem.data);
+printf("%s , ", lexem.data);
 }
 
 void LexemAppend() {
@@ -97,7 +100,7 @@ void CodeAnalyzer(list* sortedList, string code) {
             if (currentChar == ' ' && currentLexem.data != NULL) {
 
                 if(currentLexem.len >= 1){
-                    CharConcat(&currentLexem, '\0');
+                    //CharConcat(&currentLexem, '\0');
 
                     LexemAutomat(sortedList, currentLexem);
 
@@ -109,7 +112,7 @@ void CodeAnalyzer(list* sortedList, string code) {
             if (strchr(operators,currentChar) != NULL) {
 
                 if(currentLexem.len >= 1){
-                    CharConcat(&currentLexem, '\0');
+                    //CharConcat(&currentLexem, '\0');
                     LexemAutomat(sortedList, currentLexem);
 
                     destroyString(&currentLexem);
@@ -119,7 +122,7 @@ void CodeAnalyzer(list* sortedList, string code) {
 
                 CharConcat(&currentLexem, currentChar);
 
-                CharConcat(&currentLexem, '\0');
+                //CharConcat(&currentLexem, '\0');
 
 
 
@@ -135,7 +138,7 @@ void CodeAnalyzer(list* sortedList, string code) {
         }
 
     }
-
+    destroyString(&currentLexem);
 }
 
 // YOU HAVE TO APPEND . AND TWO NUMBERS NEXT TO IT
@@ -160,6 +163,9 @@ void ScannerHandler() {
 
 
     CodeAnalyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
+
+    destroyString(&tempCode);
+    deleteList(&sortedList);
 }
 
 int main(int argc, char *argv[]){
