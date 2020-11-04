@@ -9,7 +9,7 @@ void initString(string* newString) {
 
 void makeString(const char *content, string* back) {
 
-    if (back->len != 0) {
+    if (back->data != NULL) {
         if (back->data == content)
             return;
 
@@ -25,7 +25,9 @@ void makeString(const char *content, string* back) {
 
 void destroyString(string* s) {
 
-    free(s->data);
+    if (s->data != NULL)
+        free(s->data);
+
     s->len = 0;
 
 }
@@ -46,18 +48,30 @@ void insertToString(string* first, string* second, size_t pos, string* back) {
         makeString(first->data, back);
         return;
     }
-    if (pos == 0) {
-        makeString("", back);
-        return;
-    }
 
     char* newData = malloc(sizeof(char) * (first->len + second->len + 1));
-    strcpy(newData, first->data);
+    if (pos != 0)
+        strcpy(newData, first->data);
+
     strcpy(&newData[pos], second->data);
     strcpy(&newData[pos+second->len], &first->data[pos]);
     makeString(newData, back);
     free(newData);
 
+}
+
+void addChar(string* s, char c) {
+    char pChar[2];
+    pChar[0] = c;
+    pChar[1] = '\0';
+
+    string temp;
+    initString(&temp);
+    makeString(pChar, &temp);
+
+    concatenate(s, &temp, s);
+
+    destroyString(&temp);
 }
 
 void makeLowercase(string* input, string* back) {

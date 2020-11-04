@@ -9,27 +9,8 @@
 #include <stdbool.h>
 
 
-void CharConcat(string* target, char addition) {
-
-char pChar[2];
-pChar[0] = addition;
-pChar[1] = '\0';
-
-string temp;
-initString(&temp);
-makeString(pChar, &temp);
-
-concatenate(target, &temp, target);
-
-destroyString(&temp);
-
-
-}
-
-
 void LexemAutomat(list* sortedList, string lexem) {
-
-printf("%s , ", lexem.data);
+    printf("%s , ", lexem.data);
 }
 
 void LexemAppend() {
@@ -76,7 +57,7 @@ void CodeAnalyzer(list* sortedList, string code) {
             //check for identificator, literals
         else if (isalnum(currentChar) || currentChar == '_') {
 
-            CharConcat(&currentLexem, currentChar);
+            addChar(&currentLexem, currentChar);
 
         } else {
             if (currentChar == '/') {
@@ -100,36 +81,24 @@ void CodeAnalyzer(list* sortedList, string code) {
             if (currentChar == ' ' && currentLexem.data != NULL) {
 
                 if(currentLexem.len >= 1){
-                    //CharConcat(&currentLexem, '\0');
 
                     LexemAutomat(sortedList, currentLexem);
 
-                    destroyString(&currentLexem);
-                    initString(&currentLexem);
                     makeString("", &currentLexem);
                 }
             }
             if (strchr(operators,currentChar) != NULL) {
 
                 if(currentLexem.len >= 1){
-                    //CharConcat(&currentLexem, '\0');
                     LexemAutomat(sortedList, currentLexem);
 
-                    destroyString(&currentLexem);
-                    initString(&currentLexem);
                     makeString("", &currentLexem);
                 }
 
-                CharConcat(&currentLexem, currentChar);
-
-                //CharConcat(&currentLexem, '\0');
-
-
+                addChar(&currentLexem, currentChar);
 
                 LexemAutomat(sortedList, currentLexem);
 
-                destroyString(&currentLexem);
-                initString(&currentLexem);
                 makeString("", &currentLexem);
 
             }
