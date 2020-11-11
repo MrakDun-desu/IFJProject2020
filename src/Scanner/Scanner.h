@@ -15,13 +15,18 @@ void ScannerHandler();
 
 
 /**
- * @brief Analyzes lexems and saves them in list
+ * @brief Analyzes code symbol by sombol and saves them into string
  * @param sortedList List pointer where analyzed lexems are stored
- * @param code List pointer where analyzed lexems are stored
+ * @param code List pointer where code is stored
  */
 
 void CodeAnalyzer(list *sortedList, string code);
 
+/**
+ * @brief Analyzes lexems and saves them in list
+ * @param sortedList List pointer where analyzed lexems are stored
+ * @param code List pointer where analyzed lexems are stored
+ */
 void LexemAutomat(list* sortedList, string lexem);
 
 void CharConcat(string target, char addition);
