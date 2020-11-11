@@ -15,7 +15,7 @@ void ScannerHandler();
 
 
 /**
- * @brief Analyzes code symbol by sombol and saves them into string
+ * @brief Analyzes code symbol by symbol and saves them into string
  * @param sortedList List pointer where analyzed lexems are stored
  * @param code List pointer where code is stored
  */
