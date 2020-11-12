@@ -280,6 +280,6 @@ void ScannerHandler() {
     deleteList(&sortedList);
 }
 
-int main(int argc, char *argv[]) {
-    ScannerHandler();
-}
+//int main(int argc, char *argv[]) {
+//    ScannerHandler();
+//}
