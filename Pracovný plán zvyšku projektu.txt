@@ -1,16 +1,16 @@
 0. Urobiť .h súbory na základné veci, nech sa všetci vedia trochu orientovať. xdanco00
 1. Urobiť tabuľku symbolov - binárny vyhľadávací strom. xdanco00
-2. Urobiť prvý prechod zoznamom tokenov - naplniť tabuľku symbolov funkciami a premennými, u premenných spraviť scope.
-3. Urobiť syntaktickú analýzu - skontrolovať správnosť EOL-ov a ostatné syntaktické veci.
+2. Urobiť prvý prechod zoznamom tokenov - naplniť tabuľku symbolov funkciami a premennými. xolsia00
+3. Urobiť syntaktickú analýzu - skontrolovať správnosť EOL-ov a ostatné syntaktické veci. xdrobe01
 4. Urobiť sémantickú analýzu *Najväčšia vec*
-    4.1. Rekurzívny zostup - help tu: https://en.wikipedia.org/wiki/Recursive_descent_parser
-    4.2. Precedenčná syntaktická analýza na výrazy.
-    4.3. Spraviť štruktúru derivačného stromu, do ktorého sa budú postupne dávať všetky príkazy.
+    4.1. Rekurzívny zostup - help tu: https://en.wikipedia.org/wiki/Recursive_descent_parser xolsia00
+    4.2. Precedenčná syntaktická analýza na výrazy. xdanco00
+    4.3. Spraviť štruktúru derivačného stromu, do ktorého sa budú postupne dávať všetky príkazy. xfudor00
 5. Urobiť generátor, ktorý bude prijímať tzv. derivačné stromy z parsera (sémantickej analýzy).
-    5.1. Implementovať v cieľovom jazyku preddefinované funkcie a vložiť ich do generátora ako makrá.
-    5.2. Spraviť samotný generátor, ktorý bude prijímať stromy a rozpisovať ich do cieľového jazyka.
-6. Urobiť main funkciu, ktorá bude vyťahovať nachystaný program zo súboru, posielať ho do scannera a odtiaľ zase do generátora.
-7. Spraviť dokumentáciu a vygenerovať ju.
+    5.1. Implementovať v cieľovom jazyku preddefinované funkcie a vložiť ich do generátora ako makrá. xdrobe01
+    5.2. Spraviť samotný generátor, ktorý bude prijímať stromy a rozpisovať ich do cieľového jazyka. xfudor00
+6. Urobiť main funkciu, ktorá bude vyťahovať nachystaný program zo súboru, posielať ho do scannera a odtiaľ zase do generátora. xdrobe01
+7. Spraviť dokumentáciu a vygenerovať ju. xdanco00
 
 Ďalšie pomocné zdroje: 
 https://github.com/harmim/vut-ifj-project - projekt 2017 od Harmima
