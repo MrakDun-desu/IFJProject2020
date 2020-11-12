@@ -38,6 +38,11 @@ void LexemAutomat(list *sortedList, string *lexem) {
 
         return;
     }
+    if (strcmp(lexem->data, "\n") == 0) {
+        addToken(sortedList, EOL, lexem->data);
+
+        return;
+    }
     if (strcmp(lexem->data, "string") == 0) {
         addToken(sortedList, STRING, lexem->data);
 
@@ -80,11 +85,6 @@ void LexemAutomat(list *sortedList, string *lexem) {
     }
     if (strcmp(lexem->data, "(") == 0 || strcmp(lexem->data, ")") == 0) {
         addToken(sortedList, BRACKET_ROUND, lexem->data);
-
-        return;
-    }
-    if (lexem->data[0] == '\0' && lexem->len == 1) {
-        addToken(sortedList, EOL, lexem->data);
 
         return;
     }
@@ -196,6 +196,19 @@ void CodeAnalyzer(list *sortedList, string code) {
                     makeString("", &currentLexem);
                 }
             }
+            if (currentChar == '\n') {
+                    if (currentLexem.data != NULL) {
+                        LexemAutomat(sortedList, &currentLexem);
+
+                        makeString("", &currentLexem);
+                    }
+                    addChar(&currentLexem, currentChar);
+
+                    LexemAutomat(sortedList, &currentLexem);
+
+                    makeString("", &currentLexem);
+
+            }
             if (strchr(operators, currentChar) != NULL || currentChar == EOL) {
                 //printf("else\n");
                 if (currentLexem.len >= 1) {
@@ -258,7 +271,7 @@ void ScannerHandler() {
     string tempCode; //THIS SHOULD BE CHANGED LATER
     initString(&tempCode);
     makeString(
-            "if(Jakub location == doma){ } else{ Jakub smrdi while corona true} sranda() 1 * 1 pecka = 1 /* adasdadas*/ af //sdaasddsaad",
+            "if(Jakub location == doma){ \n } \n else{ \n Jakub smrdi while corona true} sranda() 1 * 1 pecka = 1 /* adasdadas*/ af //sdaasddsaad",
             &tempCode);
 
     list sortedList;
@@ -279,7 +292,7 @@ void ScannerHandler() {
     destroyString(&tempCode);
     deleteList(&sortedList);
 }
-
-//int main(int argc, char *argv[]) {
-//    ScannerHandler();
-//}
+/*
+int main(int argc, char *argv[]) {
+    ScannerHandler();
+}*/
