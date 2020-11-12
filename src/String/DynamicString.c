@@ -42,6 +42,16 @@ void concatenate(string* first, string* second, string* back) {
 
 }
 
+void addConstChar (string* s, const char* c) {
+
+    char* newData = malloc(sizeof(char) * (s->len + strlen(c) + 1));
+    strcpy(newData, s->data);
+    strcpy(&newData[s->len], c);
+    makeString(newData, s);
+    free(newData);
+
+}
+
 void insertToString(string* first, string* second, size_t pos, string* back) {
 
     if (pos > first->len) {

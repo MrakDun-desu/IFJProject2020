@@ -45,6 +45,13 @@ void destroyString(string* s);
 void concatenate(string* first, string* second, string* back);
 
 /**
+ * @brief Function that adds const char* to the string.
+ * @param s
+ * @param c
+ */
+void addConstChar(string* s, const char* c);
+
+/**
  * @brief Function that inserts string into the middle of another string based on the position. First, second and back can be all the same string.
  * @param first String into which the other string will be inserted.
  * @param second String that will be inserted into the first string.
