@@ -54,6 +54,13 @@ void concatenate(string* first, string* second, string* back);
 void insertToString(string* first, string* second, size_t pos, string* back);
 
 /**
+ * @brief Functions that appends char at the end of a string
+ * @param s String that will have the char appended
+ * @param c Char that will be appended
+ */
+void addChar(string* s, char c);
+
+/**
  * @brief Function that returns string as all lowercase.
  * @param input String that will be converted.
  * @param back New string that will be same as first, only lowercase.
