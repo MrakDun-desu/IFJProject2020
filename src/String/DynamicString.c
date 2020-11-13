@@ -7,19 +7,22 @@ void initString(string* newString) {
 
 }
 
-void makeString(const char *content, string* back) {
+errorCode makeString(const char *content, string* back) {
 
     if (back->data != NULL) {
         if (back->data == content)
-            return;
+            return OK;
 
         free(back->data);
     }
 
     size_t length = strlen(content);
-    back->data = malloc(sizeof(char) * (length + 1));
-    strcpy(back->data, content);
-    back->len = length;
+    if ((back->data = malloc(sizeof(char) * (length + 1))) != NULL) {
+        strcpy(back->data, content);
+        back->len = length;
+        return OK;
+    }
+    return INTERNAL_ERROR;
 
 }
 
@@ -32,75 +35,97 @@ void destroyString(string* s) {
 
 }
 
-void concatenate(string* first, string* second, string* back) {
+errorCode concatenate(string* first, string* second, string* back) {
 
-    char* newData = malloc(sizeof(char) * (first->len + second->len + 1));
-    strcpy(newData, first->data);
-    strcpy(&newData[first->len], second->data);
-    makeString(newData, back);
-    free(newData);
-
-}
-
-void addConstChar (string* s, const char* c) {
-
-    char* newData = malloc(sizeof(char) * (s->len + strlen(c) + 1));
-    strcpy(newData, s->data);
-    strcpy(&newData[s->len], c);
-    makeString(newData, s);
-    free(newData);
-
-}
-
-void insertToString(string* first, string* second, size_t pos, string* back) {
-
-    if (pos > first->len) {
-        makeString(first->data, back);
-        return;
-    }
-
-    char* newData = malloc(sizeof(char) * (first->len + second->len + 1));
-    if (pos != 0)
+    char* newData;
+    if ((newData = malloc(sizeof(char) * (first->len + second->len + 1))) != NULL) {
         strcpy(newData, first->data);
-
-    strcpy(&newData[pos], second->data);
-    strcpy(&newData[pos+second->len], &first->data[pos]);
-    makeString(newData, back);
-    free(newData);
+        strcpy(&newData[first->len], second->data);
+        errorCode error;
+        error = makeString(newData, back);
+        free(newData);
+        return error;
+    }
+    return INTERNAL_ERROR;
 
 }
 
-void addChar(string* s, char c) {
+errorCode addConstChar (string* s, const char* c) {
+
+    char* newData;
+    if ((newData = malloc(sizeof(char) * (s->len + strlen(c) + 1))) != NULL) {
+        strcpy(newData, s->data);
+        strcpy(&newData[s->len], c);
+        errorCode error;
+        error = makeString(newData, s);
+        free(newData);
+        return error;
+    }
+    return INTERNAL_ERROR;
+
+}
+
+errorCode insertToString(string* first, string* second, size_t pos, string* back) {
+
+    if (pos > first->len)
+        return makeString(first->data, back);
+
+    char* newData;
+    if ((newData = malloc(sizeof(char) * (first->len + second->len + 1))) != NULL) {
+        if (pos != 0)
+            strcpy(newData, first->data);
+
+        strcpy(&newData[pos], second->data);
+        strcpy(&newData[pos + second->len], &first->data[pos]);
+        errorCode error;
+        error = makeString(newData, back);
+        free(newData);
+        return error;
+    }
+    return INTERNAL_ERROR;
+
+}
+
+errorCode addChar(string* s, char c) {
     char pChar[2];
     pChar[0] = c;
     pChar[1] = '\0';
 
     string temp;
     initString(&temp);
-    makeString(pChar, &temp);
+    errorCode error;
+    error = makeString(pChar, &temp);
+    if (error == OK) {
+        error = concatenate(s, &temp, s);
+        destroyString(&temp);
+    }
 
-    concatenate(s, &temp, s);
-
-    destroyString(&temp);
+    return error;
 }
 
-void makeLowercase(string* input, string* back) {
+errorCode makeLowercase(string* input, string* back) {
 
-    makeString(input->data, back);
+    errorCode error = makeString(input->data, back);
 
-    for (size_t i = 0; i < back->len; i++) {
-        if (back->data[i] > 64 && back->data[i] < 91)
-            back->data[i] = back->data[i] + ' ';
+    if (error == OK) {
+        for (size_t i = 0; i < back->len; i++) {
+            if (back->data[i] > 64 && back->data[i] < 91)
+                back->data[i] = back->data[i] + ' ';
+        }
     }
+    return error;
 }
 
-void makeUppercase(string* input, string* back) {
+errorCode makeUppercase(string* input, string* back) {
 
-    makeString(input->data, back);
+    errorCode error = makeString(input->data, back);
 
-    for (size_t i = 0; i < back->len; i++) {
-        if (back->data[i] > 96 && back->data[i] < 123)
-            back->data[i] = back->data[i] - ' ';
+    if (error == OK) {
+        for (size_t i = 0; i < back->len; i++) {
+            if (back->data[i] > 96 && back->data[i] < 123)
+                back->data[i] = back->data[i] - ' ';
+        }
     }
+    return error;
 }
 

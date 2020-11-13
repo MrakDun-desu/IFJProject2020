@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "../Errors.h"
 
 /**
  * @brief Struct for storing strings and their length
@@ -17,7 +18,7 @@ typedef struct String {
 } string;
 
 /**
- * @brief Function that initializes string. Should be ALWAYS called before anything else.
+ * @brief Function that initializes string. Should be ALWAYS called before anything else and only once.
  */
 void initString(string* newString);
 
@@ -26,9 +27,9 @@ void initString(string* newString);
  * Can also be called with already allocated strings to change their content.
  * @param content String literal that should be converted to string.
  * @param back String that will be newly allocated.
- * @return Pointer to string struct.
+ * @return Error code OK if allocation was successful, INTERNAL_ERROR otherwise.
  */
-void makeString(const char* content, string *back);
+errorCode makeString(const char* content, string* back);
 
 /**
  * @brief Function that frees memory which was allocated for string data.
@@ -38,47 +39,59 @@ void destroyString(string* s);
 
 /**
  * @brief Function that appends string to another string and creates new string in the process. First, second and back can be all the same string.
+ * @pre All strings must have had init function used on them.
  * @param first String that will be first in new string.
  * @param second String that will be second in new string.
- * @param back New string that is first succeeded by second.
+ * @param back New string, that is first succeeded by second.
+ * @return Error code OK if reallocation of data was successful, INTERNAL_ERROR otherwise.
  */
-void concatenate(string* first, string* second, string* back);
+errorCode concatenate(string* first, string* second, string* back);
 
 /**
  * @brief Function that adds const char* to the string.
- * @param s
- * @param c
+ * @pre S must have had init function used on it.
+ * @param s String that will have char appended.
+ * @param c Char that will be appended.
+ * @return Error code OK if reallocation of data was successful, INTERNAL_ERROR otherwise.
  */
-void addConstChar(string* s, const char* c);
+errorCode addConstChar(string* s, const char* c);
 
 /**
  * @brief Function that inserts string into the middle of another string based on the position. First, second and back can be all the same string.
+ * @pre All strings must have had init function used on them.
  * @param first String into which the other string will be inserted.
  * @param second String that will be inserted into the first string.
- * @param pos Position in the first string from where the second one will begin. If position is greater than length of first string, empty string will be returned.
+ * @param pos Position in the first string from where the second one will begin. If position is greater than length of first string, back will be only first string.
  * @param back New string that is first pos characters from the first string, then entire second string and then the rest of first string.
+ * @return Error code OK if reallocation of data was successful, INTERNAL_ERROR otherwise.
  */
-void insertToString(string* first, string* second, size_t pos, string* back);
+errorCode insertToString(string* first, string* second, size_t pos, string* back);
 
 /**
- * @brief Functions that appends char at the end of a string
- * @param s String that will have the char appended
- * @param c Char that will be appended
+ * @brief Function that appends char at the end of a string.
+ * @pre S must have had init function used on it.
+ * @param s String that will have the char appended.
+ * @param c Char that will be appended.
+ * @return Error code OK if reallocation of data was successful, INTERNAL_ERROR otherwise.
  */
-void addChar(string* s, char c);
+errorCode addChar(string* s, char c);
 
 /**
  * @brief Function that returns string as all lowercase.
+ * @pre All strings must have had init function used on them.
  * @param input String that will be converted.
  * @param back New string that will be same as first, only lowercase.
+ * @return Error code OK if allocation of data was successful, INTERNAL_ERROR otherwise (only matters if input and back are not the same string).
  */
-void makeLowercase(string* input, string* back);
+errorCode makeLowercase(string* input, string* back);
 
 /**
  * @brief Function that returns string as all uppercase.
+ * @pre All strings must have had init function used on them.
  * @param input String that will be converted.
  * @param back New string that will be same as first, only uppercase.
+ * @return Error code OK if allocation of data was successful, INTERNAL_ERROR otherwise (only matters if input and back are not the same string). 
  */
-void makeUppercase(string* input, string* back);
+errorCode makeUppercase(string* input, string* back);
 
 #endif //SRC_DYNAMICSTRING_H
