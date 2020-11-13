@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include "List.h"
-#include "../String/DynamicString.h"
+#include "DynamicString.h"
 
 
 /**

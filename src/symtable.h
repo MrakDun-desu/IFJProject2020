@@ -5,7 +5,7 @@
 #ifndef SRC_SYMTABLE_H
 #define SRC_SYMTABLE_H
 #include <stdbool.h>
-#include "../String/DynamicString.h"
+#include "DynamicString.h"
 
 typedef enum tDataType {
     UNDEFINED,

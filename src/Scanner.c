@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "List.h"
-#include "../String/DynamicString.h"
+#include "DynamicString.h"
 #include <stdbool.h>
 
 int isIntLit(string *lexem) {
