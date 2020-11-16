@@ -29,8 +29,23 @@ int main() {
 
     printf("%s\n", b.data);
 
+    string c;
+    initString(&c);
+    makeString("This is string c.", &c);
+
+    char this[] = {' ', 'A', 'n', 'd', ' ', 'a', 'l', 's', 'o', ' ', 't', 'h', 'i', 's', '.'};
+
+    addConstChar(&c, " And I can append this to it.");
+
+    printf("%s\n", c.data);
+
+    addConstChar(&c, this);
+
+    printf("%s\n", c.data);
+
     destroyString(&a);
     destroyString(&b);
+    destroyString(&c);
 
     return 0;
 }

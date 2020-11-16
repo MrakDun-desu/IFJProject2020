@@ -1,0 +1,104 @@
+.IFJcode20
+
+JUMP main
+
+LABEL inputi
+    CREATEFRAME
+    DEFVAR TF@ret0
+    DEFVAR TF@ret1
+    MOVE TF@ret1 int@0
+    READ TF@ret0 int
+    DEFVAR TF@type0
+    TYPE TF@type0 TF@ret0
+    JUMPIFEQ inputi_if0level0 TF@type0 string@int
+
+        MOVE TF@ret1 int@1
+
+    LABEL inputi_if0level0
+    RETURN
+
+LABEL factorial
+    CREATEFRAME
+
+    DEFVAR TF@n
+    POPS TF@n
+
+    DEFVAR TF@ret0
+    
+    DEFVAR TF@dec_n
+    SUB TF@dec_n TF@n int@1
+
+    DEFVAR TF@bool0
+    LT TF@bool0 TF@n int@2
+
+    JUMPIFNEQ else0level0 TF@bool0 bool@true
+        MOVE TF@ret0 int@1
+        RETURN
+        JUMP if0level0
+
+    LABEL else0level0
+        DEFVAR TF@tmp
+        PUSHS TF@dec_n
+        PUSHFRAME
+        CALL factorial
+        MOVE LF@tmp TF@ret0
+        POPFRAME
+        MUL TF@ret0 TF@n TF@tmp
+        RETURN
+
+    LABEL if0level0
+
+    RETURN
+
+
+LABEL main
+    CREATEFRAME
+
+    WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu:\032
+    DEFVAR TF@a
+    MOVE TF@a int@0
+
+    DEFVAR TF@err
+    MOVE TF@err int@0
+
+    PUSHFRAME
+    CALL inputi
+    MOVE LF@a TF@ret0
+    MOVE LF@err TF@ret1
+    POPFRAME
+
+    DEFVAR TF@bool0
+    EQ TF@bool0 TF@err int@0
+    JUMPIFNEQ else1level0 TF@bool0 bool@true
+        DEFVAR TF@bool1
+        LT TF@bool1 TF@a int@0
+        JUMPIFNEQ else2level1 TF@bool1 bool@true
+            WRITE string@Faktorial\032nejde\032spocitat!
+            WRITE string@\010
+
+            JUMP if2level1
+
+        LABEL else2level1
+            DEFVAR TF@vysl
+            MOVE TF@vysl int@0
+
+            PUSHS TF@a
+            PUSHFRAME
+            CALL factorial
+            MOVE LF@vysl TF@ret0
+            POPFRAME
+
+            WRITE string@Vysledek\032je\032
+            WRITE TF@vysl
+            WRITE string@\010
+
+        LABEL if2level1
+
+        JUMP if1level0
+
+    LABEL else1level0
+        WRITE string@Chyba\032pri\032nacitani\032celeho\032cisla!\010
+
+    LABEL if1level0
+
+    EXIT int@0

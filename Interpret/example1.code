@@ -1,0 +1,61 @@
+.IFJcode20
+
+JUMP main
+
+LABEL inputi
+    CREATEFRAME
+    DEFVAR TF@ret0
+    DEFVAR TF@ret1
+    MOVE TF@ret1 int@0
+    READ TF@ret0 int
+    DEFVAR TF@type0
+    TYPE TF@type0 TF@ret0
+    JUMPIFEQ inputi_if0level0 TF@type0 string@int
+
+        MOVE TF@ret1 int@1
+
+    LABEL inputi_if0level0
+    RETURN
+
+LABEL main
+    CREATEFRAME
+    WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu:\032
+    DEFVAR TF@a
+    MOVE TF@a int@0
+
+    DEFVAR TF@_
+    PUSHFRAME
+    CALL inputi
+    MOVE LF@a TF@ret0
+    MOVE LF@_ TF@ret1
+    POPFRAME
+
+    DEFVAR TF@bool0
+    LT TF@bool0 TF@a int@0
+
+    JUMPIFNEQ else0level0 TF@bool0 bool@true
+        WRITE string@Faktorial\032nejde\032spocitat!\010
+        JUMP if0level0
+
+    LABEL else0level0
+
+        DEFVAR TF@vysl
+        MOVE TF@vysl int@1
+
+        DEFVAR TF@bool1
+        LABEL for0startlevel1
+        GT TF@bool1 TF@a int@0
+        JUMPIFNEQ for0endlevel1 TF@bool1 bool@true
+
+            MUL TF@vysl TF@vysl TF@a
+            SUB TF@a TF@a int@1
+            JUMP for0startlevel1
+
+        LABEL for0endlevel1
+
+        WRITE string@Vysledek\032je\032
+        WRITE TF@vysl
+        WRITE string@\010
+
+    LABEL if0level0
+    EXIT int@0
