@@ -39,6 +39,11 @@ generator gen; /// generator that all specified functions will use so program st
 #define FUNC_CHR /// TODO
 
 /**
+ * @brief Initializes generator gen and sets all variables to default.
+ */
+void generatorInit();
+
+/**
  * @brief Puts the head of program at start, including the macro functions. Also needs to include jump to main function.
  * @return OK if all allocation has been successful, corresponding error code otherwise.
  */

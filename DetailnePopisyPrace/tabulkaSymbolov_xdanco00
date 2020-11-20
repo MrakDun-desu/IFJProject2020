@@ -1,0 +1,37 @@
+Tabuľka symbolov - struct binárny strom.
+Počas prvého prechodu sa vytvorí globálna tabuľka symbolov, v ktorej
+budú IBA funkcie (keďže globálne premenné nie sú). Pridávať sa bude 
+cez funkciu insertNode. Táto tabuľka sa zmaže až keď skončí celý parser.
+
+Informácie, ktoré sa budú ukladať:
+1. id - názov funkcie. Nemôže sa zhodovať s názvom akejkoľvej dopredu
+    definovanej funkcie/premennej, vrátane predpripravených (hádže sa DEFINITION_ERROR).
+2. types - typy, ktoré funkcia returnuje. Zistia sa z vnútra druhej zátvorky.
+3. parameters - list tokenov, ktorý bude obsahovať vnútro prvej zátvorky.
+    Mali by to byť názvy premenných nasledované dátovým typom a prípadne čiarkou.
+4. defined - nastaví sa automaticky na true, u funkcií sa nerieši.
+5. scope - nastaví sa na 0, u funkcií sa nerieši.
+
+V rámci parsera pri prechodom každou funkciou sa vytvorí jedna menšia
+tabuľka symbolov určená pre premenné danej funkcie. Táto tabuľka symbolov
+sa zmaže keď sa doprekladá daná funkcia.
+
+Informácie, ktoré sa budú ukladať:
+1. id - názov premennej. Nemôže sa zhodovať s dopredu definovanými funkciami ani
+    premennými. Hádže sa DEFINITION_ERROR.
+2. types - u premennej len jeden dátový typ, ktorý má.
+3. parameters - u premennej list ktorý bude mať first NULL, last NULL a size 0.
+4. defined - pri prvej definícii sa nastaví na true. Bude sa riešiť, keď sa nejaká
+    premenná bude definovať v rôznych scopoch v rámci jednej funkcie (ify, fory)
+5. scope - ak sme priamo vo funkcii, nastavíme 0. Za každú úroveň foru/ifu nastavíme
+    o 1 viac. Podľa toho vieme, ktoré premenné máme nastavovať na undefined, keď
+    sa z daného ifu/foru odíde.
+
+Funkcie symtable:
+initTable - použiť iba po vytvorení, proste nastaví pointer na NULL.
+copyNode - nájde node v tabuľke a vráti pointer naňho. Takto sa dá pozerať, čo 
+    v danom node je a zároveň to upravovať (pri redefinícii premennej napríklad)
+insertNode - vloží node do tabuľky, ak ešte neexistuje node s rovnakým menom.
+invalidateNode - iba zmení danému node defined na false (dá sa spraviť aj cez copy)
+deleteTable - zmaže oba podstromy a aj samotný root node tabuľky.
+

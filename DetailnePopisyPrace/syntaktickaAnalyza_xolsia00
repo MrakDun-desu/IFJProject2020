@@ -1,0 +1,51 @@
+Syntaktická analýza - bude prechádzať každý token po tokene, odosielať niektoré časti
+sémantickej analýze na kontrolu, niektoré časti precedenčnej analýze na zostavenie výrazu
+a bude volať generátor na generovanie kódu v cieľovom jazyku.
+
+Bude postupovať rekurzívnym prechodom rôznymi oblasťami kódu.
+
+1. druh oblasti - program. Začína sa package main a obsahuje akékoľvek množstvo funkcií.
+2. druh oblasti - funkcia. Začína sa kľúčovým slovom func a za ním nasleduje identifikátor
+    funkcie, potom prvá zátvorka s definíciami vstupných parametrov a druhá, nepovinná zátvorka
+    s dátovými typmi, ktoré funkcia vracia. Za nimi nasledujú zložené zátvorky, ktoré obsahujú
+    blok funkcie (samotný kód).
+3. druh oblasti - blok kódu. Začína sa a ukončuje sa zloženou zátvorkou. Môže obsahovať 
+    akékoľvek množstvo príkazov alebo ďalších blokov.
+4. druh oblasti - výraz. Môže byť jedna premenná, môže byť jeden literál, alebo môže byť 
+    viac premenných/literálov spojených aritmetickými alebo komparačnými operátormi. 
+    Výrazy treba posielať do precedenčnej analýzy.
+5. druh oblasti - term. Môže byť jedna premenná alebo jeden literál.
+6. druh oblasti - for. Začína sa kľúčovým slovom for a za ním nasledujú 3 výrazy oddelené bodkočiarkami.
+    Potom blok kódu, ktorý sa má vykonávať.
+7. druh oblasti - if. Začína sa kľúčovým slovom if, za ním nasleduje 1 výraz a blok kódu, potom
+    kľúčové slovo else a ďalší blok kódu.
+
+Pred vstupom do programu - vytvoriť globálnu tabuľku symbolov (funkcií) a zavolať funkciu na
+    prvý prechod. Initnúť generátor.
+    
+Pri vstupe do programu - skontrolovať syntax: môže byť len package main a náhodný počet EOL-ov.
+    Zavolať v generátore funkciu generatorStart aby vygenerovala začiatok programu.
+
+Pri vstupe do funkcie - skontrolovať syntax: komplikované, pozerať zadanie a príklady.
+    1. Zavolať v generátore funkciu na vytvorenie začiatku funkcie s argumentom danej funkcie
+    z tabuľky symbolov.
+    2. Vytvoriť lokálnu tabuľku symbolov na ukladanie vnútorných premenných (uložiť do nej aj argumenty).
+    3. Počas funkcie - zavolať funkciu na analyzovanie blokov.
+    4. na konci funkcie - vrátiť sa do funkcie na analýzu programu s odpovedajúcim errorCode (ak všetko v poriadku, OK)
+        a zmazať lokálnu tabuľku symbolov
+
+Pri vstupe do bloku - kontrolovať syntax: osobitné pre každý riadok, pozerať zadanie a príklady.
+    1. identifikovať, čo za druh príkazu sa na danom riadku nachádza (priradenie, definícia, volanie funkcie...)
+    2. skontrolovať syntax daného riadka
+    3. ak je to potrebné, volať funkciu na analýzu výrazov
+    4. ak je na danom riadku príkaz if alebo for, pri vstupe doň najskôr skontrolovať, či má správny začiatok
+        a potom zavolať rekurzívne ďalšiu funkciu na analýzu bloku. Pred každým ifom/forom by sa aj mala meniť úroveň zanorenia.
+    5. na konci bloku - nastaviť všetky premenné, ktoré boli v danom bloku definované, na undefined (použiť funkciu invalidate)
+
+Pri vstupe do výrazu - kontrolovať syntax: výraz by sa mal ukončovať buď čiarkou, alebo bodkočiarkou, alebo {
+    zátvorkou, alebo EOL-om. Medzi začiatkom výrazu a daným ukončovačom môžu byť len termy oddelené aritmetickými/komparačnými operátormi.
+    1. poslať výraz do syntaktickej analýzy celý výraz až po ukončovač s tým, aký typ/typy sa očakáva, že vráti. (u if/for bool, u ostatných
+    nejaký obyčajný dátový typ).
+
+Pozor, pred vstupom do foru/ifu sa tvoria 2 bloky - prvý blok, ktorý obsahuje výrazy hneď za slovom for/if a druhý blok, ktorý je mu
+podradený. Premenné, ktoré sú definované pred { zátvorkou, sú teda o 1 úroveň vyššie ako premenné vnútri.
