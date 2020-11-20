@@ -40,7 +40,7 @@ int isIdent(string *lexem) {
 
 
 //this function will save lexems to list and sets their token values
-int LexemAutomat(list *sortedList, string *lexem) {
+errorCode LexemAutomat(list *sortedList, string *lexem) {
     printf("%s , ", lexem->data);
     if (strcmp(lexem->data, "int") == 0) {
         addToken(sortedList, INT, lexem->data);
@@ -146,7 +146,7 @@ int LexemAutomat(list *sortedList, string *lexem) {
 }
 
 
-int CodeAnalyzer(list *sortedList, string code) {
+errorCode CodeAnalyzer(list *sortedList, string code) {
     printf("Code Analyzer\n");
     char currentChar;
 
@@ -304,7 +304,7 @@ int CodeAnalyzer(list *sortedList, string code) {
 
 //this is "main" function that handles the entire scanner
 
-int ScannerHandler() {
+errorCode ScannerHandler() {
 
     string tempCode; //THIS SHOULD BE CHANGED LATER
     initString(&tempCode);
