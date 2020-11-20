@@ -21,7 +21,8 @@ main(){
 
             fgets( line, 200, in_file );
             makeString(line,&testString);
-            CodeAnalyzer(&testList,testString);
+            if(CodeAnalyzer(&testList,testString) != 0)
+            fprintf(output,"INTERNAL OR LEXICAL ERROR HAS OCCURED\n");
 
         }while(feof(in_file) == 0);
 
@@ -51,7 +52,7 @@ main(){
             break;
             case 8 : fprintf(output,"RETURN : %s\n ",testToken.tokenName.data);
             break;
-            case 9 : fprintf(output,"VAR_ID : %s\n ",testToken.tokenName.data);
+            case 9 : fprintf(output,"IDENT : %s\n ",testToken.tokenName.data);
             break;
             case 10 : fprintf(output,"BRACKET_CURLY : %s\n ",testToken.tokenName.data);
             break;
@@ -71,6 +72,10 @@ main(){
             break;
             case 18 : fprintf(output,"FLOAT_LIT : %s\n ",testToken.tokenName.data);
             break;
+            case 19 : fprintf(output,"SEMICOL : %s\n ",testToken.tokenName.data);
+                break;
+            case 20 : fprintf(output,"COMMA : %s\n ",testToken.tokenName.data);
+                break;
 
         }
 

@@ -4,9 +4,10 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/List.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/Scanner/List.c.o"
-  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/Scanner.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/Scanner/Scanner.c.o"
-  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/String/DynamicString.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/List.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/Scanner.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

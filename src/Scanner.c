@@ -8,26 +8,44 @@
 #include "Scanner.h"
 #include <stdbool.h>
 
+void removeChar(char *s, int c) {
+
+    int j, n = strlen(s);
+    for (int i = j = 0; i < n; i++)
+        if (s[i] != c)
+            s[j++] = s[i];
+
+    s[j] = '\0';
+}
 
 int isIntLit(string *lexem) {
+    if (lexem->len < 1) {
+        return 1;
+    }
     for (int i = 0; i < lexem->len; i++) {
         if (isdigit(lexem->data[i]) == 0)
-            return 0;
+            return 1;
     }
-    return 1;
+
+    return 0;
 }
 
 int isFloatLit(string *lexem) {
+    if (lexem->len < 1) {
+        return 1;
+    }
+
     int dotCount = 0;
     for (int i = 0; i < lexem->len; i++) {
-        if (isdigit(lexem->data[i]) == 0 || lexem->data[i] == '.')
-            if (lexem->data[i] == '.') {
-                dotCount++;
-            }
+        if (isdigit(lexem->data[i]) == 0 && lexem->data[i] != '.') return 1;
+
+        if (lexem->data[i] == '.') {
+            dotCount++;
+        }
         if (dotCount > 1)
-            return 0;
+            return 1;
     }
-    return 1;
+    return 0;
 }
 
 int isIdent(string *lexem) {
@@ -41,7 +59,7 @@ int isIdent(string *lexem) {
 
 //this function will save lexems to list and sets their token values
 errorCode LexemAutomat(list *sortedList, string *lexem) {
-    printf("%s , ", lexem->data);
+
     if (strcmp(lexem->data, "int") == 0) {
         addToken(sortedList, INT, lexem->data);
 
@@ -52,7 +70,7 @@ errorCode LexemAutomat(list *sortedList, string *lexem) {
 
         return 0;
     }
-    if (strcmp(lexem->data, "\n") == 0) {
+    if (strchr(lexem->data, '\n') != NULL) {
         addToken(sortedList, EOL, lexem->data);
 
         return 0;
@@ -102,17 +120,18 @@ errorCode LexemAutomat(list *sortedList, string *lexem) {
 
         return 0;
     }
-    if (lexem->data[0] == '"' && lexem->data[lexem->len] == '"') {
+    if (lexem->data[0] == '"' && lexem->data[lexem->len - 1] == '"') {
+        removeChar(lexem->data, '"');
         addToken(sortedList, STRING_LIT, lexem->data);
 
         return 0;
     }
-    if (isIntLit(lexem) == 1) {
+    if (isIntLit(lexem) == 0) {
         addToken(sortedList, INT_LIT, lexem->data);
 
         return 0;
     }
-    if (isFloatLit(lexem) == 1) {
+    if (isFloatLit(lexem) == 0) {
         addToken(sortedList, FLOAT_LIT, lexem->data);
 
         return 0;
@@ -123,7 +142,7 @@ errorCode LexemAutomat(list *sortedList, string *lexem) {
         return 0;
     }
     if (strcmp(lexem->data, "==") == 0 || strcmp(lexem->data, "<=") == 0 || strcmp(lexem->data, ">=") == 0 ||
-        strcmp(lexem->data, "!=") == 0) {
+        strcmp(lexem->data, "!=") == 0 || strcmp(lexem->data, ">") == 0 || strcmp(lexem->data, "<") == 0) {
         addToken(sortedList, COMP_OPERAtOR, lexem->data);
 
         return 0;
@@ -134,8 +153,18 @@ errorCode LexemAutomat(list *sortedList, string *lexem) {
 
         return 0;
     }
+    if (strcmp(lexem->data, ",") == 0) {
+        addToken(sortedList, COMMA, lexem->data);
+
+        return 0;
+    }
+    if (strcmp(lexem->data, ";") == 0) {
+        addToken(sortedList, SEMICOL, lexem->data);
+
+        return 0;
+    }
     if (isIdent(lexem) == 1) {
-        addToken(sortedList, VAR_ID, lexem->data);
+        addToken(sortedList, IDENT, lexem->data);
 
         return 0;
     }
@@ -147,17 +176,16 @@ errorCode LexemAutomat(list *sortedList, string *lexem) {
 
 
 errorCode CodeAnalyzer(list *sortedList, string code) {
-    printf("Code Analyzer\n");
     char currentChar;
 
     string currentLexem;
     initString(&currentLexem);
-    if (makeString("", &currentLexem) == INTERNAL_ERROR){
+    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
         destroyString(&currentLexem);
         return INTERNAL_ERROR;
     }
 
-    const char operators[] = "<>{}()*/-+.'=;,";
+    const char operators[] = "<>{}()*/-+.'=:";
 
     bool comment = false;
     bool stringLoaded = false;
@@ -193,13 +221,14 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
         if (stringLoaded) {
             if (currentChar == '"') {
+                addChar(&currentLexem, currentChar);
                 stringLoaded = false;
-                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR){
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                     destroyString(&currentLexem);
                     return LEXICAL_ERROR;
                 }
 
-                if (makeString("", &currentLexem) == INTERNAL_ERROR){
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
                     destroyString(&currentLexem);
                     return INTERNAL_ERROR;
                 }
@@ -208,12 +237,24 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
             }
             addChar(&currentLexem, currentChar);
         } else if (isalnum(currentChar) || currentChar == '_' || currentChar == '.') {
-
-            addChar(&currentLexem, currentChar);
+            if (currentChar != '\n')
+                addChar(&currentLexem, currentChar);
 
         } else if (currentChar == '"') {
+            if (currentLexem.len > 0) {
 
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return LEXICAL_ERROR;
+                }
+
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
+            }
             stringLoaded = true;
+            addChar(&currentLexem, currentChar);
             continue;
 
         }
@@ -235,52 +276,81 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
                 if (currentLexem.len >= 1) {
 
-                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR){
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                         destroyString(&currentLexem);
                         return LEXICAL_ERROR;
                     }
 
-                    if (makeString("", &currentLexem) == INTERNAL_ERROR){
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
                         destroyString(&currentLexem);
                         return INTERNAL_ERROR;
                     }
                 }
             }
             if (currentChar == '\n') {
-                if (currentLexem.data != NULL) {
+                if (currentLexem.len >= 1) {
 
-                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR){
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                         destroyString(&currentLexem);
                         return LEXICAL_ERROR;
                     }
 
-                    if (makeString("", &currentLexem) == INTERNAL_ERROR){
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return INTERNAL_ERROR;
+                    }
+                }
+
+                addChar(&currentLexem, currentChar);
+
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return LEXICAL_ERROR;
+                }
+
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
+
+            }
+            if (currentChar == ';' || currentChar == ',') {
+                if (currentLexem.len >= 1) {
+
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return LEXICAL_ERROR;
+                    }
+
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
                         destroyString(&currentLexem);
                         return INTERNAL_ERROR;
                     }
                 }
                 addChar(&currentLexem, currentChar);
 
-                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR){
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                     destroyString(&currentLexem);
                     return LEXICAL_ERROR;
                 }
 
-                if (makeString("", &currentLexem) == INTERNAL_ERROR){
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
                     destroyString(&currentLexem);
                     return INTERNAL_ERROR;
                 }
 
             }
+
+
             if (strchr(operators, currentChar) != NULL || currentChar == EOL) {
 
                 if (currentLexem.len >= 1) {
-                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR){
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                         destroyString(&currentLexem);
                         return LEXICAL_ERROR;
                     }
 
-                    if (makeString("", &currentLexem) == INTERNAL_ERROR){
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
                         destroyString(&currentLexem);
                         return INTERNAL_ERROR;
                     }
@@ -298,7 +368,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                 }
                 if (currentChar == '<' || currentChar == '>') {
                     if (i != code.len) {
-                        if (code.data[++i] == '=') {
+                        if (code.data[i + 1] == '=') {
 
                             addChar(&currentLexem, code.data[i + 1]);
                             i++;
@@ -307,7 +377,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                 }
                 if (currentChar == ':') {
                     if (i != code.len) {
-                        if (code.data[++i] == '=') {
+                        if (code.data[i + 1] == '=') {
 
                             addChar(&currentLexem, code.data[i + 1]);
                             i++;
@@ -315,12 +385,12 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     }
                 }
                 if (currentLexem.len >= 1) {
-                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR){
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                         destroyString(&currentLexem);
                         return LEXICAL_ERROR;
                     }
 
-                    if (makeString("", &currentLexem) == INTERNAL_ERROR){
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
                         destroyString(&currentLexem);
                         return INTERNAL_ERROR;
                     }
@@ -331,12 +401,12 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
     }
 
     if (currentLexem.len >= 1) {
-        if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR){
+        if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
             destroyString(&currentLexem);
             return LEXICAL_ERROR;
         }
 
-        if (makeString("", &currentLexem) == INTERNAL_ERROR){
+        if (makeString("", &currentLexem) == INTERNAL_ERROR) {
             destroyString(&currentLexem);
             return INTERNAL_ERROR;
         }
