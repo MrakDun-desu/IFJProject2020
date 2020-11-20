@@ -11,7 +11,7 @@
  * @brief Handles Scanner
  */
 
-void ScannerHandler();
+errorCode ScannerHandler();
 
 
 /**
@@ -20,14 +20,14 @@ void ScannerHandler();
  * @param code List pointer where code is stored
  */
 
-void CodeAnalyzer(list *sortedList, string code);
+errorCode CodeAnalyzer(list *sortedList, string code);
 
 /**
  * @brief Analyzes lexems and saves them in list
  * @param sortedList List pointer where analyzed lexems are stored
  * @param code List pointer where analyzed lexems are stored
  */
-void LexemAutomat(list* sortedList, string lexem);
+errorCode LexemAutomat(list* sortedList, string *lexem);
 
-void CharConcat(string target, char addition);
+
 
