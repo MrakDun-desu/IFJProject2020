@@ -16,6 +16,20 @@ int isIntLit(string *lexem) {
     return 1;
 }
 
+int isFloatLit(string *lexem) {
+    int dotCount = 0;
+    for (int i = 0; i < lexem->len; i++) {
+        if (isdigit(lexem->data[i]) == 0 || lexem->data[i] == '.')
+            if (lexem->data[i] == '.') {
+                dotCount++;
+            }
+        if (dotCount > 1)
+            return 1;
+        return 0;
+    }
+    return 1;
+}
+
 int isIdent(string *lexem) {
     for (int i = 0; i < lexem->len - 1; i++) {
         if (isalnum(lexem->data[i]) == 0)
@@ -93,20 +107,26 @@ int LexemAutomat(list *sortedList, string *lexem) {
 
         return 0;
     }
-    if (isIntLit(lexem) == 1) {
+    if (isIntLit(&lexem) == 1) {
         addToken(sortedList, INT_LIT, lexem->data);
 
         return 0;
     }
-    if (strcmp(lexem->data, "=") == 0) {
+    if (isFloatLit(&lexem) == 1) {
+        addToken(sortedList, FLOAT_LIT, lexem->data);
+
+        return 0;
+    }
+    if (strcmp(lexem->data, "=") == 0 || strcmp(lexem->data, ":=") == 0) {
         addToken(sortedList, ASIGN_OPERATOR, lexem->data);
 
         return 0;
     }
-    if (strcmp(lexem->data, "==") == 0 || strcmp(lexem->data, "<=") == 0 || strcmp(lexem->data, ">=") == 0) {
+    if (strcmp(lexem->data, "==") == 0 || strcmp(lexem->data, "<=") == 0 || strcmp(lexem->data, ">=") == 0 ||
+        strcmp(lexem->data, "!=") == 0) {
         addToken(sortedList, COMP_OPERAtOR, lexem->data);
 
-         return 0;
+        return 0;
     }
     if (strcmp(lexem->data, "+") == 0 || strcmp(lexem->data, "-") == 0 || strcmp(lexem->data, "*") == 0 ||
         strcmp(lexem->data, "/") == 0) {
@@ -132,11 +152,12 @@ int CodeAnalyzer(list *sortedList, string code) {
 
     string currentLexem;
     initString(&currentLexem);
-    if(makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+    if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
 
-    const char operators[] = "<>{}()*/-+.'=";
+    const char operators[] = "<>{}()*/-+.'=;,";
 
     bool comment = false;
+    bool stringLoaded = false;
     bool lineComment = false;
 
 
@@ -144,7 +165,6 @@ int CodeAnalyzer(list *sortedList, string code) {
     for (int i = 0; i < code.len; i++) {
 
         currentChar = code.data[i];
-
 
 
         if (comment == true) {
@@ -168,9 +188,24 @@ int CodeAnalyzer(list *sortedList, string code) {
             continue;
         }
 
-        else if (isalnum(currentChar) || currentChar == '_') {
+        if (stringLoaded) {
+            if (currentChar == '"') {
+                stringLoaded = false;
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
+
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+
+                continue;
+            }
+            addChar(&currentLexem, currentChar);
+        } else if (isalnum(currentChar) || currentChar == '_' || currentChar == '.') {
 
             addChar(&currentLexem, currentChar);
+
+        } else if (currentChar == '"') {
+
+            stringLoaded = true;
+            continue;
 
         }
             //this will check for comments, spaces and special symbols and will end the word
@@ -191,31 +226,31 @@ int CodeAnalyzer(list *sortedList, string code) {
 
                 if (currentLexem.len >= 1) {
 
-                    if(LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
 
-                    if(makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
                 }
             }
             if (currentChar == '\n') {
-                    if (currentLexem.data != NULL) {
+                if (currentLexem.data != NULL) {
 
-                        if(LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
 
-                        if(makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
-                    }
-                    addChar(&currentLexem, currentChar);
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+                }
+                addChar(&currentLexem, currentChar);
 
-                if(LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
 
-                if(makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
 
             }
             if (strchr(operators, currentChar) != NULL || currentChar == EOL) {
 
                 if (currentLexem.len >= 1) {
-                    if(LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
 
-                    if(makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
                 }
 
                 addChar(&currentLexem, currentChar);
@@ -237,11 +272,19 @@ int CodeAnalyzer(list *sortedList, string code) {
                         }
                     }
                 }
+                if (currentChar == ':') {
+                    if (i != code.len) {
+                        if (code.data[++i] == '=') {
 
+                            addChar(&currentLexem, code.data[i + 1]);
+                            i++;
+                        }
+                    }
+                }
                 if (currentLexem.len >= 1) {
-                    if(LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
 
-                    if(makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
                 }
             }
         }
@@ -249,9 +292,9 @@ int CodeAnalyzer(list *sortedList, string code) {
     }
 
     if (currentLexem.len >= 1) {
-        if(LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
+        if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) return LEXICAL_ERROR;
 
-        if(makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
+        if (makeString("", &currentLexem) == INTERNAL_ERROR) return INTERNAL_ERROR;
     }
 
 
