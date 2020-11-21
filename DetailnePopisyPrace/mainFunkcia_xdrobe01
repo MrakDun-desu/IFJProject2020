@@ -1,0 +1,2 @@
+Main funkcia - bude načítať súbor na preklad, posielať ho do scannera a výsledok do parsera.
+Ak parser alebo scanner vrátia chybu, ukončí program s daným error kódom.

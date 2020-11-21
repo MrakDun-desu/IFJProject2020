@@ -19,7 +19,7 @@ typedef enum tDataType {
 typedef struct tData {
     dataType* type; /// can be more values since functions can return more than one value
     bool defined; /// true if variable has been defined
-    list params; /// list of parameters (send from token list directly)
+    list* params; /// list of parameters (send from token list directly)
     string id; /// identifier of function / variable
     size_t scope; /// represents level of variable. If declared directly in a function, 0. For each if or for, add one.
 } data;

@@ -1,0 +1,20 @@
+Prvý prechod - syntakticky zanalyzuje hlavičky funkcií a vloží ich do tabuľky symbolov.
+
+1. najskôr pridá do tabuľky symbolov vstavané funkcie, ktoré sú definované v zadaní projektu.
+2. bude prechádzať listom tokenov, kým nepríde k tokenu typu func.
+3. nasledovať by mala postupnosť:
+    identifikátor "(" {ID TYPE}max1 {COMMA ID TYPE}* ")".
+    Ak je ešte ďalšia zátvorka, v nej by mali byť len dátové typy oddelené čiarkami.
+    Takisto treba kontrolovat EOLy
+    Ak sa niečo nezhoduje, treba hodiť syntaktickú chybu.
+4. Ak je všetko v poriadku, treba pridať do tabuľky symbolov funkciu.
+    dataType* - obsah poslednej zátvorky, stačí len switchom zistiť, aké typy tam sú a pridať ich do poľa.
+        Ak je prázdna alebo vôbec nie je, tak dať NULL.
+    defined - nastaviť na true
+    params - "vystrihnúť" z celého token listu iba obsah prvej zátvorky a dať ho sem
+    id - poslať tam char identifikátoru funkcie
+    scope - nastaviť na 0, u funkcií sa nerieši
+
+Potom ako sa vykonajú všetky kroky, ďalej pokračovať v liste tokenov až sa nenarazí na ďalší token func.
+
+Ak je identifikátor main, tak sa nič nerieši, lebo main v tabuľke symbolov byť nemusí.
