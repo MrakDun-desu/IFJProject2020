@@ -9,7 +9,8 @@ typedef enum tErrorCode {
     DATATYPE_ERROR,
     TYPE_COMPATIBILITY_ERROR,
     PARAMETER_ERROR,
-    SEMANTIC_ERROR = 9,
+    SEMANTIC_ERROR,
+    ZERO_DIVISION_ERROR = 9,
     INTERNAL_ERROR = 99
     } errorCode;
 
