@@ -5,15 +5,47 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "List.h"
-#include "DynamicString.h"
+#include "Scanner.h"
 #include <stdbool.h>
 
+void removeChar(char *s, int c) {
+
+    int j, n = strlen(s);
+    for (int i = j = 0; i < n; i++)
+        if (s[i] != c)
+            s[j++] = s[i];
+
+    s[j] = '\0';
+}
+
 int isIntLit(string *lexem) {
+    if (lexem->len < 1) {
+        return 1;
+    }
     for (int i = 0; i < lexem->len; i++) {
         if (isdigit(lexem->data[i]) == 0)
-            return 0;
+            return 1;
     }
-    return 1;
+
+    return 0;
+}
+
+int isFloatLit(string *lexem) {
+    if (lexem->len < 1) {
+        return 1;
+    }
+
+    int dotCount = 0;
+    for (int i = 0; i < lexem->len; i++) {
+        if (isdigit(lexem->data[i]) == 0 && lexem->data[i] != '.') return 1;
+
+        if (lexem->data[i] == '.') {
+            dotCount++;
+        }
+        if (dotCount > 1)
+            return 1;
+    }
+    return 0;
 }
 
 int isIdent(string *lexem) {
@@ -26,117 +58,137 @@ int isIdent(string *lexem) {
 
 
 //this function will save lexems to list and sets their token values
-void LexemAutomat(list *sortedList, string *lexem) {
-    printf("%s , ", lexem->data);
+errorCode LexemAutomat(list *sortedList, string *lexem) {
+
     if (strcmp(lexem->data, "int") == 0) {
         addToken(sortedList, INT, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "float64") == 0) {
         addToken(sortedList, FLOAT, lexem->data);
 
-        return;
+        return 0;
+    }
+    if (strchr(lexem->data, '\n') != NULL) {
+        addToken(sortedList, EOL, lexem->data);
+
+        return 0;
     }
     if (strcmp(lexem->data, "string") == 0) {
         addToken(sortedList, STRING, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "if") == 0) {
         addToken(sortedList, IF, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "else") == 0) {
         addToken(sortedList, ELSE, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "for") == 0) {
         addToken(sortedList, FOR, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "package") == 0) {
         addToken(sortedList, PACKAGE, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "return") == 0) {
         addToken(sortedList, RETURN, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "func") == 0) {
         addToken(sortedList, FUNC, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "{") == 0 || strcmp(lexem->data, "}") == 0) {
         addToken(sortedList, BRACKET_CURLY, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "(") == 0 || strcmp(lexem->data, ")") == 0) {
         addToken(sortedList, BRACKET_ROUND, lexem->data);
 
-        return;
+        return 0;
     }
-    if (lexem->data[0] == '\0' && lexem->len == 1) {
-        addToken(sortedList, EOL, lexem->data);
-
-        return;
-    }
-    if (lexem->data[0] == '"' && lexem->data[lexem->len] == '"') {
+    if (lexem->data[0] == '"' && lexem->data[lexem->len - 1] == '"') {
+        removeChar(lexem->data, '"');
         addToken(sortedList, STRING_LIT, lexem->data);
 
-        return;
+        return 0;
     }
-    if (isIntLit(lexem) == 1) {
+    if (isIntLit(lexem) == 0) {
         addToken(sortedList, INT_LIT, lexem->data);
 
-        return;
+        return 0;
     }
-    if (strcmp(lexem->data, "=") == 0) {
+    if (isFloatLit(lexem) == 0) {
+        addToken(sortedList, FLOAT_LIT, lexem->data);
+
+        return 0;
+    }
+    if (strcmp(lexem->data, "=") == 0 || strcmp(lexem->data, ":=") == 0) {
         addToken(sortedList, ASIGN_OPERATOR, lexem->data);
 
-        return;
+        return 0;
     }
-    if (strcmp(lexem->data, "==") == 0 || strcmp(lexem->data, "<=") == 0 || strcmp(lexem->data, ">=") == 0) {
+    if (strcmp(lexem->data, "==") == 0 || strcmp(lexem->data, "<=") == 0 || strcmp(lexem->data, ">=") == 0 ||
+        strcmp(lexem->data, "!=") == 0 || strcmp(lexem->data, ">") == 0 || strcmp(lexem->data, "<") == 0) {
         addToken(sortedList, COMP_OPERAtOR, lexem->data);
 
-        return;
+        return 0;
     }
     if (strcmp(lexem->data, "+") == 0 || strcmp(lexem->data, "-") == 0 || strcmp(lexem->data, "*") == 0 ||
         strcmp(lexem->data, "/") == 0) {
         addToken(sortedList, ARIT_OPERATOR, lexem->data);
 
-        return;
+        return 0;
+    }
+    if (strcmp(lexem->data, ",") == 0) {
+        addToken(sortedList, COMMA, lexem->data);
+
+        return 0;
+    }
+    if (strcmp(lexem->data, ";") == 0) {
+        addToken(sortedList, SEMICOL, lexem->data);
+
+        return 0;
     }
     if (isIdent(lexem) == 1) {
-        addToken(sortedList, VAR_ID, lexem->data);
+        addToken(sortedList, IDENT, lexem->data);
 
-        return;
+        return 0;
     }
 
-    //CALL ERROR
+    return LEXICAL_ERROR;
 
 
 }
 
 
-void CodeAnalyzer(list *sortedList, string code) {
-    printf("Code Analyzer\n");
+errorCode CodeAnalyzer(list *sortedList, string code) {
     char currentChar;
 
     string currentLexem;
     initString(&currentLexem);
-    makeString("", &currentLexem);
+    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+        destroyString(&currentLexem);
+        return INTERNAL_ERROR;
+    }
 
-    const char operators[] = "<>{}()*/-+.'=";
+    const char operators[] = "<>{}()*/-+.'=:";
 
     bool comment = false;
+    bool stringLoaded = false;
     bool lineComment = false;
 
 
@@ -146,9 +198,8 @@ void CodeAnalyzer(list *sortedList, string code) {
         currentChar = code.data[i];
 
 
-        //comment skip
         if (comment == true) {
-            //printf("Comment\n");
+
             if (lineComment) {
                 if (currentChar == '\n') {
                     lineComment = false;
@@ -167,10 +218,44 @@ void CodeAnalyzer(list *sortedList, string code) {
             }
             continue;
         }
-            //check for identificator, literals
-        else if (isalnum(currentChar) || currentChar == '_') {
-            //printf("pismeno/cislo\n");
+
+        if (stringLoaded) {
+            if (currentChar == '"') {
+                addChar(&currentLexem, currentChar);
+                stringLoaded = false;
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return LEXICAL_ERROR;
+                }
+
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
+
+                continue;
+            }
             addChar(&currentLexem, currentChar);
+        } else if (isalnum(currentChar) || currentChar == '_' || currentChar == '.') {
+            if (currentChar != '\n')
+                addChar(&currentLexem, currentChar);
+
+        } else if (currentChar == '"') {
+            if (currentLexem.len > 0) {
+
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return LEXICAL_ERROR;
+                }
+
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
+            }
+            stringLoaded = true;
+            addChar(&currentLexem, currentChar);
+            continue;
 
         }
             //this will check for comments, spaces and special symbols and will end the word
@@ -188,20 +273,87 @@ void CodeAnalyzer(list *sortedList, string code) {
                 }
             }
             if (currentChar == ' ' && currentLexem.data != NULL) {
-                // printf("space\n");
+
                 if (currentLexem.len >= 1) {
 
-                    LexemAutomat(sortedList, &currentLexem);
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return LEXICAL_ERROR;
+                    }
 
-                    makeString("", &currentLexem);
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return INTERNAL_ERROR;
+                    }
                 }
             }
-            if (strchr(operators, currentChar) != NULL || currentChar == EOL) {
-                //printf("else\n");
+            if (currentChar == '\n') {
                 if (currentLexem.len >= 1) {
-                    LexemAutomat(sortedList, &currentLexem);
 
-                    makeString("", &currentLexem);
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return LEXICAL_ERROR;
+                    }
+
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return INTERNAL_ERROR;
+                    }
+                }
+
+                addChar(&currentLexem, currentChar);
+
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return LEXICAL_ERROR;
+                }
+
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
+
+            }
+            if (currentChar == ';' || currentChar == ',') {
+                if (currentLexem.len >= 1) {
+
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return LEXICAL_ERROR;
+                    }
+
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return INTERNAL_ERROR;
+                    }
+                }
+                addChar(&currentLexem, currentChar);
+
+                if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return LEXICAL_ERROR;
+                }
+
+                if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
+
+            }
+
+
+            if (strchr(operators, currentChar) != NULL || currentChar == EOL) {
+
+                if (currentLexem.len >= 1) {
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return LEXICAL_ERROR;
+                    }
+
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return INTERNAL_ERROR;
+                    }
                 }
 
                 addChar(&currentLexem, currentChar);
@@ -216,18 +368,32 @@ void CodeAnalyzer(list *sortedList, string code) {
                 }
                 if (currentChar == '<' || currentChar == '>') {
                     if (i != code.len) {
-                        if (code.data[++i] == '=') {
+                        if (code.data[i + 1] == '=') {
 
                             addChar(&currentLexem, code.data[i + 1]);
                             i++;
                         }
                     }
                 }
+                if (currentChar == ':') {
+                    if (i != code.len) {
+                        if (code.data[i + 1] == '=') {
 
+                            addChar(&currentLexem, code.data[i + 1]);
+                            i++;
+                        }
+                    }
+                }
                 if (currentLexem.len >= 1) {
-                    LexemAutomat(sortedList, &currentLexem);
+                    if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return LEXICAL_ERROR;
+                    }
 
-                    makeString("", &currentLexem);
+                    if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+                        destroyString(&currentLexem);
+                        return INTERNAL_ERROR;
+                    }
                 }
             }
         }
@@ -235,30 +401,31 @@ void CodeAnalyzer(list *sortedList, string code) {
     }
 
     if (currentLexem.len >= 1) {
-        LexemAutomat(sortedList, &currentLexem);
+        if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
+            destroyString(&currentLexem);
+            return LEXICAL_ERROR;
+        }
 
-        makeString("", &currentLexem);
+        if (makeString("", &currentLexem) == INTERNAL_ERROR) {
+            destroyString(&currentLexem);
+            return INTERNAL_ERROR;
+        }
     }
 
 
     destroyString(&currentLexem);
+    return 0;
 }
-
-// YOU HAVE TO APPEND . AND TWO NUMBERS NEXT TO IT
-// ALSO IF + / - IS BEFORE A NUMBER AND THERE IS NO NUMBER BEFORE IT APPEND THAT TOO
-// ALSO APPEND LITERALS BETWEEN "" or ''
-
-
 
 
 //this is "main" function that handles the entire scanner
 
-void ScannerHandler() {
+errorCode ScannerHandler() {
 
     string tempCode; //THIS SHOULD BE CHANGED LATER
     initString(&tempCode);
     makeString(
-            "if(Jakub location == doma){ } else{ Jakub smrdi while corona true} sranda() 1 * 1 pecka = 1 /* adasdadas*/ af //sdaasddsaad",
+            "if(Jakub location == doma){ \n } \n else{ \n Jakub smrdi while corona true} sranda() 1 * 1 pecka = 1 /* adasdadas*/ af //sdaasddsaad",
             &tempCode);
 
     list sortedList;
@@ -266,8 +433,10 @@ void ScannerHandler() {
 
 
     //tempCode is input static representation
-    CodeAnalyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
+    errorCode returnErrorCode;
+    returnErrorCode = CodeAnalyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
 
+    /*
     token tempToken;
     printf("\nTOKEN TYPES: \n");
     for (int i = 0; i < sortedList.size; i++) {
@@ -275,11 +444,15 @@ void ScannerHandler() {
         printf("%s ", tempToken.tokenName);
         printf("%d | ", tempToken.tokenType);
     }
-
+*/
     destroyString(&tempCode);
     deleteList(&sortedList);
-}
 
-int main(int argc, char *argv[]) {
-    ScannerHandler();
+    return returnErrorCode;
+
+
 }
+/*
+int main(int argc, char *argv[]) {
+    return ScannerHandler();
+}*/

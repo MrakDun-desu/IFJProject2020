@@ -1,7 +1,8 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/IFJProject2020.dir/src/Scanner/List.c.o"
-  "CMakeFiles/IFJProject2020.dir/src/Scanner/Scanner.c.o"
-  "CMakeFiles/IFJProject2020.dir/src/String/DynamicString.c.o"
+  "CMakeFiles/IFJProject2020.dir/src/List.c.o"
+  "CMakeFiles/IFJProject2020.dir/src/Scanner.c.o"
+  "CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o"
+  "CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o"
   "IFJProject2020.pdb"
   "IFJProject2020"
 )

@@ -82,22 +82,25 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/List.c">
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.c">
 			<Option target="IFJProject2020"/>
 		</Unit>
-		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/List.h">
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.h">
 			<Option target="IFJProject2020"/>
 		</Unit>
-		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/Scanner.c">
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.c">
 			<Option target="IFJProject2020"/>
 		</Unit>
-		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner/Scanner.h">
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.h">
 			<Option target="IFJProject2020"/>
 		</Unit>
-		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.c">
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.c">
 			<Option target="IFJProject2020"/>
 		</Unit>
-		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/String/DynamicString.h">
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.h">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c">
 			<Option target="IFJProject2020"/>
 		</Unit>
 		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/CMakeLists.txt">
