@@ -123,86 +123,113 @@ IFJProject2020/fast:
 	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/build
 .PHONY : IFJProject2020/fast
 
-src/Scanner/List.o: src/Scanner/List.c.o
+src/DynamicString.o: src/DynamicString.c.o
 
-.PHONY : src/Scanner/List.o
-
-# target to build an object file
-src/Scanner/List.c.o:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner/List.c.o
-.PHONY : src/Scanner/List.c.o
-
-src/Scanner/List.i: src/Scanner/List.c.i
-
-.PHONY : src/Scanner/List.i
-
-# target to preprocess a source file
-src/Scanner/List.c.i:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner/List.c.i
-.PHONY : src/Scanner/List.c.i
-
-src/Scanner/List.s: src/Scanner/List.c.s
-
-.PHONY : src/Scanner/List.s
-
-# target to generate assembly for a file
-src/Scanner/List.c.s:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner/List.c.s
-.PHONY : src/Scanner/List.c.s
-
-src/Scanner/Scanner.o: src/Scanner/Scanner.c.o
-
-.PHONY : src/Scanner/Scanner.o
+.PHONY : src/DynamicString.o
 
 # target to build an object file
-src/Scanner/Scanner.c.o:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner/Scanner.c.o
-.PHONY : src/Scanner/Scanner.c.o
+src/DynamicString.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o
+.PHONY : src/DynamicString.c.o
 
-src/Scanner/Scanner.i: src/Scanner/Scanner.c.i
+src/DynamicString.i: src/DynamicString.c.i
 
-.PHONY : src/Scanner/Scanner.i
+.PHONY : src/DynamicString.i
 
 # target to preprocess a source file
-src/Scanner/Scanner.c.i:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner/Scanner.c.i
-.PHONY : src/Scanner/Scanner.c.i
+src/DynamicString.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/DynamicString.c.i
+.PHONY : src/DynamicString.c.i
 
-src/Scanner/Scanner.s: src/Scanner/Scanner.c.s
+src/DynamicString.s: src/DynamicString.c.s
 
-.PHONY : src/Scanner/Scanner.s
+.PHONY : src/DynamicString.s
 
 # target to generate assembly for a file
-src/Scanner/Scanner.c.s:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner/Scanner.c.s
-.PHONY : src/Scanner/Scanner.c.s
+src/DynamicString.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/DynamicString.c.s
+.PHONY : src/DynamicString.c.s
 
-src/String/DynamicString.o: src/String/DynamicString.c.o
+src/List.o: src/List.c.o
 
-.PHONY : src/String/DynamicString.o
+.PHONY : src/List.o
 
 # target to build an object file
-src/String/DynamicString.c.o:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/String/DynamicString.c.o
-.PHONY : src/String/DynamicString.c.o
+src/List.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/List.c.o
+.PHONY : src/List.c.o
 
-src/String/DynamicString.i: src/String/DynamicString.c.i
+src/List.i: src/List.c.i
 
-.PHONY : src/String/DynamicString.i
+.PHONY : src/List.i
 
 # target to preprocess a source file
-src/String/DynamicString.c.i:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/String/DynamicString.c.i
-.PHONY : src/String/DynamicString.c.i
+src/List.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/List.c.i
+.PHONY : src/List.c.i
 
-src/String/DynamicString.s: src/String/DynamicString.c.s
+src/List.s: src/List.c.s
 
-.PHONY : src/String/DynamicString.s
+.PHONY : src/List.s
 
 # target to generate assembly for a file
-src/String/DynamicString.c.s:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/String/DynamicString.c.s
-.PHONY : src/String/DynamicString.c.s
+src/List.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/List.c.s
+.PHONY : src/List.c.s
+
+src/Scanner.o: src/Scanner.c.o
+
+.PHONY : src/Scanner.o
+
+# target to build an object file
+src/Scanner.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner.c.o
+.PHONY : src/Scanner.c.o
+
+src/Scanner.i: src/Scanner.c.i
+
+.PHONY : src/Scanner.i
+
+# target to preprocess a source file
+src/Scanner.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner.c.i
+.PHONY : src/Scanner.c.i
+
+src/Scanner.s: src/Scanner.c.s
+
+.PHONY : src/Scanner.s
+
+# target to generate assembly for a file
+src/Scanner.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner.c.s
+.PHONY : src/Scanner.c.s
+
+src/ScannerTest.o: src/ScannerTest.c.o
+
+.PHONY : src/ScannerTest.o
+
+# target to build an object file
+src/ScannerTest.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o
+.PHONY : src/ScannerTest.c.o
+
+src/ScannerTest.i: src/ScannerTest.c.i
+
+.PHONY : src/ScannerTest.i
+
+# target to preprocess a source file
+src/ScannerTest.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.i
+.PHONY : src/ScannerTest.c.i
+
+src/ScannerTest.s: src/ScannerTest.c.s
+
+.PHONY : src/ScannerTest.s
+
+# target to generate assembly for a file
+src/ScannerTest.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.s
+.PHONY : src/ScannerTest.c.s
 
 # Help Target
 help:
@@ -213,15 +240,18 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... IFJProject2020"
 	@echo "... edit_cache"
-	@echo "... src/Scanner/List.o"
-	@echo "... src/Scanner/List.i"
-	@echo "... src/Scanner/List.s"
-	@echo "... src/Scanner/Scanner.o"
-	@echo "... src/Scanner/Scanner.i"
-	@echo "... src/Scanner/Scanner.s"
-	@echo "... src/String/DynamicString.o"
-	@echo "... src/String/DynamicString.i"
-	@echo "... src/String/DynamicString.s"
+	@echo "... src/DynamicString.o"
+	@echo "... src/DynamicString.i"
+	@echo "... src/DynamicString.s"
+	@echo "... src/List.o"
+	@echo "... src/List.i"
+	@echo "... src/List.s"
+	@echo "... src/Scanner.o"
+	@echo "... src/Scanner.i"
+	@echo "... src/Scanner.s"
+	@echo "... src/ScannerTest.o"
+	@echo "... src/ScannerTest.i"
+	@echo "... src/ScannerTest.s"
 .PHONY : help
 
 

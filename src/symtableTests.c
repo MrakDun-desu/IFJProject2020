@@ -27,14 +27,14 @@ int main() {
 
     list tokenList;
     initList(&tokenList);
-    addToken(&tokenList, VAR_ID, "a");
+    addToken(&tokenList, IDENT, "a");
     addToken(&tokenList, INT, "int");
     dataType types[] = {TYPE_INT, TYPE_STRING};
     insertNode(&symtable, "myFunc", types, &tokenList, 0);
 
     list tokenList2;
     initList(&tokenList2);
-    addToken(&tokenList2, VAR_ID, "b");
+    addToken(&tokenList2, IDENT, "b");
     addToken(&tokenList2, FLOAT, "float64");
     dataType types2[] = {TYPE_INT, TYPE_STRING};
     insertNode(&symtable, "a", types2, &tokenList2, 0);

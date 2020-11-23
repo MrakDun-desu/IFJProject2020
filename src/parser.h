@@ -31,6 +31,6 @@ errorCode fillSymtable(tableNodePtr globalTable, list* tokenList); /// xfudor00
  * @param tokenList Token list that is to be parsed.
  * @return Returns code OK if parsing and translation was successful, returns nonzero corresponding error code otherwise.
  */
-errorCode parse(list* tokenList); /// xolsia00
+errorCode parse(list* tokenList, string* code); /// xolsia00
 
 #endif //SRC_PARSER_H
