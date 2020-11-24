@@ -10,8 +10,11 @@
 #include "generator.h"
 #include "List.h"
 
+size_t scope = 0;
+
 /**
- * @brief Semantic analyser. Checks if tokenList has same datatype returns as types and if it has same count.
+ * @brief Semantic analyser. Takes individual lines and checks for semantic errors. Adds variables to local symtable if needed.
+ * @pre If command contains an expression with EOL-s, EOL-s should be removed before sending here.
  * @param tokenList List of tokens that is to be analysed (Always the whole line).
  * @param globalTable Global table of symbols (functions).
  * @param localTable Local table of symbols (variables).

@@ -57,7 +57,7 @@ errorCode insertNode(tableNodePtr* root, char* id, dataType* types, list* parame
  * @param root Root node of the table.
  * @param id Identifier of a variable/function that is to be invalidated.
  */
-void invalidateNode(tableNodePtr* root, char* id);
+void invalidateScope(tableNodePtr* root, size_t scope);
 
 /** @brief Frees all the nodes in table correctly and sets it to NULL. Also deletes all parameter lists and id strings.
  * @param root Root node of the table.
