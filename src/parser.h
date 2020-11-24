@@ -9,6 +9,7 @@
 #include "expression.h"
 #include "generator.h"
 #include "List.h"
+#include "Errors.h"
 
 /**
  * @brief Syntax analyser. Checks if tokenList has same datatype returns as types and if it has same count.
