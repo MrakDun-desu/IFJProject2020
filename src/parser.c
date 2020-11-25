@@ -256,22 +256,68 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
 
             // ------------------------------ Checking definition semantics ------------------------------ //
 
+            bool wasAssign = false;
             for (token *tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
+                if (tok->tokenType == ASIGN_OPERATOR) wasAssign = true;
                 if (equalStrings(tok->nextToken->tokenName.data,
                                  ":=")) { // if this is the definition command, create new entry in symtable
                     data *thisSymbol;
-                    if (copyNode(&globalTable, tok->tokenName.data) !=
-                        NULL) // if this symbol has same name as a function, return definition error
-                        return DEFINITION_ERROR;
-                    if ((thisSymbol = copyNode(&localTable, tok->tokenName.data)) !=
-                        NULL) { // if this symbol has same name as variable
-                        // look at the level of scope we are currently in
-                        if (scope >
-                            thisSymbol->scope) {  // if current scope is more nested, then we can override the variable
-                        } else return
+                    if (equalStrings(tok->tokenName.data, "_")) return DEFINITION_ERROR;
+
+                    thisSymbol = copyNode(&localTable, tok->tokenName.data);
+                    bool isNull = thisSymbol == NULL;
+                        if (isNull || scope > thisSymbol->scope || !thisSymbol->defined) {
+                            dataType* newType = malloc(sizeof(dataType));
+                            for (token* nextTok = tok->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
+                                // with this cycle, we decide which datatype the variable should be
+                                if (nextTok->tokenType == IDENT) {
+                                    data* var = copyNode(&localTable, nextTok->tokenName.data);
+                                    if (var == NULL) {
+                                        free(newType);
+                                        return DEFINITION_ERROR;
+                                    }
+                                    switch (var->types[0]) {
+                                        case TYPE_INT:
+                                            newType[0] = TYPE_INT;
+                                            break;
+                                        case TYPE_FLOAT:
+                                            newType[0] = TYPE_FLOAT;
+                                            break;
+                                        case TYPE_STRING:
+                                            newType[0] = TYPE_STRING;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    break;
+                                }
+                                else if (nextTok->tokenType == INT_LIT) {
+                                    newType[0] = TYPE_INT;
+                                    break;
+                                }
+                                else if (nextTok->tokenType == STRING_LIT) {
+                                    newType[0] = TYPE_STRING;
+                                    break;
+                                }
+                                else if (nextTok->tokenType == FLOAT_LIT) {
+                                    newType[0] = TYPE_FLOAT;
+                                    break;
+                                }
+                            }
+
+                            if (isNull || thisSymbol->defined)
+                                insertNode(&localTable, tok->tokenName.data, newType, NULL, scope);
+                                // scope won't be overwritten, since variable already is in there
+                            else {
+                                thisSymbol->defined = true;
+                                thisSymbol->types = newType;
+                                thisSymbol->scope = scope; // scope will be overwritten, since we are defining it again
+                            }
+                        }
+                        else return DEFINITION_ERROR;
                     }
-                }
-                if (tok->tokenType == IDENT && !equalStrings(tok->tokenName.data, "_")) {
+
+                else if (tok->tokenType == IDENT && (!equalStrings(tok->tokenName.data, "_") || wasAssign)) {
                     if (copyNode(&globalTable, tok->tokenName.data) == NULL &&
                         copyNode(&localTable, tok->tokenName.data) == NULL)
                         return DEFINITION_ERROR;
@@ -280,7 +326,44 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
 
             // ------------------------------ Checking return semantics ------------------------------ //
 
-            if (tokenList->first->tokenType == RETURN) {
+            if (tokenList->first->tokenType == RETURN) { // if we are returning from the function
+                size_t commaCounter = 0; // for knowing which return value are we checking
+                size_t typeCount = 0; // for knowing how much types we have to control
+                dataType* types = function->types;
+                for (dataType type = types[0]; type != TYPE_UNDEFINED; type = types[typeCount++]);
+                for (token* tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
+                    if (tok->tokenType == COMMA) { // if we are at a coma, just increase the counter
+                        commaCounter++;
+                        if (commaCounter >= typeCount) return PARAMETER_ERROR;
+                    }
+                    else {
+
+                        // return expressions must have the same data types as all variables/literals in expressions
+
+                        if (types[commaCounter] == TYPE_INT) {
+                            if (tok->tokenType != INT_LIT) { // if it's correct literal, we don't have to check
+                                if (!checkDatatype(TYPE_INT, tok, localTable))
+                                    return PARAMETER_ERROR;
+                            }
+                        }
+                        else if (types[commaCounter] == TYPE_STRING) {
+                            if (tok->tokenType != STRING_LIT) {
+                                if (!checkDatatype(TYPE_STRING, tok, localTable))
+                                    return PARAMETER_ERROR;
+                            }
+                        }
+                        else if (types[commaCounter] == TYPE_FLOAT) {
+                            if (tok->tokenType != FLOAT_LIT) {
+                                if (!checkDatatype(TYPE_FLOAT, tok, localTable))
+                                    return PARAMETER_ERROR;
+                            }
+                        }
+                    }
+                }
+
+                if (commaCounter != typeCount - 1) return PARAMETER_ERROR;
+                // if there wasn't same count of different expressions as return types, return error
+
             }
 
             // ------------------------------ Checking assign semantics ------------------------------ //
