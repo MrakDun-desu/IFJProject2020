@@ -38,13 +38,14 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
     // ------------------------------ Checking datatype compatibility and zero division ------------------------------ //
 
     if (tokenList != NULL) {
+        size_t i = 0;
         for (token* tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
             if (tok->nextToken != NULL) { // first check if there is next token
                 token* operator = tok->nextToken;
                 if (operator->tokenType == ARIT_OPERATOR || operator->tokenType == COMP_OPERATOR) { // then check if it's operator
                     if (operator->nextToken != NULL) { // check if it has next token just to be sure (should be handled by syntax analysis)
                         if (equalStrings(operator->tokenName.data, "/") && // check if operator is division
-                        operator->nextToken->tokenType != IDENT) { // and check if next token is literal
+                        (operator->nextToken->tokenType == INT_LIT || operator->nextToken->tokenType == FLOAT_LIT)) { // and check if next token is literal
                             // if next literal is zero, return ZERO_DIVISION_ERROR
                             bool wasDot = false;
                             bool isZero = true;
@@ -64,7 +65,16 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                             if (isZero) return ZERO_DIVISION_ERROR;
                         }
                         // checking type compatibility between variables/literals
-                        data* var = copyNode(&localTable, tok->tokenName.data);
+                        size_t count = 0;
+                        token* prevTok;
+                        for (prevTok = tok; prevTok != NULL; getToken(tokenList, i-count, prevTok)) {
+                            // run through tokens until we reach something which isn't ")"
+                            if (equalStrings(prevTok->tokenName.data, ")")) // if token isn't ), that means we got variable or literal
+                                break;
+                            count++;
+                        }
+                        i+= count; // update i so it still represents current token
+                        data* var = copyNode(&localTable, prevTok->tokenName.data);
                         bool varString = false;
                         bool varInt = false;
                         bool varFloat = false;
@@ -73,22 +83,40 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                             varInt = (var->types[0] == TYPE_INT);
                             varFloat = (var->types[0] == TYPE_FLOAT);
                         }
-                        if (tok->tokenType == STRING_LIT || varString) { // if first token was string, operator cannot be - * /
+                        if (prevTok->tokenType == STRING_LIT || varString) { // if first token was string, operator cannot be - * /
                             if (equalStrings(operator->tokenName.data, "-")) return TYPE_COMPATIBILITY_ERROR;
                             if (equalStrings(operator->tokenName.data, "*")) return TYPE_COMPATIBILITY_ERROR;
                             if (equalStrings(operator->tokenName.data, "/")) return TYPE_COMPATIBILITY_ERROR;
-                            if (!checkDatatype(TYPE_STRING, operator->nextToken, localTable)) return TYPE_COMPATIBILITY_ERROR;
+                            for (token* nextTok = operator->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
+                                if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                    // run through next tokens until variable or literal is reached
+                                    if (!checkDatatype(TYPE_STRING, nextTok, localTable))
+                                        return TYPE_COMPATIBILITY_ERROR;
+                                }
+                            }
                         }
-                        
-                        if (tok->tokenType == INT_LIT || varInt)
-                            if (!checkDatatype(TYPE_INT, operator->nextToken, localTable)) return TYPE_COMPATIBILITY_ERROR;
-
-                        if (tok->tokenType == FLOAT_LIT || varFloat)
-                            if (!checkDatatype(TYPE_FLOAT, operator->nextToken, localTable)) return TYPE_COMPATIBILITY_ERROR;
-
+                        else if (prevTok->tokenType == INT_LIT || varInt) {
+                            for (token* nextTok = operator->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
+                                if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                    // run through next tokens until variable or literal is reached
+                                    if (!checkDatatype(TYPE_INT, nextTok, localTable))
+                                        return TYPE_COMPATIBILITY_ERROR;
+                                }
+                            }
+                        }
+                        else if (prevTok->tokenType == FLOAT_LIT || varFloat) {
+                            for (token* nextTok = operator->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
+                                if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                    // run through next tokens until variable or literal is reached
+                                    if (!checkDatatype(TYPE_FLOAT, nextTok, localTable))
+                                        return TYPE_COMPATIBILITY_ERROR;
+                                }
+                            }
+                        }
                     }
                 }
             }
+            i++;
         }
 
         if (tokenList->first != NULL) { // all the next checks require first token, so checking if it's not null
@@ -96,12 +124,12 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
             // ------------------------------ Checking if scope has ended ------------------------------ //
 
             if (tokenList->first->tokenType == BRACKET_CURLY && equalStrings(tokenList->first->tokenName.data, "}")) {
-                if (scope != 0) {
-                    invalidateScope(&localTable, scope);
+                if (scope != 0) { // if we aren't in the end of function
+                    invalidateScope(&localTable, scope); // invalidate two scopes and decrease the scope two times
                     scope--;
                     invalidateScope(&localTable, scope);
                     scope--;
-                } else
+                } else // else we are at the end of function, so delete the whole local variable symtable
                     deleteTable(&localTable);
             }
 
@@ -109,16 +137,21 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
 
             if (tokenList->first->tokenType == IF) {
                 bool wasComparator = false;
-                for (token *tok = tokenList->first;
+                size_t wasBracket = 0;
+                for (token *tok = tokenList->first->nextToken;
                      tok != NULL; tok = tok->nextToken) {
-                    if (tok->tokenType == COMP_OPERATOR) {
-                        if (wasComparator) return SEMANTIC_ERROR; // if there was more than one comparator, return general semantic error
-                        else wasComparator = true;
+                    if (equalStrings(tok->tokenName.data, "("))
+                        wasBracket++; // if we encounter opening bracket, increase bracket count
+                    else if (equalStrings(tok->tokenName.data, ")"))
+                        wasBracket--; // decrease with closing bracket
+                    else if (tok->tokenType == COMP_OPERATOR) {
+                        if (wasComparator || wasBracket) return SEMANTIC_ERROR;
+                        // if there was more than one comparator or comparator was in brackets, return general semantic error
+                        wasComparator = true;
                     }
                 }
                 if (!wasComparator) return TYPE_COMPATIBILITY_ERROR; // if there was no comparator, return compatibility error
-                scope++; // increasing the scope twice since we are entering if
-                scope++;
+                scope += 2; // increasing the scope twice since we are entering if
             }
 
             // checking else
@@ -134,21 +167,36 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                 scope++; // increasing the scope for the first line
                 int semicolonCount = 0;
                 bool wasComparator = false;
+                size_t wasBracket = 0;
                 bool wasDefinition = false;
+                bool decidedType = false;
                 token* newSymbol;
-                for (token *tok = tokenList->first->nextToken; // we need to begin from second one, since first token is just for
+                for (token *tok = tokenList->first->nextToken; // we need to begin from second one, since first token is just for keyword
                      tok != NULL; tok = tok->nextToken) {
-                    if (tok->tokenType == SEMICOL)
+                    if (tok->tokenType == SEMICOL) {
                         semicolonCount++;
+                        if (semicolonCount == 2 && wasComparator == false) // if we are after second semicolon and there
+                            // was no comparator, we aren't getting bool value, so return error.
+                            return TYPE_COMPATIBILITY_ERROR;
+                    }
                     else if (equalStrings(tok->tokenName.data, ":="))
                         wasDefinition = true;
                     else if (semicolonCount == 0) { // if there wasn't a semicolon, we are in definition part
                         if (tok->tokenType == IDENT && !wasDefinition) // if this is the identifier before definition token
                             newSymbol = tok; // store the token for future use
-                        else if (tok->nextToken->tokenType == SEMICOL && wasDefinition) { // if we are just before the semicolon
+                        else if (wasDefinition && !decidedType) {
+
+                            token* nextTok; // create next token, which should define the type of newSymbol
+                            for (nextTok = tok; nextTok != NULL; nextTok = nextTok->nextToken) {
+                                // run through next tokens until variable or literal is reached
+                                if (!equalStrings(nextTok->tokenName.data, "("))
+                                    break;
+                            }
+
+                            decidedType = true; // we are going to add this to symtable, so setting this so we don't do it again
                             dataType* type = malloc(sizeof(dataType));
                             bool isVar = false;
-                            switch (tok->tokenType) { // token type just before the semicolon should only be a literal or identifier
+                            switch (nextTok->tokenType) { // token type just before the semicolon should only be a literal or identifier
                                 case INT_LIT:
                                     type[0] = TYPE_INT;
                                     break;
@@ -160,12 +208,13 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                                 case IDENT:
                                     isVar = true;
                                     break;
-                                default:
+                                default: // shouldn't be any other type, so just breaking. Syntax error should occur if this is the case
                                     break;
                             }
-                            if (isVar) { // if it was variable, further checking is needed
+                            if (isVar) { // if it was identifier, further checking is needed
                                 data* lastVar;
-                                if ((lastVar = copyNode(&localTable, tok->tokenName.data)) == NULL) {
+                                if ((lastVar = copyNode(&localTable, nextTok->tokenName.data)) == NULL) {
+                                    // if searching in local table yields no results, this variable was undefined
                                     free(type);
                                     return DEFINITION_ERROR;
                                 }
@@ -192,18 +241,18 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                     }
                     else if (semicolonCount == 1) { // if there was one semicolon, we are in the comparing part
                         if (tok->tokenType == COMP_OPERATOR) {
-                            if (wasComparator) return SEMANTIC_ERROR; // if there was more than one comparator, return general semantic error
+                            if (wasComparator || wasBracket) return SEMANTIC_ERROR;
+                            // if there was more than one comparator or comparator is in brackets, return general semantic error
                             else wasComparator = true;
                         }
-                    }
-                    else if (semicolonCount == 2) { // if there were two semicolons, we are in the end command part
-                        if (tok->tokenType != )
+                        else if (equalStrings(tok->tokenName.data, "("))
+                            wasBracket++;
+                        else if (equalStrings(tok->tokenName.data, ")"))
+                            wasBracket--;
                     }
                 }
                 scope++; // increasing the scope again after first line
             }
-
-            /// TODO vymysliet jak u foru znizit scope 2x
 
             // ------------------------------ Checking definition semantics ------------------------------ //
 
@@ -222,7 +271,7 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                         } else return
                     }
                 }
-                if (tok->tokenType == IDENT) {
+                if (tok->tokenType == IDENT && !equalStrings(tok->tokenName.data, "_")) {
                     if (copyNode(&globalTable, tok->tokenName.data) == NULL &&
                         copyNode(&localTable, tok->tokenName.data) == NULL)
                         return DEFINITION_ERROR;

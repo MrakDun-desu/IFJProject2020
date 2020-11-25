@@ -6,27 +6,27 @@
 #define SRC_LIST_H
 #include "DynamicString.h"
 
-typedef enum Type {STRING,         // 1
-                   ELSE,           // 2
-                   FLOAT,          // 3
-                   FOR,            // 4
-                   FUNC,           // 5
-                   IF,             // 6
-                   INT,            // 7
-                   PACKAGE,        // 8
-                   RETURN,         // 9
-                   IDENT,          // 10
-                   BRACKET_CURLY,  // 11
-                   BRACKET_ROUND,  // 12
-                   EOL,            // 13
-                   ARIT_OPERATOR,  // 14
-                   ASIGN_OPERATOR, // 15
-                   COMP_OPERATOR,  // 16
-                   INT_LIT,        // 17
-                   STRING_LIT,     // 18
-                   FLOAT_LIT,      // 19
-                   SEMICOL,        // 20
-                   COMMA           // 21
+typedef enum Type {STRING,         // 0
+                   ELSE,           // 1
+                   FLOAT,          // 2
+                   FOR,            // 3
+                   FUNC,           // 4
+                   IF,             // 5
+                   INT,            // 6
+                   PACKAGE,        // 7
+                   RETURN,         // 8
+                   IDENT,          // 9
+                   BRACKET_CURLY,  // 10
+                   BRACKET_ROUND,  // 11
+                   EOL,            // 12
+                   ARIT_OPERATOR,  // 13
+                   ASIGN_OPERATOR, // 14
+                   COMP_OPERATOR,  // 15
+                   INT_LIT,        // 16
+                   STRING_LIT,     // 17
+                   FLOAT_LIT,      // 18
+                   SEMICOL,        // 19
+                   COMMA           // 20
 } type;
 
 typedef struct TToken {
