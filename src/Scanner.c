@@ -143,7 +143,7 @@ errorCode LexemAutomat(list *sortedList, string *lexem) {
     }
     if (strcmp(lexem->data, "==") == 0 || strcmp(lexem->data, "<=") == 0 || strcmp(lexem->data, ">=") == 0 ||
         strcmp(lexem->data, "!=") == 0 || strcmp(lexem->data, ">") == 0 || strcmp(lexem->data, "<") == 0) {
-        addToken(sortedList, COMP_OPERAtOR, lexem->data);
+        addToken(sortedList, COMP_OPERATOR, lexem->data);
 
         return 0;
     }

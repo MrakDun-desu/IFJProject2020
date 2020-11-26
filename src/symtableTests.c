@@ -20,6 +20,10 @@ void printNode(data* data) {
     printf("Scope: %lu\n", data->scope);
 }
 
+void makeType(data* func, dataType** type) {
+    *type = func->types;
+}
+
 int main() {
 
     tableNodePtr symtable;
@@ -29,19 +33,27 @@ int main() {
     initList(&tokenList);
     addToken(&tokenList, IDENT, "a");
     addToken(&tokenList, INT, "int");
-    dataType types[] = {TYPE_INT, TYPE_STRING};
+    dataType* types = malloc (sizeof(dataType)*2);
+    types[0] = TYPE_INT;
+    types[1] = TYPE_STRING;
     insertNode(&symtable, "myFunc", types, &tokenList, 0);
 
     list tokenList2;
     initList(&tokenList2);
     addToken(&tokenList2, IDENT, "b");
     addToken(&tokenList2, FLOAT, "float64");
-    dataType types2[] = {TYPE_INT, TYPE_STRING};
+    dataType* types2 = malloc (sizeof(dataType)*2);
+    types2[0] = TYPE_INT;
+    types2[1] = TYPE_STRING;
     insertNode(&symtable, "a", types2, &tokenList2, 0);
 
     printNode(copyNode(&symtable, "myFunc"));
     printNode(copyNode(&symtable, "a"));
 
+    dataType* type = NULL;
+    makeType(copyNode(&symtable, "myFunc"), &type);
+
+    printf("%d\n", type[0]);
 
     deleteTable(&symtable);
 
