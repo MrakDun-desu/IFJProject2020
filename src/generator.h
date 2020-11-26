@@ -15,7 +15,6 @@ typedef struct tGenerator { /// struct that simplifies working with generator
     string* program; /// string that will be the final program
     size_t ifCounter; /// helper variable to count ifs for generating labels
     size_t forCounter; /// helper variable to count fors for generating labels
-    size_t varCounter; /// helper variable to count additional variables (that are not specified in source code, but need to be in target code)
 } generator;
 
 generator gen; /// generator that all specified functions will use so program string doesn't have to be passed to each function.
@@ -48,6 +47,12 @@ void generatorInit();
  * @return OK if all allocation has been successful, corresponding error code otherwise.
  */
 errorCode generatorStart();
+/*
+ * Takisto vygeneruje aj 10 pomocnych premennych do expressionov. Budu vyzerat takto:
+ * DEFVAR GF@expVar{0-9}
+ * Toto zabezpeci, ze sa nebudu musiet pouzivat ziadne defvary mimo premennych aj v zdrojovom kode.
+ * Aby sa vyuzilo vsetkych 10 premennych, je treba, aby bolo 9 vnorenych zatvoriek (co sa dufam testovat nebude)
+ */
 
 /**
  * @brief Empties the program string and sets all the helper variables to zero.
@@ -74,94 +79,240 @@ errorCode generateMainScopeStart();
 errorCode generateMainScopeEnd();
 
 /**
- * @brief Generates start of function.
+ * @brief Generates start of function (label, creation and popping of parameters and defvar for return variables).
  * @param function Pointer to function data containing parameters and return types.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateFunctionStart(data* function);
 
-/**
- * @brief Generates returns of function.
- * @param function Pointer to function data containing parameters and return types.
- * @return OK if allocation was successful, corresponding error code otherwise.
+/* priklad functionStart
+ * LABEL factorial // label na zaciatok
+ * CREATEFRAME // frame na oddelenie premennych
+ * DEFVAR TF@n // definicia a popovanie parametrov funkcie
+ * POPS TF@n
+ * DEFVAR TF@ret0 // definicia return hodnot
  */
-errorCode generateFunctionReturn(data* function);
 
 /**
- * @brief Generates end of function (pushframe and return).
- * @param function Pointer to function data containing parameters and return types.
+ * @brief Generates end of function (just return command).
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateFunctionEnd(data* function);
+errorCode generateFunctionEnd();
 
 /**
  * @brief Generates call of function and everything that goes before it.
- * @param function Pointer to function data containing parameters and return types.
- * @param args Pointer to array of arguments that are passed to function.
+ * @param function Pointer to function data.
+ * @param argValues Pointer to list of tokens, that are passed as arguments to function.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateFunctionCall(data* function, data* args[]);
+errorCode generateFunctionCall(data* function, list* argValues);
+
+/*
+ * volanie funkcie priklad:
+ * PUSHS TF@a // pushuje sa argument z argvalues                                    | o tuto cast sa stara functionCall
+ * PUSHFRAME                                                                        |
+ * CALL factorial // callne sa                                                      |
+ *
+ * MOVE LF@vysl TF@ret0 // return hodnoty funkcie sa vratia                         | o tuto cast sa stara function return
+ * POPFRAME                                                                         |
+ */
 
 /**
- * @brief Generates start of if else sequence.
- * @param level Level at which the if else sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
- * @return OK if allocation was successful, corresponding error code otherwise.
+ * @brief Generates returning from the function (moving the values from TF@ ret variables to assignVariables).
+ * @param function Pointer to function data (so generator knows how many return types there are).
+ * @param assignVariables Pointer to list of tokens that will receive return data from functions
+ * @return
  */
-errorCode generateIfElseStart(size_t level);
+errorCode generateFunctionReturn(data* function, list* assignVariables);
 
 /**
- * @brief Generates the else part of if else sequence.
- * @param level Level at which the if else sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
+ * @brief Generates start of if else sequence (condition should be send to expression.c for parsing and generation of code).
+ * @param condition Pointer to list of tokens that are an if condition.
+ * @param ifCount Number of the if, used for label generation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateElse(size_t level);
+errorCode generateIfStart(list* condition, size_t ifCount);
+
+/*
+ * ifElse priklad:
+ * GT TF@bool2 TF@a int@42                                              | (tento riadok riesi expression - moze byt aj viac riadkov)
+ * MOVE TF@bool1 TF@bool2                                               | Tieto tri riadky riesi tato funkcia
+ * JUMPIFNEQ else0 TF@bool1 bool@true                                   |
+ *      // prikazy vnutri ifu
+ * JUMP ifEnd0                                                          | toto riesi generateElse
+ * LABEL else0                                                          |
+ *     // prikazy vnutri else
+ * LABEL ifEnd0                                                         | toto riesi ifEnd
+ */
+
+/**
+ * @brief Generates else label and jump to if end.
+ * @param ifCount Number of the if, used for label generation.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateElse(size_t ifCount);
 
 /**
  * @brief Generates the end of if else sequence.
- * @param level Level at which the if else sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
+ * @param ifCount Number of the if, used for label generation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateIfElseEnd(size_t level);
+errorCode generateIfEnd(size_t ifCount);
 
 /**
- * @brief Generates the start of for sequence.
+ * @brief Generates prequel to for (first jump and label for start).
+ * @param forCount Number of the for, used for label generation.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateForPrequel(size_t forCount);
+
+/**
+ * @brief Generates the start of for sequence (creating bools, creating two starting labels, checking condition and jump).
  * @param level Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateForStart(size_t level);
+errorCode generateForStart(list* condition, size_t forCount);
+/*
+ * Pozn. vsetky premenne, ktore budu definovane vo funkcii, sa budu defvarovat uz na zaciatku danej funkcie bez ohladu na to,
+ * ci su spravne definovane alebo nie. Zjednodusi sa vdaka tomu praca s formi a aj s vyrazmi. Pomocne premenne budu globalne
+ * a bude ich iba urcity pocet.
+ * Pozn. na condition spravi xdanco00 v expression.c funkciu, ktora ju vyriesi a vygeneruje pripadne potrebne frasy
+ * Priklad na for:
+ * JUMP forFirst0 // jumpuje sa pri prvom prechode                                 |   Tuto cast riesi forPrequel
+ * LABEL forStart0                                                                 |
+ *
+ * SUB TF@a TF@a int@1 // vykonanie priradenia po ukonceni jednej iteracie         |   Toto by mal riesit syntax analyser pomocou inych funkcii (moze byt viac riadkov)
+ *
+ * LABEL forFirst0                                                                 |   Tuto cast riesi tato funkcia
+ * GT TF@bool2 TF@a int@0 // porovnanie (robi sa aj na zaciatku aj pocas foru)     | (tento riadok riesi expression - moze byt aj viac riadkov)
+ * MOVE TF@bool1 TF@bool2                                                          |
+ * JUMPIFNEQ forEnd0 TF@bool1 bool@true // jump na koniec, ak je treba             |
+ *
+ *      // prikazy vnutri foru
+ *
+ * JUMP forStart0 // jump na zaciatok, aby sa cyklilo                              |   Tuto cast riesi forEnd
+ * LABEL forEnd0                                                                   |
+ */
 
 /**
  * @brief Generates the end of for sequence.
  * @param level Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateForEnd(size_t level);
+errorCode generateForEndLabel(size_t forCount);
 
 /**
  * @brief Generates definition of a variable.
+ * @param var Token representing the variable which should be created.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateDefvar();
+errorCode generateDefvar(token* var);
+// ^ nakoniec iba cisto defvar ^
+// bude sa pouzivat hromadne na zaciatku kazdej funkcie, bez ohladu na to, ci su premenne definovane spravne alebo nie
 
 /**
  * @brief Generates assigning value to a variable.
  * @param type Datatype of the variable that is to be assigned (More parameters should probably be added).
+ * @param var Token representing the variable to which the value will be assigned.
+ * @param value Token representing the value which will be assigned to variable.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateMove(dataType type);
+errorCode generateMove(dataType type, token* var, token* value);
 
 /**
- * @brief Generates breakpoint in program for debugging (not sure if necessary).
+ * @brief Generates the arithmetic command (command is determined by char).
+ * @param var Variable that should store the result of addition.
+ * @param symb1 First symbol in the addition.
+ * @param symb2 Second symbol in the addition.
+ * @param operation Operation which is to be performed. (Can be + - * / %). / is for idiv, % is for div.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateBreak();
+errorCode generateArithmetic(token* var, token* symb1, token* symb2, char operation);
 
 /**
- * @brief Generates exit from program with value retval (must be between 0 and 49).
- * @param retval Return value of the program.
+ * @brief Generates the "less than" command.
+ * @param var Variable that should store the result of LT.
+ * @param symb1 First symbol in the LT.
+ * @param symb2 Second symbol in the LT.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateExit(size_t retval);
+errorCode generateLT(token* var, token* symb1, token* symb2);
+
+/**
+ * @brief Generates the "greater than" command.
+ * @param var Variable that should store the result of GT.
+ * @param symb1 First symbol in the GT.
+ * @param symb2 Second symbol in the GT.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateGT(token* var, token* symb1, token* symb2);
+
+/**
+ * @brief Generates the "equal" command.
+ * @param var Variable that should store the result of EQ.
+ * @param symb1 First symbol in the EQ.
+ * @param symb2 Second symbol in the EQ.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateEQ(token* var, token* symb1, token* symb2);
+
+/**
+ * @brief Generates the "or" command.
+ * @param var Variable that should store the result of OR.
+ * @param symb1 First symbol in the OR.
+ * @param symb2 Second symbol in the OR.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateOR(token* var, token* symb1, token* symb2);
+
+/**
+ * @brief Generates the "not" command.
+ * @param var Variable that should store the result of NOT.
+ * @param symb Bool value that is to be negates.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateNOT(token* var, token* symb);
+
+/**
+ * @brief Generates the "concatenation" command.
+ * @param var Variable that should store the result of concatenation.
+ * @param symb1 First string in the concatenation.
+ * @param symb2 Second string in the concatenation.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateConcat(token* var, token* symb1, token* symb2);
+
+/**
+ * @brief Generates expression from rightly ordered token list.
+ * @param expression Token list which contains expression.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
+errorCode generateExpression(list* expression); // funkcia pre xdanco00
+
+/*
+ * riesenie expressions:
+ *
+ * dostaneme napriklad prikaz
+ * a, b, c = x+y, y+2, 42
+ * Najskor syntakticka analyza posudi, ci dany prikaz nie je uplny bullshit.
+ * Posle semantickej analyze zistit, ci je spravny pocet vyrazov, ci sa typy zhoduju atd.
+ *
+ * Ak je vsetko v pohode, posle najskor x+y do applyPrecedence, ktory da tokeny do spravneho poradia,
+ * odstrani zatvorky a nakoniec zavola tuto generateExpression.
+ *
+ * V applyPrecedence sa vrati token, ktory bude reprezentovat vysledok expressionu.
+ * V kode sa budu tvorit nove premenne a parser potrebuje vediet, ktoru z nich ma priradit
+ * do ktorej premennej na lavej strane.
+ *
+ * Takze, applyPrecedence vygeneruje kod na x+y a vrati token int4 (lebo momentalny varCounter bol 4).
+ * Takze hodnota x+y sa ulozila do premennej TF@int4.
+ *
+ * Syntakticka analyza dostane toto ako token a vie, ze ma zavolat funkciu generateMove s tymto
+ * tokenom ako parametrom value.
+ *
+ * Tento proces sa bude opakovat pre vyrazy y+2 a 42 a applyPrecedence vzdy vrati iny token vdaka varCounteru.
+ *
+ */
 
 
 #endif //SRC_GENERATOR_H
