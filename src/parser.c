@@ -33,12 +33,69 @@ bool checkDatatype(dataType type, token* tok, tableNodePtr varTable) {
     return false;
 }
 
+errorCode checkFunctionTypes(list* tokenList, data* func, size_t i, tableNodePtr localTable, dataType** back) {
+    dataType* paramTypes = malloc(sizeof(dataType) * func->parameters->size/2);
+    size_t typeCount = 0;
+
+    // first, we need to check which parameter types function expects
+    for (token* iter = func->parameters->first; iter != NULL; iter = iter->nextToken) {
+        switch (iter->tokenType) {
+            case INT:
+                paramTypes[typeCount++] = TYPE_INT;
+                break;
+            case STRING:
+                paramTypes[typeCount++] = TYPE_STRING;
+                break;
+            case FLOAT:
+                paramTypes[typeCount++] = TYPE_FLOAT;
+                break;
+            default:
+                break;
+        }
+    }
+    size_t nextCommaCount = 0;
+    bool inParams = false;
+    token* nextTok = NULL;
+    getToken(tokenList, i+1, nextTok);
+    for (size_t j = i + 1; nextTok != NULL; getToken(tokenList, ++j, nextTok)) {
+        if (!inParams && equalStrings(nextTok->tokenName.data, "("))
+            inParams = true; // if we encounter (, we need to check parameters
+        else if (inParams && equalStrings(nextTok->tokenName.data, ")"))
+            break; // if we encounter ), we break the cycle
+        else if (inParams && nextTok->tokenType == COMMA) { // when we reach a comma
+            nextCommaCount++;
+            if (nextCommaCount == typeCount) {
+                // if there is same count of commas as of function params,
+                // it means that there are more terms than needed. Return error.
+                free(paramTypes);
+                return PARAMETER_ERROR;
+            }
+        }
+        else {
+            if (inParams && !checkDatatype(paramTypes[nextCommaCount], nextTok, localTable)) {
+                // if we have a term, we need to check for the right type. If it doesn't
+                // correspond, return error
+                free(paramTypes);
+                return PARAMETER_ERROR;
+            }
+        }
+
+    }
+    if (typeCount != 0 && nextCommaCount != typeCount-1) {
+        free(paramTypes);
+        return PARAMETER_ERROR;
+    }
+
+    *back = func->types;
+    return OK;
+}
+
 errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, data* function) {
 
     // ------------------------------ Checking datatype compatibility and zero division ------------------------------ //
 
     if (tokenList != NULL) {
-        size_t i = 0;
+        size_t tokCounter = 0;
         for (token* tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
             if (tok->nextToken != NULL) { // first check if there is next token
                 token* operator = tok->nextToken;
@@ -67,13 +124,13 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                         // checking type compatibility between variables/literals
                         size_t count = 0;
                         token* prevTok;
-                        for (prevTok = tok; prevTok != NULL; getToken(tokenList, i-count, prevTok)) {
+                        for (prevTok = tok; prevTok != NULL; getToken(tokenList, tokCounter-count, prevTok)) {
                             // run through tokens until we reach something which isn't ")"
                             if (equalStrings(prevTok->tokenName.data, ")")) // if token isn't ), that means we got variable or literal
                                 break;
                             count++;
                         }
-                        i+= count; // update i so it still represents current token
+                        tokCounter+= count; // update i so it still represents current token
                         data* var = copyNode(&localTable, prevTok->tokenName.data);
                         bool varString = false;
                         bool varInt = false;
@@ -116,7 +173,7 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                     }
                 }
             }
-            i++;
+            tokCounter++;
         }
 
         if (tokenList->first != NULL) { // all the next checks require first token, so checking if it's not null
@@ -330,11 +387,12 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
                 size_t commaCounter = 0; // for knowing which return value are we checking
                 size_t typeCount = 0; // for knowing how much types we have to control
                 dataType* types = function->types;
-                for (dataType type = types[0]; type != TYPE_UNDEFINED; type = types[typeCount++]);
+                for (dataType type = types[0]; type != TYPE_UNDEFINED; type = types[++typeCount]);
                 for (token* tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
                     if (tok->tokenType == COMMA) { // if we are at a coma, just increase the counter
                         commaCounter++;
                         if (commaCounter >= typeCount) return PARAMETER_ERROR;
+                        // if commaCounter is bigger than it should, jump out of function right away
                     }
                     else {
 
@@ -367,6 +425,121 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
             }
 
             // ------------------------------ Checking assign semantics ------------------------------ //
+
+            for (size_t i = 0; i < tokenList->size; i++) { // we run through the list with a number so we can come back
+                token* tok = NULL;
+                getToken(tokenList, i, tok);
+                if (equalStrings(tok->tokenName.data, "=")) { // if we encounter =, it means this is assign
+                    size_t prevCommaCount = 0; // comma counts to check the same number of expressions
+                    size_t nextCommaCount = 0;
+                    token* prevTok = NULL;
+                    getToken(tokenList, i-1, prevTok); // previous token to check before the = operator
+                    token* nextTok = NULL;
+                    getToken(tokenList, i+1, nextTok); // next token to check after the = operator
+
+                    dataType* prevTypes = NULL; // types that are before operator
+                    dataType* nextTypes = NULL; // types that are after the operator
+
+                    for (size_t j = i-1; j != 0 && prevTok != NULL; getToken(tokenList, --j, prevTok)) {
+                        // before the = operator, there should only be commas and variable identifiers.
+
+                        if (prevTok->tokenType == COMMA)
+                            prevCommaCount++;
+                        else if (prevTok->tokenType != IDENT)
+                            break;
+                    }
+
+                    data* func;
+                    if ((func = copyNode(&globalTable, nextTok->tokenName.data)) == NULL) {
+                        // after the = operator, there can be function or a list of
+                        // expressions separated by commas.
+                        for (size_t j = i + 1; nextTok != NULL; getToken(tokenList, ++j, nextTok)) {
+                            // if there isn't a function, we need to count the commas
+                            if (prevTok->tokenType == COMMA)
+                                nextCommaCount++;
+                            else if (prevTok->tokenType == COMP_OPERATOR)
+                                return DATATYPE_ERROR;
+                            // if there was comparator, that is not the right type to assign
+                            else if (prevTok->tokenType != IDENT &&
+                                    prevTok->tokenType != BRACKET_ROUND &&
+                                    prevTok->tokenType != ARIT_OPERATOR &&
+                                    prevTok->tokenType != INT_LIT &&
+                                    prevTok->tokenType != STRING_LIT &&
+                                    prevTok->tokenType != FLOAT_LIT)
+                                break;
+                            // if it isn't any of these types, we are out of the expression, so break the cycle
+                        }
+                    } else { // if there is a function, we need to check type compatibility with its parameters
+
+                        errorCode code;
+                        if ((code = checkFunctionTypes(tokenList, func, i, localTable, &nextTypes)) != OK)
+                            return code;
+
+                    }
+
+                    if (func == NULL) {
+                        if (prevCommaCount != nextCommaCount) // if there was no function, comma counts should be equal
+                            return SEMANTIC_ERROR;
+
+                        nextTypes = malloc(sizeof(dataType) * (nextCommaCount+2));
+                        for (size_t j = 0; j < nextCommaCount+2; j++)
+                            nextTypes[j] = TYPE_UNDEFINED;
+                        // if there was no function, we need to check next data types term after term
+                        getToken(tokenList, i+1, nextTok); // begin the iteration from start again
+                        nextCommaCount = 0;
+                        for (size_t j = i + 1; nextTok != NULL; getToken(tokenList, ++j, nextTok)) {
+                            if (nextTok->tokenType == COMMA)
+                                nextCommaCount++;
+                            else {
+                                if (checkDatatype(TYPE_INT, nextTok, localTable))
+                                    nextTypes[nextCommaCount] = TYPE_INT;
+                                else if (checkDatatype(TYPE_STRING, nextTok, localTable))
+                                    nextTypes[nextCommaCount] = TYPE_STRING;
+                                else if (checkDatatype(TYPE_FLOAT, nextTok, localTable))
+                                    nextTypes[nextCommaCount] = TYPE_FLOAT;
+                            }
+                        }
+                    }
+                    prevTypes = malloc(sizeof(dataType) * (prevCommaCount+2));
+                    for (size_t j = 0; j < prevCommaCount+2; j++)
+                        prevTypes[j] = TYPE_UNDEFINED;
+                    getToken(tokenList, i-1, prevTok); // begin the iteration from start again
+                    prevCommaCount = 0;
+                    for (size_t j = i - 1; prevTok != NULL; getToken(tokenList, --j, prevTok)) {
+                        if (prevTok->tokenType == COMMA)
+                            prevCommaCount++;
+                        else {
+                            if (checkDatatype(TYPE_INT, prevTok, localTable))
+                                prevTypes[prevCommaCount] = TYPE_INT;
+                            else if (checkDatatype(TYPE_STRING, prevTok, localTable))
+                                prevTypes[prevCommaCount] = TYPE_STRING;
+                            else if (checkDatatype(TYPE_FLOAT, prevTok, localTable))
+                                prevTypes[prevCommaCount] = TYPE_FLOAT;
+                        }
+                    }
+
+                    for (size_t j = 0; j < prevCommaCount+1; j++) { // at the end, iterate one last time to check if data types match
+                        if (nextTypes[j] != prevTypes[j] || prevTypes[j] != TYPE_UNDEFINED)
+                            // we need to add TYPE_UNDEFINED here in case one of prev identifiers was _ and undefined stayed with it
+                            return TYPE_COMPATIBILITY_ERROR;
+                    }
+
+                    break;
+                }
+            }
+
+            // ------------------------------ Checking function call semantics ------------------------------ //
+
+            data* func;
+            if ((func = copyNode(&globalTable, tokenList->first->tokenName.data)) == NULL) { // if we use function without assign
+                dataType* types = NULL;
+                errorCode code;
+                if ((code = checkFunctionTypes(tokenList, func, 0, localTable, &types))) // check if types had been correctly assigned
+                    return code;
+                else if (types[0] != TYPE_UNDEFINED) // if yes, check if function has no returns
+                    return SEMANTIC_ERROR;
+            }
+
         }
     }
     return OK;
