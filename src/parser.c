@@ -4,9 +4,10 @@
 
 #include "parser.h"
 
-bool equalStrings(char* s1, char* s2) {
+bool equalStrings(char *s1, char *s2) {
     return (strcmp(s1, s2) == 0);
 }
+
 //package main
 errorCode blockA(list *tokenList) {
     token curToken;
@@ -33,7 +34,7 @@ errorCode blockB(list *tokenList, token curToken) {
         curToken = *curToken.nextToken;
 
         if (curToken.tokenType == BRACKET_CURLY) {
-            if (curToken.tokenName.data == "{") {
+            if (equalStrings(curToken.tokenName.data, "{")) {
                 openBracketCount++;
             } else {
                 closedBracketCount++;
@@ -41,43 +42,61 @@ errorCode blockB(list *tokenList, token curToken) {
         }
     }
 
+    while (curToken.tokenType != EOL) {
+
+
+    }
+
+
     return OK;
 
 }
 
 //expression
-errorCode blockExpression(list *tokenList, token *curToken, bool forState) {
+errorCode blockExpression(list *tokenList, token *curToken, bool forState, bool expressionList) {
 
     int openBracketCount = 0;
     int closedBracketCount = 0;
 
     while (curToken->tokenType != EOL) {
 
-        if(forState == true && curToken->tokenType == SEMICOL) break;
+        if (forState == true && curToken->tokenType == SEMICOL) break;
 
+        if (!expressionList && curToken->nextToken->tokenType == COMMA) return SYNTAX_ERROR;
 
-        if (curToken->tokenType == BRACKET_ROUND && curToken->tokenName.data == "(") {
-            openBracketCount++;
-            if (curToken->nextToken->tokenType != IDENT) return SYNTAX_ERROR;
-            curToken = curToken->nextToken;
-            continue;
-        }
+        if (curToken->tokenType == COMMA)
+            if (curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != INT_LIT &&
+                curToken->nextToken->tokenType != FLOAT_LIT &&
+                curToken->nextToken->tokenType != STRING_LIT)
 
-        if (curToken->tokenType == BRACKET_ROUND && curToken->tokenName.data == ")") {
+                if (curToken->tokenType == BRACKET_ROUND && equalStrings(curToken->tokenName.data, "(")) {
+                    openBracketCount++;
+                    if (curToken->nextToken->tokenType != IDENT) return SYNTAX_ERROR;
+                    curToken = curToken->nextToken;
+                    continue;
+                }
+
+        if (curToken->tokenType == BRACKET_ROUND && equalStrings(curToken->tokenName.data, ")")) {
             closedBracketCount++;
-            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERAtOR && curToken->nextToken->tokenType != EOL) return SYNTAX_ERROR;
+            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERAtOR &&
+                curToken->nextToken->tokenType != EOL)
+                return SYNTAX_ERROR;
             curToken = curToken->nextToken;
             continue;
         }
 
-        if (curToken->tokenType == IDENT || curToken->tokenType == INT_LIT || curToken->tokenType == FLOAT_LIT || curToken->tokenType == STRING_LIT) {
-            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERAtOR && curToken->nextToken->tokenType != EOL ) return SYNTAX_ERROR;
+        if (curToken->tokenType == IDENT || curToken->tokenType == INT_LIT || curToken->tokenType == FLOAT_LIT ||
+            curToken->tokenType == STRING_LIT) {
+            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERAtOR &&
+                curToken->nextToken->tokenType != COMMA && curToken->nextToken->tokenType != EOL)
+                return SYNTAX_ERROR;
             curToken = curToken->nextToken;
             continue;
         }
 
-        if(curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == COMP_OPERAtOR){
-            if(curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != BRACKET_ROUND) return SYNTAX_ERROR;
+        if (curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == COMP_OPERAtOR) {
+            if (curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != BRACKET_ROUND)
+                return SYNTAX_ERROR;
             curToken = curToken->nextToken;
             continue;
         }
@@ -86,7 +105,7 @@ errorCode blockExpression(list *tokenList, token *curToken, bool forState) {
 
     }
 
-    if(openBracketCount != closedBracketCount) return SYNTAX_ERROR;
+    if (openBracketCount != closedBracketCount) return SYNTAX_ERROR;
 
     return OK;
 }
@@ -97,55 +116,98 @@ errorCode blockAsign(list *tokenList, token *curToken, bool forState) {
     int openBracketCount = 0;
     int closedBracketCount = 0;
 
-    if (curToken->tokenType != IDENT && curToken->tokenType != INT_LIT && curToken->tokenType != FLOAT_LIT && curToken->tokenType != STRING_LIT) return SYNTAX_ERROR;
+    if (curToken->tokenType != IDENT) return SYNTAX_ERROR;
 
-    while(curToken->tokenType != EOL){
+    while (curToken->tokenType != EOL) {
 
-        if(forState == true && curToken->tokenType == SEMICOL) break;
+        if (curToken->tokenType == COMMA) {
+            if (curToken->nextToken->tokenType != IDENT) return SYNTAX_ERROR;
+            curToken = curToken->nextToken;
+            continue;
+        }
 
-        if (curToken->tokenType == IDENT || curToken->tokenType == INT_LIT || curToken->tokenType == FLOAT_LIT || curToken->tokenType == STRING_LIT){
-            if(curToken->nextToken->tokenType == ASIGN_OPERATOR && curToken->nextToken->tokenName.data == "=") return SYNTAX_ERROR;
 
-            if(curToken->nextToken->tokenType != ARIT_OPERATOR &&  curToken->nextToken->tokenType != BRACKET_ROUND && curToken->nextToken->tokenType != ASIGN_OPERATOR) return SYNTAX_ERROR;
+        if (forState == true && curToken->tokenType == SEMICOL) break;
 
-            if(curToken->nextToken->tokenType == BRACKET_ROUND && curToken->nextToken->tokenName.data == "(") return SYNTAX_ERROR;
+        if (curToken->tokenType == IDENT || curToken->tokenType == INT_LIT || curToken->tokenType == FLOAT_LIT ||
+            curToken->tokenType == STRING_LIT) {
+            if (curToken->nextToken->tokenType == ASIGN_OPERATOR &&
+                equalStrings(curToken->nextToken->tokenName.data, "="))
+                return SYNTAX_ERROR;
+
+            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != BRACKET_ROUND &&
+                curToken->nextToken->tokenType != ASIGN_OPERATOR)
+                return SYNTAX_ERROR;
+
+            if (curToken->nextToken->tokenType == BRACKET_ROUND &&
+                equalStrings(curToken->nextToken->tokenName.data, ")"))
+                return SYNTAX_ERROR;
 
             curToken = curToken->nextToken;
             continue;
         }
 
-        if(curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == BRACKET_ROUND || curToken->tokenType == ASIGN_OPERATOR){
+        if (curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == BRACKET_ROUND ||
+            curToken->tokenType == ASIGN_OPERATOR) {
 
-            if(curToken->tokenType == ASIGN_OPERATOR && curToken->tokenName.data == "=") return SYNTAX_ERROR;
+            if (equalStrings(curToken->tokenName.data, "("))
+                openBracketCount++;
+            if (equalStrings(curToken->tokenName.data, ")"))
+                closedBracketCount++;
 
-            if(curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != INT_LIT && curToken->nextToken->tokenType != FLOAT_LIT &&curToken->nextToken->tokenType != STRING_LIT )
+            if (curToken->tokenType == ASIGN_OPERATOR && equalStrings(curToken->tokenName.data, "="))
                 return SYNTAX_ERROR;
 
-            if(curToken->tokenType == BRACKET_ROUND && curToken->tokenName.data == ")") return SYNTAX_ERROR;
+            if (curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != INT_LIT &&
+                curToken->nextToken->tokenType != FLOAT_LIT && curToken->nextToken->tokenType != STRING_LIT)
+                return SYNTAX_ERROR;
+
+            if (curToken->tokenType == BRACKET_ROUND && equalStrings(curToken->tokenName.data, ")"))
+                return SYNTAX_ERROR;
 
             curToken = curToken->nextToken;
             continue;
         }
 
     }
+    if (openBracketCount != closedBracketCount) return SYNTAX_ERROR;
 
+    return OK;
 }
 
 //term
 errorCode blockD() {
-
+    return OK;
 }
 
 //definition
 errorCode blockDefinition(list *tokenList, token *curToken, bool forState) {
 
-    if(curToken->tokenType != IDENT) return SYNTAX_ERROR;
+    if (curToken->tokenType != IDENT) return SYNTAX_ERROR;
     curToken = curToken->nextToken;
 
-    if(curToken->tokenType != ASIGN_OPERATOR && curToken != ":=") return SYNTAX_ERROR;
+    while (curToken->tokenType != EOL || equalStrings(":=", curToken->tokenName.data)) {
+
+        if (curToken->tokenType == COMMA) {
+            if (curToken->nextToken->tokenType != IDENT) return SYNTAX_ERROR;
+            curToken = curToken->nextToken;
+            continue;
+        }
+
+        if (curToken->tokenType == IDENT) {
+            if (curToken->nextToken->tokenType != COMMA && !equalStrings(":=", curToken->tokenName.data))
+                return SYNTAX_ERROR;
+            curToken = curToken->nextToken;
+            continue;
+        }
+        if (curToken->tokenType == EOL) return SYNTAX_ERROR;
+
+    }
+
+    if (curToken->tokenType != ASIGN_OPERATOR && !equalStrings(":=", curToken->tokenName.data)) return SYNTAX_ERROR;
     curToken = curToken->nextToken;
 
-    blockExpression(tokenList, &curToken, forState);
+    return blockExpression(tokenList, curToken, forState, false);
 
 }
 
@@ -153,6 +215,7 @@ errorCode blockDefinition(list *tokenList, token *curToken, bool forState) {
 errorCode parse(list *tokenList, string *code) {
 
     tableNodePtr globalTable;
+    initTable(&globalTable);
     errorCode returnError = fillSymtable(globalTable, tokenList);
     bool isFunc = false;
 
@@ -174,34 +237,75 @@ errorCode parse(list *tokenList, string *code) {
         getToken(tokenList, i, &curToken);
 
         if (curToken.tokenType == EOL)
-            if(curToken.nextToken->tokenType != EOL) savedToken = *curToken.nextToken;
+            if (curToken.nextToken->tokenType != EOL) savedToken = *curToken.nextToken;
 
 
         if (curToken.tokenType == FUNC) isFunc = true;
 
-        if (curToken.tokenName.data == "{" && isFunc == true) {
+        if (equalStrings(curToken.tokenName.data, "{") && isFunc == true) {
             returnError = blockB(tokenList, curToken);
             if (returnError != OK) return returnError;
         }
 
         if (curToken.tokenType == IF) {
-            returnError = blockExpression(tokenList, &curToken.nextToken, false);
+            returnError = blockExpression(tokenList, curToken.nextToken, false, false);
             if (returnError != OK) return returnError;
         }
 
         if (curToken.tokenType == FOR) {
-            returnError = blockDefinition(tokenList, &curToken.nextToken, true);
+            returnError = blockDefinition(tokenList, curToken.nextToken, true);
             if (returnError != OK) return returnError;
 
 
-            returnError = blockExpression(tokenList, &curToken.nextToken, true);
+            returnError = blockExpression(tokenList, curToken.nextToken, true, false);
             if (returnError != OK) return returnError;
 
-            returnError = blockAsign(tokenList, &curToken.nextToken, true);
+            returnError = blockAsign(tokenList, curToken.nextToken, true);
             if (returnError != OK) return returnError;
+        }
+
+        if (curToken.tokenType == RETURN) {
+            if (curToken.nextToken->tokenType != EOL)
+                returnError = blockExpression(tokenList, curToken.nextToken, false, true);
+            if (returnError != OK) return returnError;
+        }
+
+        if (curToken.tokenType == IDENT) {
+            savedToken = curToken;
+            bool foundDefAsign = false;
+
+            while (curToken.tokenType != EOL) {
+
+                if (curToken.tokenType == ASIGN_OPERATOR && equalStrings(curToken.tokenName.data, ":=")) {
+                    curToken = savedToken;
+                    returnError = blockDefinition(tokenList, &curToken, false);
+                    if (returnError != OK) return returnError;
+
+                    foundDefAsign = true;
+                    break;
+                } else if (curToken.tokenType == ASIGN_OPERATOR && equalStrings(curToken.tokenName.data, "=")) {
+                    curToken = savedToken;
+                    returnError = blockAsign(tokenList, &curToken, false);
+                    if (returnError != OK) return returnError;
+
+                    foundDefAsign = true;
+                    break;
+                }
+
+                curToken = *curToken.nextToken;
+            }
+
+            if (foundDefAsign) {
+                foundDefAsign = false;
+            } else {
+                returnError = blockExpression(tokenList, &curToken, false, false);
+                if (returnError != OK) return returnError;
+            }
+
+
         }
 
     }
 
-
+    return OK;
 }
