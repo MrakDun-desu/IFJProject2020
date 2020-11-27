@@ -4,6 +4,9 @@
 
 #include "parser.h"
 
+bool equalStrings(char* s1, char* s2) {
+    return (strcmp(s1, s2) == 0);
+}
 //package main
 errorCode blockA(list *tokenList) {
     token curToken;
