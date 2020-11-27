@@ -1,5 +1,5 @@
 //
-// Created by praca on 15. 11. 2020.
+// Created by xdanco00 on 15. 11. 2020.
 //
 
 #include "symtable.h"
