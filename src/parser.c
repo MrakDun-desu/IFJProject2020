@@ -4,6 +4,10 @@
 
 #include "parser.h"
 
+bool equalStrings(char* s1, char* s2) {
+    return (strcmp(s1, s2) == 0);
+}
+
 bool checkDatatype(dataType type, token* tok, tableNodePtr varTable) {
 
     data* var;
@@ -798,12 +802,6 @@ errorCode fillSymtable(tableNodePtr globalTable, list* tokenList){
     return OK;
 }
 
-
-
-bool equalStrings(char *s1, char *s2) {
-    return (strcmp(s1, s2) == 0);
-}
-
 //package main
 errorCode blockA(list *tokenList) {
     token curToken;
@@ -874,7 +872,7 @@ errorCode blockExpression(list *tokenList, token *curToken, bool forState, bool 
 
         if (curToken->tokenType == BRACKET_ROUND && equalStrings(curToken->tokenName.data, ")")) {
             closedBracketCount++;
-            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERAtOR &&
+            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERATOR &&
                 curToken->nextToken->tokenType != EOL)
                 return SYNTAX_ERROR;
             curToken = curToken->nextToken;
@@ -883,14 +881,14 @@ errorCode blockExpression(list *tokenList, token *curToken, bool forState, bool 
 
         if (curToken->tokenType == IDENT || curToken->tokenType == INT_LIT || curToken->tokenType == FLOAT_LIT ||
             curToken->tokenType == STRING_LIT) {
-            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERAtOR &&
+            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERATOR &&
                 curToken->nextToken->tokenType != COMMA && curToken->nextToken->tokenType != EOL)
                 return SYNTAX_ERROR;
             curToken = curToken->nextToken;
             continue;
         }
 
-        if (curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == COMP_OPERAtOR) {
+        if (curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == COMP_OPERATOR) {
             if (curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != BRACKET_ROUND)
                 return SYNTAX_ERROR;
             curToken = curToken->nextToken;
