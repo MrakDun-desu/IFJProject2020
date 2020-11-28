@@ -287,7 +287,7 @@ errorCode generateConcat(token* var, token* symb1, token* symb2);
  * @param expression Token list which contains expression.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateExpression(list* expression); // funkcia pre xdanco00
+errorCode generateExpression(list* expression, tableNodePtr varTable, token* lastToken); // funkcia pre xdanco00
 
 /*
  * riesenie expressions:
