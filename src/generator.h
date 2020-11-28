@@ -217,7 +217,7 @@ errorCode generateDefvar(token* var);
  * @param value Token representing the value which will be assigned to variable.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateMove(dataType type, token* var, token* value);
+errorCode generateMove(token* var, token* value);
 
 /**
  * @brief Generates the arithmetic command (command is determined by char).
@@ -227,7 +227,7 @@ errorCode generateMove(dataType type, token* var, token* value);
  * @param operation Operation which is to be performed. (Can be + - * / %). / is for idiv, % is for div.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateArithmetic(token* var, token* symb1, token* symb2, char operation);
+errorCode generateArithmetic(token* var, token* symb1, token* symb2, char* frames, char operation);
 
 /**
  * @brief Generates the "less than" command.
@@ -236,7 +236,7 @@ errorCode generateArithmetic(token* var, token* symb1, token* symb2, char operat
  * @param symb2 Second symbol in the LT.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateLT(token* var, token* symb1, token* symb2);
+errorCode generateLT(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "greater than" command.
