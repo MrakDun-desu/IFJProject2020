@@ -9,6 +9,9 @@
 #include "expression.h"
 #include "generator.h"
 #include "List.h"
+#include "Errors.h"
+
+size_t scope = 0;
 
 /**
  * @brief Semantic analyser. Takes individual lines and checks for semantic errors. Adds variables to local symtable if needed.

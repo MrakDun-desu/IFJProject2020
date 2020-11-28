@@ -39,7 +39,6 @@ errorCode insertNode (tableNodePtr* root, char* id, dataType* types, list* param
         node->data.types = types;
         node->data.parameters = parameters;
         node->data.defined = true;
-        node->data.scope = scope;
         return OK;
     }
 
@@ -58,11 +57,14 @@ data* copyNode(tableNodePtr* root, char* id) {
 
 }
 
-void invalidateNode(tableNodePtr* root, char* id) {
+void invalidateScope(tableNodePtr* root, size_t scope) {
 
-    data* data;
-    if ((data = copyNode(root, id)) != NULL)
-        data->defined = false;
+    if (*root != NULL) {
+        invalidateScope(&(*root)->left, scope);
+        invalidateScope(&(*root)->right, scope);
+        if ((*root)->data.scope == scope)
+            (*root)->data.defined = false;
+    }
 
 }
 
@@ -75,6 +77,8 @@ void deleteTable(tableNodePtr* root) {
         if (node->data.parameters != NULL)
             deleteList(node->data.parameters);
         destroyString(&node->data.id);
+        if (node->data.types != NULL)
+            free(node->data.types);
         free(node);
         *root = NULL;
     }

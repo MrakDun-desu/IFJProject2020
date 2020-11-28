@@ -23,18 +23,12 @@ void deleteList(list* l){
 }
 
 void getToken(list* l, size_t pos, token* t){
-    if(pos >= l->size){
+    if(pos >= l->size)
         t = NULL;
-        t->nextToken= NULL;
-    }else{
-        int i = 0;
-        for(token* temp = l->first; i <= pos; temp = temp->nextToken ){
-            initString(&t->tokenName);
-            makeString(temp->tokenName.data, &t->tokenName);
-            t->nextToken = temp->nextToken;
-            t->tokenType = temp->tokenType;
-            i++;
-        }
+    else {
+        t = l->first;
+        for (size_t i = 0; i < pos; i++)
+            t = t->nextToken;
     }
 }
 
