@@ -1,5 +1,8 @@
 .IFJcode20
 
+DEFVAR GF@defBool0
+MOVE GF@defBool0 bool@false
+
 JUMP main
 
 LABEL inputi
@@ -46,6 +49,11 @@ LABEL main
         LABEL for0startlevel1
         GT TF@bool1 TF@a int@0
         JUMPIFNEQ for0endlevel1 TF@bool1 bool@true
+
+            JUMPIFEQ defvar1 GF@defBool0 bool@true
+            DEFVAR TF@var
+            MOVE GF@defBool0 bool@true
+            LABEL defvar1
 
             MUL TF@vysl TF@vysl TF@a
             SUB TF@a TF@a int@1
