@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "Errors.h"
 
 /**
@@ -93,5 +94,7 @@ errorCode makeLowercase(string* input, string* back);
  * @return Error code OK if allocation of data was successful, INTERNAL_ERROR otherwise (only matters if input and back are not the same string).
  */
 errorCode makeUppercase(string* input, string* back);
+
+bool equalStrings(char* s1, char* s2);
 
 #endif //SRC_DYNAMICSTRING_H

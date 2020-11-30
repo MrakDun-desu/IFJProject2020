@@ -40,19 +40,15 @@ token* popToken(list* l) {
     return NULL;
 }
 
-void prependToken(list* l, token* tok) {
+void appendToken(list* l, token* tok) {
     if (l != NULL) {
-        token* temp = l->first;
-        l->first = tok;
-        tok->nextToken = temp;
-        if (temp == NULL)
-            l->last = tok;
+        if (l->first == NULL)
+            l->first = tok;
+        if (l->last != NULL)
+            l->last->nextToken = tok;
+        l->last = tok;
         l->size++;
     }
-}
-
-bool equalStrings(char* s1, char* s2) {
-    return (strcmp(s1, s2) == 0);
 }
 
 size_t evalExpression(list* tokenList, list* outList, size_t pos) {
@@ -66,9 +62,9 @@ size_t evalExpression(list* tokenList, list* outList, size_t pos) {
             tok->tokenType == INT_LIT ||
             tok->tokenType == STRING_LIT ||
             tok->tokenType == FLOAT_LIT) {
-            prependToken(outList, tok);
+            appendToken(outList, tok);
             while (isLarger(helpList.first->tokenName.data[0], tok->nextToken->tokenName.data[0])) {
-                prependToken(outList, popToken(&helpList));
+                appendToken(outList, popToken(&helpList));
             }
 
         } else if (tok->tokenType == COMP_OPERATOR ||
@@ -83,19 +79,21 @@ size_t evalExpression(list* tokenList, list* outList, size_t pos) {
     return tokenList->size;
 }
 
-token* applyPrecedence(list* tokenList, tableNodePtr varTable) {
+errorCode applyPrecedence(list* tokenList, tableNodePtr varTable, token* out) {
 
     list outList;
     initList(&outList);
     list operatorStack;
     initList(&operatorStack);
 
-    token* lastToken = NULL;
+    errorCode code;
 
-    if (evalExpression(tokenList, &outList, 0) != tokenList->size) return NULL;
+    out = NULL;
 
-    generateExpression(&outList, varTable, lastToken);
+    if (evalExpression(tokenList, &outList, 0) != tokenList->size) return INTERNAL_ERROR;
 
-    return lastToken;
+    generateExpression(&outList, varTable, out);
+
+    return OK;
 
 }

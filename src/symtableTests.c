@@ -57,5 +57,9 @@ int main() {
 
     deleteTable(&symtable);
 
+    char* idk = malloc(sizeof(char)*8);
+    sprintf(idk, "expVar%d", 0);
+    printf("%s", idk);
+
     return 0;
 }
