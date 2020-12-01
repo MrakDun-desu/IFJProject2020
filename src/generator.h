@@ -48,10 +48,16 @@ void generatorInit();
  */
 errorCode generatorStart();
 /*
+ * IFJ CODE 20
+ *
  * Takisto vygeneruje aj 10 pomocnych premennych do expressionov. Budu vyzerat takto:
  * DEFVAR GF@expVar{0-9}
  * Toto zabezpeci, ze sa nebudu musiet pouzivat ziadne defvary mimo premennych aj v zdrojovom kode.
  * Aby sa vyuzilo vsetkych 10 premennych, je treba, aby bolo 9 vnorenych zatvoriek (co sa dufam testovat nebude)
+ *
+ * KUBOVE funkcie
+ *
+ * JUMP MAIN
  */
 
 /**
@@ -245,7 +251,7 @@ errorCode generateLT(token* var, token* symb1, token* symb2, char* frames);
  * @param symb2 Second symbol in the GT.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateGT(token* var, token* symb1, token* symb2);
+errorCode generateGT(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "equal" command.
@@ -254,7 +260,7 @@ errorCode generateGT(token* var, token* symb1, token* symb2);
  * @param symb2 Second symbol in the EQ.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateEQ(token* var, token* symb1, token* symb2);
+errorCode generateEQ(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "or" command.
@@ -263,7 +269,7 @@ errorCode generateEQ(token* var, token* symb1, token* symb2);
  * @param symb2 Second symbol in the OR.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateOR(token* var, token* symb1, token* symb2);
+errorCode generateOR(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "not" command.
@@ -280,7 +286,7 @@ errorCode generateNOT(token* var, token* symb);
  * @param symb2 Second string in the concatenation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateConcat(token* var, token* symb1, token* symb2);
+errorCode generateConcat(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates expression from rightly ordered token list.
