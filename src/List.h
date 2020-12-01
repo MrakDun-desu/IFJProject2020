@@ -20,7 +20,7 @@ typedef enum Type {STRING,         // 0
                    BRACKET_ROUND,  // 11
                    EOL,            // 12
                    ARIT_OPERATOR,  // 13
-                   ASIGN_OPERATOR, // 14á
+                   ASIGN_OPERATOR, // 14
                    COMP_OPERATOR,  // 15
                    INT_LIT,        // 16
                    STRING_LIT,     // 17
