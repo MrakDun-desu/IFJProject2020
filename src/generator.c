@@ -5,3 +5,10 @@
 
 
 #include "generator.h"
+void generatorInit(){
+    return;
+}
+errorCode generatorStart()
+{
+    return OK;
+}

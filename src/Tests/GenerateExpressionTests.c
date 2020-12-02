@@ -4,7 +4,7 @@
 
 #include "expression.h"
 
-/// TODO Otestovat funkciu generateExpression
+/// TODO Otestovat funkciu generateExpression//netreba
 int main() {
 
 }

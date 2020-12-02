@@ -4,7 +4,7 @@
 
 #include "parser.h"
 
-/// TODO Otestovat funkciu semanticAnalysis
+/// TODO Otestovat funkciu semanticAnalysis//cely jeden riadok a bere 2 sem tabulky//drhue
 int main() {
 
 }
