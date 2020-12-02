@@ -15,6 +15,7 @@ typedef struct tGenerator { /// struct that simplifies working with generator
     string* program; /// string that will be the final program
     size_t ifCounter; /// helper variable to count ifs for generating labels
     size_t forCounter; /// helper variable to count fors for generating labels
+    size_t varCounter; /// helper variable to count additional variables (that are not specified in source code, but need to be in target code)
 } generator;
 
 generator gen; /// generator that all specified functions will use so program string doesn't have to be passed to each function.
@@ -47,12 +48,6 @@ void generatorInit();
  * @return OK if all allocation has been successful, corresponding error code otherwise.
  */
 errorCode generatorStart();
-/*
- * Takisto vygeneruje aj 10 pomocnych premennych do expressionov. Budu vyzerat takto:
- * DEFVAR GF@expVar{0-9}
- * Toto zabezpeci, ze sa nebudu musiet pouzivat ziadne defvary mimo premennych aj v zdrojovom kode.
- * Aby sa vyuzilo vsetkych 10 premennych, je treba, aby bolo 9 vnorenych zatvoriek (co sa dufam testovat nebude)
- */
 
 /**
  * @brief Empties the program string and sets all the helper variables to zero.
@@ -135,8 +130,11 @@ errorCode generateIfStart(list* condition, size_t ifCount);
 
 /*
  * ifElse priklad:
- * GT TF@bool2 TF@a int@42                                              | (tento riadok riesi expression - moze byt aj viac riadkov)
- * MOVE TF@bool1 TF@bool2                                               | Tieto tri riadky riesi tato funkcia
+ *
+ * DEFVAR TF@bool1 // vytvorenie bool premennej, v ktorej bude vysledok | toto riesi tato funkcia (ale tento riadok expression)
+ * DEFVAR TF@bool2
+ * GT TF@bool2 TF@a int@42                                              | (tento riadok riesi expression)
+ * MOVE TF@bool1 TF@bool2                                               |
  * JUMPIFNEQ else0 TF@bool1 bool@true                                   |
  *      // prikazy vnutri ifu
  * JUMP ifEnd0                                                          | toto riesi generateElse
@@ -173,17 +171,16 @@ errorCode generateForPrequel(size_t forCount);
  */
 errorCode generateForStart(list* condition, size_t forCount);
 /*
- * Pozn. vsetky premenne, ktore budu definovane vo funkcii, sa budu defvarovat uz na zaciatku danej funkcie bez ohladu na to,
- * ci su spravne definovane alebo nie. Zjednodusi sa vdaka tomu praca s formi a aj s vyrazmi. Pomocne premenne budu globalne
- * a bude ich iba urcity pocet.
  * Pozn. na condition spravi xdanco00 v expression.c funkciu, ktora ju vyriesi a vygeneruje pripadne potrebne frasy
  * Priklad na for:
+ * DEFVAR TF@bool1 // vytvorenie bool premennej, v ktorej bude vysledok            |
  * JUMP forFirst0 // jumpuje sa pri prvom prechode                                 |   Tuto cast riesi forPrequel
  * LABEL forStart0                                                                 |
  *
- * SUB TF@a TF@a int@1 // vykonanie priradenia po ukonceni jednej iteracie         |   Toto by mal riesit syntax analyser pomocou inych funkcii (moze byt viac riadkov)
+ * SUB TF@a TF@a int@1 // vykonanie priradenia po ukonceni jednej iteracie         |   Toto by mal riesit syntax analyser pomocou inych funkcii
  *
  * LABEL forFirst0                                                                 |   Tuto cast riesi tato funkcia
+ * DEFVAR TF@bool2                                                                 | (tento riadok riesi expression)
  * GT TF@bool2 TF@a int@0 // porovnanie (robi sa aj na zaciatku aj pocas foru)     | (tento riadok riesi expression - moze byt aj viac riadkov)
  * MOVE TF@bool1 TF@bool2                                                          |
  * JUMPIFNEQ forEnd0 TF@bool1 bool@true // jump na koniec, ak je treba             |
@@ -199,7 +196,7 @@ errorCode generateForStart(list* condition, size_t forCount);
  * @param level Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateForEndLabel(size_t forCount);
+errorCode generateForEndLabel(size_t level);
 
 /**
  * @brief Generates definition of a variable.
@@ -207,8 +204,6 @@ errorCode generateForEndLabel(size_t forCount);
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateDefvar(token* var);
-// ^ nakoniec iba cisto defvar ^
-// bude sa pouzivat hromadne na zaciatku kazdej funkcie, bez ohladu na to, ci su premenne definovane spravne alebo nie
 
 /**
  * @brief Generates assigning value to a variable.
