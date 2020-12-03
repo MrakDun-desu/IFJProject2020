@@ -15,6 +15,6 @@
  * @param program String that will get used as return value.
  * @return 0 if parsing was successful, corresponding nonzero error code value otherwise.
  */
-token applyPrecedence(list* tokenList, tableNodePtr varTable);
+errorCode applyPrecedence(list* tokenList, tableNodePtr varTable, token* out);
 
 #endif //SRC_EXPRESSION_H

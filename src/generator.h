@@ -8,6 +8,7 @@
 #include "symtable.h"
 #include "Errors.h"
 #include "DynamicString.h"
+#include "expression.h"
 
 /// TODO make macros to add string to an end of another and check for errors
 
@@ -20,22 +21,27 @@ typedef struct tGenerator { /// struct that simplifies working with generator
 generator gen; /// generator that all specified functions will use so program string doesn't have to be passed to each function.
 
 // Input functions
-#define FUNC_INPUTS /// TODO
-#define FUNC_INPUTI /// TODO
-#define FUNC_INPUTF /// TODO
+#define FUNC_INPUTS "LABEL inputs\nCREATEFRAME\nDEFVAR TF@ret0\nDEFVAR TF@ret1\nMOVE TF@ret1 int@0\nREAD TF@ret0 string\nJUMPIFNEQ inputs_succ TF@ret0 nil@nil\nMOVE TF@ret1 int@1\nLABEL inputs_succ\nRETURN\n\n"
+#define FUNC_INPUTI "LABEL inputi\nCREATEFRAME\nDEFVAR TF@ret0\nDEFVAR TF@ret1\nMOVE TF@ret1 int@0\nREAD TF@ret0 int\nDEFVAR TF@type0\nTYPE TF@type0 TF@ret0\nJUMPIFEQ inputi_err TF@ret0 nil@nil\nJUMPIFEQ inputi_succ TF@type0 string@int\nJUMP inputi_err\nLABEL inputi_succ\nRETURN\nLABEL inputi_err\nMOVE TF@ret1 int@1\nRETURN\n\n"
+#define FUNC_INPUTF "LABEL inputf\nCREATEFRAME\nDEFVAR TF@ret0\nDEFVAR TF@ret1\nMOVE TF@ret1 int@0\nREAD TF@ret0 float\nDEFVAR TF@type0\nTYPE TF@type0 TF@ret0\nJUMPIFEQ inputf_err TF@ret0 nil@nil\nJUMPIFEQ inputf_succ TF@type0 string@float\nJUMP inputf_err\nLABEL inputf_succ\nRETURN\nLABEL inputf_err\nMOVE TF@ret1 int@1\nRETURN\n\n"
 
-// Print function
-#define FUNC_PRINT /// TODO
 
 // Number conversion functions
-#define FUNC_INT2FLOAT /// TODO
-#define FUNC_FLOAT2INT /// TODO
+#define FUNC_INT2FLOAT "LABEL int2float\nCREATEFRAME\nDEFVAR TF@p\nPOPS TF@p\nDEFVAR TF@ret\nINT2FLOAT TF@ret TF@p\nRETURN\n\n"
+#define FUNC_FLOAT2INT "LABEL float2int\nCREATEFRAME\nDEFVAR TF@p\nPOPS TF@p\nDEFVAR TF@ret\nFLOAT2INT TF@ret TF@p\nRETURN\n\n"
 
 // String functions
-#define FUNC_LEN /// TODO
-#define FUNC_SUBSTR /// TODO
-#define FUNC_ORD /// TODO
-#define FUNC_CHR /// TODO
+#define FUNC_LEN "LABEL funclen\nCREATEFRAME\nDEFVAR TF@s\nPOPS TF@s\nDEFVAR TF@ret\nSTRLEN TF@ret TF@s\nRETURN\n\n"
+#define FUNC_SUBSTR "LABEL substr\nCREATEFRAME\nDEFVAR TF@n\nPOPS TF@n\nDEFVAR TF@i\nPOPS TF@i\nDEFVAR TF@s\nPOPS TF@s\nDEFVAR TF@temp\nDEFVAR TF@lenght\nDEFVAR TF@maxIndex\nDEFVAR TF@ret0\nDEFVAR TF@ret1\n\
+DEFVAR TF@out\nSTRLEN TF@lenght TF@s\nMOVE TF@maxIndex TF@lenght\nSUB TF@maxIndex TF@maxIndex int@1\nMOVE TF@ret1 int@0\nMOVE TF@out bool@false\nLT TF@out TF@i int@0\nGT TF@out TF@i TF@maxIndex\nJUMPIFEQ substr_err TF@out bool@true\nMOVE TF@out bool@false\nLT TF@out TF@n int@0\nJUMPIFEQ substr_err TF@out bool@true\n\
+MOVE TF@ret0 string@#\nLABEL substr_cyklus\nGETCHAR TF@temp TF@s TF@i\nJUMPIFEQ substr_greater TF@i TF@maxIndex\nADD TF@i TF@i int@1\nSUB TF@n TF@n int@1\nLABEL substr_cyklus_back\nCONCAT TF@ret0 TF@ret0 TF@temp\nMOVE TF@temp nil@nil\nJUMPIFNEQ substr_cyklus TF@n int@0\nRETURN\n\
+LABEL substr_greater\nMOVE TF@i int@0\nSUB TF@n TF@n int@1\nJUMP substr_cyklus_back\nLABEL substr_err\nMOVE TF@ret1 int@1\nMOVE TF@ret0 string@OUT_OF_STRING\nRETURN\n\n"
+
+#define FUNC_ORD "LABEL funcord\nCREATEFRAME\nDEFVAR TF@i\nPOPS TF@i\nDEFVAR TF@s\nPOPS TF@s\nDEFVAR TF@l\nDEFVAR TF@out\nSTRLEN TF@l TF@s\nSUB TF@l TF@l int@1\nGT TF@out TF@i TF@l\nDEFVAR TF@ret0\nDEFVAR TF@ret1\nMOVE TF@ret1 int@0\nJUMPIFEQ funcord_err TF@out bool@true\nSTRI2INT TF@ret0 TF@s TF@i\nRETURN\n\
+LABEL funcord_err\nMOVE TF@ret0 nil@nil\nMOVE TF@ret1 int@1\nRETURN\n\n"
+
+#define FUNC_CHR "LABEL chr\nCREATEFRAME\nDEFVAR TF@ascii\nPOPS TF@ascii\nDEFVAR TF@ret0\nDEFVAR TF@ret1\nDEFVAR TF@out\nMOVE TF@out bool@false\nMOVE TF@ret0 int@0\nJUMPIFEQ chr_err TF@ascii nil@nil\nGT TF@out TF@ascii int@255\n\
+LT TF@out TF@ascii int@1\nJUMPIFEQ chr_err TF@out bool@true\nINT2CHAR TF@ret0 TF@ascii\nRETURN\nLABEL chr_err\nMOVE TF@ret1 int@1\nMOVE TF@ret0 string@OUT_OF_RANGE_(0;255)\nRETURN\n\n"
 
 /**
  * @brief Initializes generator gen and sets all variables to default.
@@ -72,11 +78,6 @@ void generatorClear();
  */
 errorCode generatorWrite(FILE* dest);
 
-/**
- * @brief Starts main and creates frame.
- * @return OK if allocation was successful, corresponding error code otherwise.
- */
-errorCode generateMainScopeStart();
 
 /**
  * @brief Ends main (it should just jump to end of file, so no other commands are executed).
@@ -137,7 +138,7 @@ errorCode generateFunctionReturn(data* function, list* assignVariables);
  * @param ifCount Number of the if, used for label generation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateIfStart(list* condition, size_t ifCount);
+errorCode generateIfStart(list* condition, tableNodePtr varTable, size_t ifCount);
 
 /*
  * ifElse priklad:
@@ -177,7 +178,7 @@ errorCode generateForPrequel(size_t forCount);
  * @param level Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateForStart(list* condition, size_t forCount);
+errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCount);
 /*
  * Pozn. vsetky premenne, ktore budu definovane vo funkcii, sa budu defvarovat uz na zaciatku danej funkcie bez ohladu na to,
  * ci su spravne definovane alebo nie. Zjednodusi sa vdaka tomu praca s formi a aj s vyrazmi. Pomocne premenne budu globalne

@@ -14,31 +14,26 @@ errorCode transformString(string* str){
 
     string tmp;
     initString(&tmp);
-
+    char tmpStr[100];
     for(size_t i = 0; i < str->len; i++){
         char c = str->data[i];
-        if(c == ' '){
-            c = 92;
-            addChar(&tmp,c);
-            c = '0';
-            addChar(&tmp,c);
-            c = '3';
-            addChar(&tmp,c);
-            c = '2';
-            addChar(&tmp,c);
+        if(c < 33){
+            addChar(&tmp, 92);
+            addChar(&tmp, '0');
+            sprintf(tmpStr,"%d", c);
+            addConstChar(&tmp, tmpStr);
+        }else if(c == 35){
+            addChar(&tmp, 92);
+            addChar(&tmp, '0');
+            sprintf(tmpStr,"%d", c);
+            addConstChar(&tmp, tmpStr);
+        }else if(c == 92){
+            addChar(&tmp, 92);
+            addChar(&tmp, '0');
+            sprintf(tmpStr,"%d", c);
+            addConstChar(&tmp, tmpStr);
         }else{
-            if(c == '\n'){
-                c = 92;
-                addChar(&tmp,c);
-                c = '0';
-                addChar(&tmp,c);
-                c = '1';
-                addChar(&tmp,c);
-                c = '0';
-                addChar(&tmp,c);
-            }else{
-                addChar(&tmp,c);
-            }
+            addChar(&tmp, c);
         }
     }
     makeString(tmp.data,str);
@@ -69,21 +64,19 @@ errorCode generatorStart(){
         sprintf(str, "DEFVAR GF@expVar%d\n", i);
         ADDCHAR(gen.program, str);
     }
-/*
+
     ADDCHAR(gen.program, FUNC_INPUTS);
     ADDCHAR(gen.program, FUNC_INPUTI);
     ADDCHAR(gen.program, FUNC_INPUTF);
-
-    ADDCHAR(gen.program, FUNC_PRINT);
 
     ADDCHAR(gen.program, FUNC_INT2FLOAT);
     ADDCHAR(gen.program, FUNC_FLOAT2INT);
 
     ADDCHAR(gen.program, FUNC_LEN);
+
     ADDCHAR(gen.program, FUNC_SUBSTR);
     ADDCHAR(gen.program, FUNC_ORD);
     ADDCHAR(gen.program, FUNC_CHR);
-*/
 
     sprintf(str, "JUMP main\n");
     ADDCHAR(gen.program, str);
@@ -1248,7 +1241,74 @@ errorCode generatorWrite(FILE* dest){
 ///MAIN FUNCTIONS
 
 errorCode generateMainScopeEnd(){
-    ADDCHAR(gen.program, "EXIT int@0");
+    ADDCHAR(gen.program, "EXIT int@0\n");
     return OK;
 }
 
+///IF FUNCTIONS
+
+errorCode generateIfStart(list* condition, tableNodePtr varTable, size_t ifCount){
+    char str[100];
+    token out;
+
+    applyPrecedence(condition, varTable, &out);
+
+    sprintf(str, "MOVE TF@bool%d GF@%s\n", ifCount, out.tokenName.data);
+    ADDCHAR(gen.program, str);
+
+    sprintf(str, "JUMPIFNEQ else%d TF@bool%d bool@true\n", ifCount, ifCount);
+    ADDCHAR(gen.program, str);
+
+    return OK;
+}
+
+errorCode generateElse(size_t ifCount){
+    char str[100];
+    sprintf(str,"JUMP ifEnd%d\n", ifCount);
+    ADDCHAR(gen.program, str);
+    sprintf(str,"LABEL else%d\n", ifCount);
+    ADDCHAR(gen.program, str);
+    return OK;
+}
+
+errorCode generateIfEnd(size_t ifCount){
+    char str[100];
+    sprintf(str, "LABEL ifEnd%d\n", ifCount);
+    ADDCHAR(gen.program, str);
+    return OK;
+}
+
+///FOR FUNCTIONS
+
+errorCode generateForPrequel(size_t forCount){
+    char str[100];
+    sprintf(str,"JUMP forFirst%d\n", forCount);
+    ADDCHAR(gen.program, str);
+    sprintf(str,"LABEL forStart%d\n", forCount);
+    ADDCHAR(gen.program, str);
+    return OK;
+}
+
+errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCount){
+    char str[100];
+    sprintf(str,"LABEL forFirst%d\n", forCount);
+    ADDCHAR(gen.program, str);
+
+    token out;
+    applyPrecedence(condition, varTable, &out);
+
+    sprintf(str,"MOVE TF@bool%d GF@%s\n", forCount, out.tokenName.data);
+    ADDCHAR(gen.program, str);
+
+    sprintf(str,"JUMPIFNEQ forEnd%d TF@bool%d bool@true\n", forCount, forCount);
+    ADDCHAR(gen.program, str);
+
+    return OK;
+}
+
+errorCode generateForEndLabel(size_t forCount){
+    char str[100];
+    sprintf(str, "LABEL forEnd%d\n", forCount);
+    ADDCHAR(gen.program, str);
+    return OK;
+}
