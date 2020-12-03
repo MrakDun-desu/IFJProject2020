@@ -4,10 +4,6 @@
 
 #include "parser.h"
 
-bool equalStrings(char* s1, char* s2) {
-    return (strcmp(s1, s2) == 0);
-}
-
 bool checkDatatype(dataType type, token* tok, tableNodePtr varTable) {
 
     data* var;
