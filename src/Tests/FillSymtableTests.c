@@ -65,19 +65,62 @@ int main() {
     {
         printf("chyba funkcia symtable nenapnila tabulku\n");
     }
-    else
-    {
-        printf("Položky tabulky");
-        printf("|id :%s type : %d",symtable->data.id.data);
-        if(symtable->right !=NULL)
-            printf("|id :%s type : %d",symtable->right->data.id.data);
-        else
-            printf("|id :%s type : %d",symtable->left->data.id.data);
+    else {
+        printf("Položky tabulky\n");
+        printf("|id :%s type : %d", symtable->data.id.data);
+
+
+        makeString("f", &testString);
+        if (symtable->data.id.data == &testString) {
+
+        } else {
+            printf("chyba: zle zadené id\n");
+        }
+        if (*(symtable->data.types) == TYPE_INT) {
+            printf("Typ bol zadaný dobre\n");
+
+        } else {
+            printf("Zle zadaný typ");
+        }
+        if (symtable->data.parameters->size == 0) {
+            printf("chyba: v tabulke chýbaju parametre funkcie");
+        }
+
+
+        if (symtable->right != NULL) {
+            printf("|id :%s type : %d", symtable->right->data.id.data);
+            if (symtable->right->data.types == TYPE_UNDEFINED) {
+
+            } else {
+                printf("chyba: zlá navratová hodnota 2. nacitanej funkcie\n");
+            }
+
+            if (symtable->right->data.parameters->size != 0) {
+                printf("chyba: funkcia nema mat parametre");
+            }
+        }
+
+
+        if (symtable->left != NULL) {
+            printf("|id :%s type : %d|\n", symtable->left->data.id.data);
+            if (symtable->left->data.types == TYPE_UNDEFINED) {
+
+            } else {
+                printf("chyba: zlá navratová hodnota 2. nacitanej funkcie\n");
+            }
+
+
+            if (symtable->left && symtable->right == NULL)
+                printf("chyba: funkcia nenacitala druhu runkciu\n");
+
+            if (symtable->right->data.parameters->size != 0) {
+                printf("chyba: funkcia nema mat parametre");
+            }
+
+        }
+
 
     }
-
-
-
 
 
 
