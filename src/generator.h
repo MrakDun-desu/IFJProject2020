@@ -222,7 +222,7 @@ errorCode generateMove(dataType type, token* var, token* value);
  * @param operation Operation which is to be performed. (Can be + - * / %). / is for idiv, % is for div.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateArithmetic(token* var, token* symb1, token* symb2, char operation);
+errorCode generateArithmetic(token* var, token* symb1, token* symb2, char* frames, char operation);
 
 /**
  * @brief Generates the "less than" command.
@@ -231,7 +231,7 @@ errorCode generateArithmetic(token* var, token* symb1, token* symb2, char operat
  * @param symb2 Second symbol in the LT.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateLT(token* var, token* symb1, token* symb2);
+errorCode generateLT(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "greater than" command.
@@ -240,7 +240,7 @@ errorCode generateLT(token* var, token* symb1, token* symb2);
  * @param symb2 Second symbol in the GT.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateGT(token* var, token* symb1, token* symb2);
+errorCode generateGT(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "equal" command.
@@ -249,7 +249,7 @@ errorCode generateGT(token* var, token* symb1, token* symb2);
  * @param symb2 Second symbol in the EQ.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateEQ(token* var, token* symb1, token* symb2);
+errorCode generateEQ(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "or" command.
@@ -258,15 +258,15 @@ errorCode generateEQ(token* var, token* symb1, token* symb2);
  * @param symb2 Second symbol in the OR.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateOR(token* var, token* symb1, token* symb2);
+errorCode generateOR(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "not" command.
  * @param var Variable that should store the result of NOT.
- * @param symb Bool value that is to be negates.
+ * @param symb Bool value that is to be negated.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateNOT(token* var, token* symb);
+errorCode generateNOT(token* var, token* symb, char* frames);
 
 /**
  * @brief Generates the "concatenation" command.
@@ -275,14 +275,14 @@ errorCode generateNOT(token* var, token* symb);
  * @param symb2 Second string in the concatenation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateConcat(token* var, token* symb1, token* symb2);
+errorCode generateConcat(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates expression from rightly ordered token list.
  * @param expression Token list which contains expression.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateExpression(list* expression); // funkcia pre xdanco00
+errorCode generateExpression(list* expression, tableNodePtr varTable, token* lastToken); // funkcia pre xdanco00
 
 /*
  * riesenie expressions:
