@@ -11,7 +11,7 @@
 #include "List.h"
 #include "Errors.h"
 
-size_t scope = 0;
+size_t scope;
 
 /**
  * @brief Semantic analyser. Takes individual lines and checks for semantic errors. Adds variables to local symtable if needed.
