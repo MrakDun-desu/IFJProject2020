@@ -6,38 +6,33 @@
 
 #define ADDCHAR(des_str,src_char) {if(addConstChar(des_str, src_char)) return INTERNAL_ERROR;}
 
-#include "generator.h"
-
 errorCode transformString(string* str){
 
     string tmp;
     initString(&tmp);
+    makeString("", &tmp);
+    errorCode out;
     char tmpStr[100];
     for(size_t i = 0; i < str->len; i++){
         char c = str->data[i];
         if(c < 33){
-            addChar(&tmp, 92);
-            addChar(&tmp, '0');
+            if ((out = addChar(&tmp, 92)) != OK) return out;
+            if ((out = addChar(&tmp, '0')) != OK) return out;
             if(c < 10){
-                addChar(&tmp, '0');
+                if ((out = addChar(&tmp, '0')) != OK) return out;
             }
             sprintf(tmpStr,"%d", c);
-            addConstChar(&tmp, tmpStr);
-        }else if(c == 35){
-            addChar(&tmp, 92);
-            addChar(&tmp, '0');
-            sprintf(tmpStr,"%d", c);
-            addConstChar(&tmp, tmpStr);
-        }else if(c == 92){
-            addChar(&tmp, 92);
-            addChar(&tmp, '0');
-            sprintf(tmpStr,"%d", c);
-            addConstChar(&tmp, tmpStr);
-        }else{
-            addChar(&tmp, c);
+            if ((out = addConstChar(&tmp, tmpStr)) != OK) return out;
+        }else if(c == 35 || c == 92) {
+            if ((out = addChar(&tmp, 92)) != OK) return out;
+            if ((out = addChar(&tmp, '0')) != OK) return out;
+            sprintf(tmpStr, "%d", c);
+            if ((out = addConstChar(&tmp, tmpStr)) != OK) return out;
+        } else {
+            if ((out = addChar(&tmp, c)) != OK) return out;
         }
     }
-    makeString(tmp.data,str);
+    if ((out = makeString(tmp.data,str)) != OK) return out;
     destroyString(&tmp);
     return OK;
 }
@@ -46,8 +41,7 @@ errorCode transformString(string* str){
 
 void generatorInit(){
     initString(gen.program);
-    gen.forCounter = 0;
-    gen.ifCounter = 0;
+    makeString("", gen.program);
 }
 
 void generatorClear(){
@@ -62,25 +56,25 @@ errorCode generatorStart(){
     ADDCHAR(gen.program, str);
 
     for(size_t i = 0; i < 10; i++){
-        sprintf(str, "DEFVAR GF@expVar%d\n", i);
-        ADDCHAR(gen.program, str);
+        sprintf(str, "DEFVAR GF@expVar%zu\n", i);
+        ADDCHAR(gen.program, str)
     }
 
-    ADDCHAR(gen.program, FUNC_INPUTS);
-    ADDCHAR(gen.program, FUNC_INPUTI);
-    ADDCHAR(gen.program, FUNC_INPUTF);
+    ADDCHAR(gen.program, FUNC_INPUTS)
+    ADDCHAR(gen.program, FUNC_INPUTI)
+    ADDCHAR(gen.program, FUNC_INPUTF)
 
-    ADDCHAR(gen.program, FUNC_INT2FLOAT);
-    ADDCHAR(gen.program, FUNC_FLOAT2INT);
+    ADDCHAR(gen.program, FUNC_INT2FLOAT)
+    ADDCHAR(gen.program, FUNC_FLOAT2INT)
 
-    ADDCHAR(gen.program, FUNC_LEN);
+    ADDCHAR(gen.program, FUNC_LEN)
 
-    ADDCHAR(gen.program, FUNC_SUBSTR);
-    ADDCHAR(gen.program, FUNC_ORD);
-    ADDCHAR(gen.program, FUNC_CHR);
+    ADDCHAR(gen.program, FUNC_SUBSTR)
+    ADDCHAR(gen.program, FUNC_ORD)
+    ADDCHAR(gen.program, FUNC_CHR)
 
     sprintf(str, "JUMP main\n");
-    ADDCHAR(gen.program, str);
+    ADDCHAR(gen.program, str)
     return OK;
 }
 
@@ -91,31 +85,11 @@ errorCode generateDefvar(token* var){
     return OK;
 }
 
-errorCode generatorMove(token* var, token* value){
+errorCode generateMove(token* var){
 
     char str[100];
 
-    switch(var->tokenType){
-        case INT_LIT:
-            sprintf(str,"MOVE TF@%s int@%s\n", var->tokenName.data, value->tokenName.data);
-            break;
-        case STRING_LIT:
-            string tmp;
-            initString(&tmp);
-            makeString(value->tokenName.data,&tmp);
-            transformString(&tmp);
-            sprintf(str,"MOVE TF@%s string@%s\n", var->tokenName.data, tmp.data);
-            destroyString(&tmp);
-            break;
-        case FLOAT_LIT:
-            sprintf(str,"MOVE TF@%s float@%s\n", var->tokenName.data, value->tokenName.data);
-            break;
-        case IDENT:
-            sprintf(str,"MOVE TF@%s GF@%s\n", var->tokenName.data, value->tokenName.data);
-            break;
-        default:
-            break;
-    }
+    sprintf(str,"MOVE TF@%s GF@expVar0\n", var->tokenName.data);
 
     ADDCHAR(gen.program,str);
 
@@ -934,115 +908,6 @@ errorCode generateEQ(token* var, token* symb1, token* symb2, char* frames){
 
 ///LOGICAL FUNCTIONS
 
-errorCode generateOR(token* var, token* symb1, token* symb2, char* frames){
-
-    char str[100];
-    if(symb1->tokenType == INT_LIT){
-        if(symb2->tokenType == INT_LIT){
-            sprintf(str,"OR GF@%s int@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-        }
-        if(symb2->tokenType == IDENT){
-            if(frames[1] == 't'){
-                sprintf(str,"OR GF@%s int@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-            if(frames[1] == 'g'){
-                sprintf(str,"OR GF@%s int@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-        }
-    }
-
-    if(symb1->tokenType == FLOAT_LIT){
-        if(symb2->tokenType == FLOAT_LIT){
-            sprintf(str,"OR GF@%s float@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-        }
-        if(symb2->tokenType == IDENT){
-            if(frames[1] == 't'){
-                sprintf(str,"OR GF@%s float@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-            if(frames[1] == 'g'){
-                sprintf(str,"OR GF@%s float@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-        }
-    }
-
-    if(symb1->tokenType == STRING_LIT){
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data,&tmp1);
-        transformString(&tmp1);
-
-        if(symb2->tokenType == STRING_LIT){
-            string tmp2;
-            initString(&tmp2);
-            makeString(symb2->tokenName.data,&tmp2);
-            transformString(&tmp2);
-            sprintf(str,"OR GF@%s string@%s string@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
-            destroyString(&tmp2);
-        }
-        if(symb2->tokenType == IDENT){
-            if(frames[1] == 't'){
-                sprintf(str,"OR GF@%s string@%s TF@%s\n",var->tokenName.data, tmp1.data, symb2->tokenName.data);
-            }
-            if(frames[1] == 'g'){
-                sprintf(str,"OR GF@%s string@%s GF@%s\n",var->tokenName.data, tmp1.data, symb2->tokenName.data);
-            }
-        }
-        destroyString(&tmp1);
-    }
-
-    if(symb1->tokenType == IDENT){
-        if(symb2->tokenType == STRING_LIT){
-            string tmp;
-            initString(&tmp);
-            makeString(symb2->tokenName.data,&tmp);
-            transformString(&tmp);
-            if(frames[0] == 't'){
-                sprintf(str,"OR GF@%s TF@%s string@%s\n",var->tokenName.data, symb1->tokenName.data, tmp.data);
-            }
-            if(frames[0] == 'g'){
-                sprintf(str,"OR GF@%s GF@%s string@%s\n",var->tokenName.data, symb1->tokenName.data, tmp.data);
-            }
-            destroyString(&tmp);
-        }
-
-        if(symb2->tokenType == INT_LIT){
-            if(frames[0] == 't'){
-                sprintf(str,"OR GF@%s TF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-            if(frames[0] == 'g'){
-                sprintf(str,"OR GF@%s GF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-        }
-
-        if(symb2->tokenType == FLOAT_LIT){
-            if(frames[0] == 't'){
-                sprintf(str,"OR GF@%s TF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-            if(frames[0] == 'g'){
-                sprintf(str,"OR GF@%s GF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-        }
-
-        if(symb2->tokenType == IDENT){
-            if(equalStrings("tt",frames)){
-                sprintf(str,"OR GF@%s TF@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-            if(equalStrings("tg",frames)){
-                sprintf(str,"OR GF@%s TF@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-            if(equalStrings("gt",frames)){
-                sprintf(str,"OR GF@%s GF@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-            if(equalStrings("gg",frames)){
-                sprintf(str,"OR GF@%s GF@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
-            }
-        }
-    }
-
-    ADDCHAR(gen.program,str);
-    return OK;
-}
-
 errorCode generateNOT(token* var, token* symb){
 
     char str[100];
@@ -1182,7 +1047,7 @@ errorCode generateFunctionStart(data* function){
         tmpType = function->types[i];
 
         while(tmpType != TYPE_UNDEFINED){
-            sprintf(str, "DEFVAR TF@ret%d\n", i);
+            sprintf(str, "DEFVAR TF@ret%zu\n", i);
             ADDCHAR(gen.program, str);
             i++;
             tmpType = function->types[i];
@@ -1216,7 +1081,7 @@ errorCode generateFunctionReturn(data* function, list* assignVariables){
     for(size_t i = 0; i < assignVariables->size; i++){
         token tmp;
         getToken(function->parameters, i, &tmp);
-        sprintf(str, "MOVE LF@%s TF@ret%d\n", tmp.tokenName.data, i);
+        sprintf(str, "MOVE LF@%s TF@ret%zu\n", tmp.tokenName.data, i);
         ADDCHAR(gen.program, str);
     }
     sprintf(str, "POPFRAME\n");
@@ -1250,14 +1115,13 @@ errorCode generateMainScopeEnd(){
 
 errorCode generateIfStart(list* condition, tableNodePtr varTable, size_t ifCount){
     char str[100];
-    token out;
 
-    applyPrecedence(condition, varTable, &out);
+    applyPrecedence(condition, varTable);
 
-    sprintf(str, "MOVE TF@bool%d GF@%s\n", ifCount, out.tokenName.data);
+    sprintf(str, "MOVE TF@bool%zu GF@expVar0\n", ifCount);
     ADDCHAR(gen.program, str);
 
-    sprintf(str, "JUMPIFNEQ else%d TF@bool%d bool@true\n", ifCount, ifCount);
+    sprintf(str, "JUMPIFNEQ else%zu TF@bool%zu bool@true\n", ifCount, ifCount);
     ADDCHAR(gen.program, str);
 
     return OK;
@@ -1265,16 +1129,16 @@ errorCode generateIfStart(list* condition, tableNodePtr varTable, size_t ifCount
 
 errorCode generateElse(size_t ifCount){
     char str[100];
-    sprintf(str,"JUMP ifEnd%d\n", ifCount);
+    sprintf(str,"JUMP ifEnd%zu\n", ifCount);
     ADDCHAR(gen.program, str);
-    sprintf(str,"LABEL else%d\n", ifCount);
+    sprintf(str,"LABEL else%zu\n", ifCount);
     ADDCHAR(gen.program, str);
     return OK;
 }
 
 errorCode generateIfEnd(size_t ifCount){
     char str[100];
-    sprintf(str, "LABEL ifEnd%d\n", ifCount);
+    sprintf(str, "LABEL ifEnd%zu\n", ifCount);
     ADDCHAR(gen.program, str);
     return OK;
 }
@@ -1283,25 +1147,24 @@ errorCode generateIfEnd(size_t ifCount){
 
 errorCode generateForPrequel(size_t forCount){
     char str[100];
-    sprintf(str,"JUMP forFirst%d\n", forCount);
+    sprintf(str,"JUMP forFirst%zu\n", forCount);
     ADDCHAR(gen.program, str);
-    sprintf(str,"LABEL forStart%d\n", forCount);
+    sprintf(str,"LABEL forStart%zu\n", forCount);
     ADDCHAR(gen.program, str);
     return OK;
 }
 
 errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCount){
     char str[100];
-    sprintf(str,"LABEL forFirst%d\n", forCount);
+    sprintf(str,"LABEL forFirst%zu\n", forCount);
     ADDCHAR(gen.program, str);
 
-    token out;
-    applyPrecedence(condition, varTable, &out);
+    applyPrecedence(condition, varTable);
 
-    sprintf(str,"MOVE TF@bool%d GF@%s\n", forCount, out.tokenName.data);
+    sprintf(str,"MOVE TF@bool%zu GF@expVar0\n", forCount);
     ADDCHAR(gen.program, str);
 
-    sprintf(str,"JUMPIFNEQ forEnd%d TF@bool%d bool@true\n", forCount, forCount);
+    sprintf(str,"JUMPIFNEQ forEnd%zu TF@bool%zu bool@true\n", forCount, forCount);
     ADDCHAR(gen.program, str);
 
     return OK;
@@ -1309,26 +1172,22 @@ errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCou
 
 errorCode generateForEndLabel(size_t forCount){
     char str[100];
-    sprintf(str, "LABEL forEnd%d\n", forCount);
+    sprintf(str, "LABEL forEnd%zu\n", forCount);
     ADDCHAR(gen.program, str);
-    return OK;
-}
-
-errorCode makeExpVar(size_t number, char* out) {
-    if ((out = malloc(sizeof(char)*8))==NULL)
-        return INTERNAL_ERROR;
-    else
-        sprintf(out, "expVar%zu", number);
     return OK;
 }
 
 errorCode decideOperation(token* var, token* first, token* second, token* tok, char* scopes, dataType expressionType) {
 
     if (equalStrings(tok->tokenName.data, "+")) {
-        if (expressionType != TYPE_STRING)
-            if (generateArithmetic(var, first, second, scopes, '+')) return INTERNAL_ERROR;
-        else
-            if (generateConcat(var, first, second, scopes)) return INTERNAL_ERROR;
+        if (expressionType != TYPE_STRING) {
+            if (generateArithmetic(var, first, second, scopes, '+'))
+                return INTERNAL_ERROR;
+        }
+        else {
+            if (generateConcat(var, first, second, scopes))
+                return INTERNAL_ERROR;
+        }
     }
     else if (equalStrings(tok->tokenName.data, "-")) {
         if (generateArithmetic(var, first, second, scopes, '-')) return INTERNAL_ERROR;
@@ -1337,10 +1196,13 @@ errorCode decideOperation(token* var, token* first, token* second, token* tok, c
         if (generateArithmetic(var, first, second, scopes, '*')) return INTERNAL_ERROR;
     }
     else if (equalStrings(tok->tokenName.data, "/")) {
-        if (expressionType == TYPE_INT)
-            if (generateArithmetic(var, first, second, scopes, '/')) return INTERNAL_ERROR;
-        else
-            if (generateArithmetic(var, first, second, scopes, '%')) return INTERNAL_ERROR;
+        if (expressionType == TYPE_INT) {
+            if (generateArithmetic(var, first, second, scopes, '/'))
+                return INTERNAL_ERROR;
+        }
+        else if (generateArithmetic(var, first, second, scopes, '%')) {
+            return INTERNAL_ERROR;
+        }
     }
     else if (equalStrings(tok->tokenName.data, ">")) {
         if (generateGT(var, first, second, scopes)) return INTERNAL_ERROR;
@@ -1350,23 +1212,23 @@ errorCode decideOperation(token* var, token* first, token* second, token* tok, c
     }
     else if (equalStrings(tok->tokenName.data, ">=")) {
         if (generateLT(var, first, second, scopes)) return INTERNAL_ERROR;
-        if (generateNOT(var, var, "gg")) return INTERNAL_ERROR;
+        if (generateNOT(var, var)) return INTERNAL_ERROR;
     }
     else if (equalStrings(tok->tokenName.data, "<=")) {
         if (generateGT(var, first, second, scopes)) return INTERNAL_ERROR;
-        if (generateNOT(var, var, "gg")) return INTERNAL_ERROR;
+        if (generateNOT(var, var)) return INTERNAL_ERROR;
     }
     else if (equalStrings(tok->tokenName.data, "==")) {
         if (generateEQ(var, first, second, scopes)) return INTERNAL_ERROR;
     }
     else if (equalStrings(tok->tokenName.data, "!=")) {
         if (generateEQ(var, first, second, scopes)) return INTERNAL_ERROR;
-        if (generateNOT(var, var, "gg")) return INTERNAL_ERROR;
+        if (generateNOT(var, var)) return INTERNAL_ERROR;
     }
     return OK;
 }
 
-errorCode generateExpression(list* expression, tableNodePtr varTable, token* lastToken) {
+errorCode generateExpression(list* expression, tableNodePtr varTable) {
 
     bool usedTokens[expression->size];
     for (size_t i = 0; i < expression->size; i++) usedTokens[i] = false;
@@ -1465,13 +1327,6 @@ errorCode generateExpression(list* expression, tableNodePtr varTable, token* las
                     }
                 }
             }
-        }
-
-        if ((lastToken = malloc(sizeof(token))) == NULL) return INTERNAL_ERROR;
-        else {
-            makeString("expVar0", &lastToken->tokenName);
-            lastToken->tokenType = IDENT;
-            lastToken->nextToken = NULL;
         }
 
         if (!wasOperator) {

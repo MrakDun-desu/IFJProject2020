@@ -69,4 +69,12 @@ void getToken(list* l, size_t pos, token* t);
  */
 int addToken(list* l, type tType, char* tName);
 
+errorCode pushToken(list *l, token *tok);
+
+token* popToken(list *l);
+
+errorCode appendToken(list* l, token* tok);
+
+token* copyToken(list* l, size_t pos);
+
 #endif //SRC_LIST_H

@@ -5,28 +5,6 @@
 #include "parser.h"
 #include <stdlib.h>
 
-void pushToken(list *l, token *tok) {
-    if (l != NULL) {
-        token *temp = l->first;
-        l->first = tok;
-        l->size++;
-        tok->nextToken = temp;
-    }
-}
-bool checkDatatype(dataType type, token* tok, tableNodePtr varTable) {
-
-token *popToken(list *l) {
-    if (l != NULL) {
-        token *back = l->first;
-        if (l->first != NULL) {
-            l->first = l->first->nextToken;
-            l->size--;
-        }
-        return back;
-    }
-    return NULL;
-}
-
 bool checkDatatype(dataType type, token *tok, tableNodePtr varTable) {
 
     data *var;
@@ -939,7 +917,7 @@ errorCode blockExpression(list *tokenList, token *curToken, bool forState, bool 
 }
 
 //asign
-errorCode blockAsign(list *tokenList, token *curToken, bool forState) {
+errorCode blockAssign(list *tokenList, token *curToken, bool forState) {
 
     int openBracketCount = 0;
     int closedBracketCount = 0;
@@ -1117,10 +1095,10 @@ errorCode parse(list *tokenList, string *code) {
     tableNodePtr localTable;
     initTable(&localTable);
 
-    int curLevel = 0;
-    int forCount = 0;
-    int ifCount = 0;
-    int retCount = 0;
+    size_t curLevel = 0;
+    size_t forCount = 0;
+    size_t ifCount = 0;
+    size_t retCount = 0;
 
 
     list buffer;
@@ -1172,13 +1150,13 @@ errorCode parse(list *tokenList, string *code) {
                         tempToken.tokenType = IF;
                         ifCount++;
 
-                        sprintf(name, "%d", ifCount);
+                        sprintf(name, "%zu", ifCount);
                     } else {
                         isFor = false;
                         tempToken.tokenType = FOR;
                         isFor++;
 
-                        sprintf(name, "%d", forCount);
+                        sprintf(name, "%zu", forCount);
                     }
 
                     makeString(name, &tempToken.tokenName);
@@ -1268,7 +1246,7 @@ errorCode parse(list *tokenList, string *code) {
                 addToken(&condition, temp.tokenType, temp.tokenName.data);
             }
 
-            generateIfStart(&condition, ifCount);
+            generateIfStart(&condition, localTable, ifCount);
 
 
             returnError = blockExpression(tokenList, curToken.nextToken, false, false);
@@ -1318,7 +1296,7 @@ errorCode parse(list *tokenList, string *code) {
 
             thirdTemp = curToken;
 
-            returnError = blockAsign(tokenList, curToken.nextToken, true);
+            returnError = blockAssign(tokenList, curToken.nextToken, true);
             if (returnError != OK) return returnError;
 
             generateForPrequel(forCount);
@@ -1334,10 +1312,10 @@ errorCode parse(list *tokenList, string *code) {
                 }
             }
             if (foundDef) {
-                generatorError = applyPrecedence(&condition, localTable, &appliedToken);
+                generatorError = applyPrecedence(&condition, localTable);
                 if (generatorError != OK) return generatorError;
 
-                generatorError = generateMove(TYPE_UNDEFINED, &forVar, &appliedToken);
+                generatorError = generateMove(&forVar);
                 if (generatorError != OK) return generatorError;
             } else {
                 return SYNTAX_ERROR;
@@ -1361,8 +1339,8 @@ errorCode parse(list *tokenList, string *code) {
             for (int j = 0; j < savedVars.size; j++) {
                 token temp;
                 getToken(&savedVars, j, &temp);
-                applyPrecedence(&condition, localTable, &appliedToken);
-                generateMove(TYPE_UNDEFINED, &temp, &appliedToken);
+                applyPrecedence(&condition, localTable);
+                generateMove(&temp);
             }
             deleteList(&condition);
             initList(&condition);
@@ -1371,7 +1349,7 @@ errorCode parse(list *tokenList, string *code) {
             while (secondTemp.tokenType != SEMICOL) {
                 addToken(&condition, secondTemp.tokenType, secondTemp.tokenName.data);
             }
-            generateForStart(&condition, forCount);
+            generateForStart(&condition, localTable, forCount);
 
             deleteList(&savedVars);
             deleteList(&condition);
@@ -1398,12 +1376,12 @@ errorCode parse(list *tokenList, string *code) {
                 retToken.tokenType = RETURN;
                 initString(&retToken.tokenName);
                 char *name = malloc(6 * sizeof(char));
-                sprintf(name, "ret%d", retCount);
+                sprintf(name, "ret%zu", retCount);
 
                 makeString(name, &retToken.tokenName);
 
-                applyPrecedence(&condition, localTable, &appliedToken);
-                generateMove(TYPE_UNDEFINED, &retToken, &appliedToken);
+                applyPrecedence(&condition, localTable);
+                generateMove(&retToken);
                 free(name);
                 destroyString(&retToken.tokenName);
                 deleteList(&condition);
@@ -1454,10 +1432,10 @@ errorCode parse(list *tokenList, string *code) {
 
                     //GENERATE ASSIGN
                     token temp;
-                    generatorError = applyPrecedence(&condition, localTable, &temp);
+                    generatorError = applyPrecedence(&condition, localTable);
                     if (generatorError != OK) return generatorError;
 
-                    generatorError = generateMove(TYPE_UNDEFINED, &savedToken, &temp);
+                    generatorError = generateMove(&savedToken);
                     if (generatorError != OK) return generatorError;
 
                     foundDefAsign = true;
@@ -1505,9 +1483,9 @@ errorCode parse(list *tokenList, string *code) {
                             token appliedToken;
                             getToken(&savedVar, j, &temp);
 
-                            generatorError = applyPrecedence(&condition, localTable, &appliedToken);
+                            generatorError = applyPrecedence(&condition, localTable);
                             if (generatorError != OK) return generatorError;
-                            generatorError = generateMove(TYPE_UNDEFINED, &temp, &appliedToken);
+                            generatorError = generateMove(&temp);
                             if (generatorError != OK) return generatorError;
                         }
 
@@ -1515,7 +1493,7 @@ errorCode parse(list *tokenList, string *code) {
                         deleteList(&savedVar);
                     }
 
-                    returnError = blockAsign(tokenList, &curToken, false);
+                    returnError = blockAssign(tokenList, &curToken, false);
                     if (returnError != OK) return returnError;
 
                     foundDefAsign = true;

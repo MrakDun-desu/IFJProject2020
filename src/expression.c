@@ -19,44 +19,12 @@ bool isLarger(char op1, char op2) {
     return false;
 }
 
-void pushToken(list* l, token* tok) {
-    if (l != NULL) {
-        token* temp = l->first;
-        l->first = tok;
-        tok->nextToken = temp;
-        l->size++;
-    }
-}
-
-token* popToken(list* l) {
-    if (l != NULL) {
-        token* back = l->first;
-        if (l->first != NULL) {
-            l->first = l->first->nextToken;
-            l->size--;
-        }
-        return back;
-    }
-    return NULL;
-}
-
-void appendToken(list* l, token* tok) {
-    if (l != NULL) {
-        if (l->first == NULL)
-            l->first = tok;
-        if (l->last != NULL)
-            l->last->nextToken = tok;
-        l->last = tok;
-        l->size++;
-    }
-}
-
 size_t evalExpression(list* tokenList, list* outList, size_t pos) {
     list helpList;
     initList(&helpList);
     for (size_t i = pos; pos < tokenList->size; i++) {
-        token* tok = NULL;
-        getToken(tokenList, i, tok);
+        token* tok;
+        tok = copyToken(tokenList, i);
         pushToken(&helpList, tok);
         if (tok->tokenType == IDENT ||
             tok->tokenType == INT_LIT ||
@@ -71,28 +39,25 @@ size_t evalExpression(list* tokenList, list* outList, size_t pos) {
             tok->tokenType == ARIT_OPERATOR) {
             pushToken(&helpList, tok);
         } else if (equalStrings(tok->tokenName.data, "(")) {
-            i = evalExpression(tokenList, outList, i);
+            i = evalExpression(tokenList, outList, i+1);
         } else {
+            deleteList(&helpList);
             return i+1;
         }
     }
+    deleteList(&helpList);
     return tokenList->size;
 }
 
-errorCode applyPrecedence(list* tokenList, tableNodePtr varTable, token* out) {
+errorCode applyPrecedence(list* tokenList, tableNodePtr varTable) {
 
     list outList;
     initList(&outList);
-    list operatorStack;
-    initList(&operatorStack);
 
-    errorCode code;
+    size_t pos = 0;
+    if (evalExpression(tokenList, &outList, pos) != tokenList->size) return INTERNAL_ERROR;
 
-    out = NULL;
-
-    if (evalExpression(tokenList, &outList, 0) != tokenList->size) return INTERNAL_ERROR;
-
-    generateExpression(&outList, varTable, out);
+    if (generateExpression(&outList, varTable)) return INTERNAL_ERROR;
 
     return OK;
 
