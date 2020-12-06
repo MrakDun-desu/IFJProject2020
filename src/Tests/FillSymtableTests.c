@@ -12,6 +12,46 @@
 void printSymtable(tableNodePtr symtable) {
 
 }
+void drawTree(tableNodePtr symtable){
+    string types ;
+    initString(&types);
+    switch(*symtable->data.types){
+        case TYPE_UNDEFINED : makeString("Undefined",&types);
+            break;
+        case TYPE_STRING : makeString("String",&types);
+        break;
+        case TYPE_INT : makeString("int",&types);
+        break;
+        case TYPE_FLOAT : makeString("float",&types);
+            break;
+    }
+
+    if(symtable == NULL)
+    {
+        printf("symtable is empty");
+        return;
+    }
+    if(symtable != NULL){
+        printf("\nid: %s ; type:%s parameters: ",symtable->data.id.data,types.data);
+        list parameters;
+        initList(&parameters);
+        parameters = *symtable->data.parameters;
+        for(int i = 1; i<=symtable->data.parameters->size ; i++)
+        {
+            printf("%s, ",parameters.first->tokenName);
+            parameters.first = parameters.first->nextToken;
+        }
+    }
+    if(symtable->right !=NULL)
+    {
+        drawTree(symtable->right);
+    }
+    if(symtable->left !=NULL)
+    {
+        drawTree(symtable->left);
+    }
+
+}
 
 int main() {
 
@@ -25,6 +65,10 @@ int main() {
     initList(&testList);
     initTable(&symtable);
     CodeAnalyzer(&testList,testString);
+    makeString("func aujo()  {\n}" , &testString);
+    CodeAnalyzer(&testList,testString);
+    makeString("func xavier(n int, f float64, jozgo string) (string) {\n}" , &testString);
+    CodeAnalyzer(&testList,testString);
     fillSymtable(&symtable,&testList);
     if(symtable == NULL)
     {
@@ -32,7 +76,10 @@ int main() {
     }
     else
     {
-        printf("|id :%s\n",symtable->data.id.data);
+        drawTree(symtable);
 
     }
+
 }
+
+
