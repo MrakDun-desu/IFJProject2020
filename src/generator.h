@@ -416,11 +416,10 @@ errorCode generateEQ(token* var, token* symb1, token* symb2, char* frames);
 
 /**
  * @brief Generates the "not" command.
- * @param var Variable that should store the result of NOT.
- * @param symb Bool value that is to be negated.
+ * @param var Variable that should be negated.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateNOT(token* var, token* symb);
+errorCode generateNOT(token* var);
 
 /**
  * @brief Generates the "concatenation" command.

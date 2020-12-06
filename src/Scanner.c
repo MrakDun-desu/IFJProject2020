@@ -188,7 +188,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
         return INTERNAL_ERROR;
     }
 
-    const char operators[] = "<>{}()*/-+.'=:";
+    const char operators[] = "<>{}()*/-+.'=:!";
 
     bool comment = false;
     bool stringLoaded = false;
@@ -369,7 +369,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
                     }
                 }
-                if (currentChar == '<' || currentChar == '>') {
+                if (currentChar == '<' || currentChar == '>' || currentChar == '!') {
                     if (i != code.len) {
                         if (code.data[i + 1] == '=') {
 

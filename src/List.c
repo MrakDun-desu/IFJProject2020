@@ -96,19 +96,3 @@ token* popToken(list *l) {
     return NULL;
 }
 
-errorCode appendToken(list* l, token* tok) {
-    if (l != NULL) {
-        token* newToken;
-        if ((newToken = malloc(sizeof (token))) == NULL) return INTERNAL_ERROR;
-        initString(&newToken->tokenName);
-        if (makeString(tok->tokenName.data, &newToken->tokenName)) return INTERNAL_ERROR;
-        newToken->tokenType = tok->tokenType;
-        if (l->first == NULL)
-            l->first = newToken;
-        if (l->last != NULL)
-            l->last->nextToken = newToken;
-        l->last = newToken;
-        l->size++;
-    }
-    return OK;
-}

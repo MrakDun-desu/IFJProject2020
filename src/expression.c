@@ -9,12 +9,12 @@ char* precedence[] = {"*/", "+-", "<>=!"};
 bool isLarger(char op1, char op2) {
     bool wasOp1 = false;
     bool wasOp2 = false;
-    for (size_t i = 0; i<3; i++) {
+    for (size_t i = 0; i<3 && !wasOp2; i++) {
         for (size_t j = 0; j < strlen(precedence[i]); j++) {
             if (precedence[i][j] == op1) wasOp1 = true;
             if (precedence[i][j] == op2) wasOp2 = true;
         }
-        if (wasOp1 && !wasOp2) return true;
+        if (wasOp1) return true;
     }
     return false;
 }
@@ -22,30 +22,52 @@ bool isLarger(char op1, char op2) {
 size_t evalExpression(list* tokenList, list* outList, size_t pos) {
     list helpList;
     initList(&helpList);
-    for (size_t i = pos; pos < tokenList->size; i++) {
+    bool justReturned = false;
+    for (size_t i = pos; i < tokenList->size; i++) {
         token* tok;
         tok = copyToken(tokenList, i);
-        pushToken(&helpList, tok);
+        if (justReturned) {
+            while (helpList.first != NULL && isLarger(helpList.first->tokenName.data[0], tok->tokenName.data[0])) {
+                token* helpToken = popToken(&helpList);
+                addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                destroyString(&helpToken->tokenName);
+                free(helpToken);
+            }
+            justReturned = false;
+        }
         if (tok->tokenType == IDENT ||
             tok->tokenType == INT_LIT ||
             tok->tokenType == STRING_LIT ||
             tok->tokenType == FLOAT_LIT) {
-            appendToken(outList, tok);
-            while (isLarger(helpList.first->tokenName.data[0], tok->nextToken->tokenName.data[0])) {
-                appendToken(outList, popToken(&helpList));
+            addToken(outList, tok->tokenType, tok->tokenName.data);
+            while (helpList.first != NULL && isLarger(helpList.first->tokenName.data[0], tok->nextToken->tokenName.data[0])) {
+                token* helpToken = popToken(&helpList);
+                addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                destroyString(&helpToken->tokenName);
+                free(helpToken);
             }
-
         } else if (tok->tokenType == COMP_OPERATOR ||
             tok->tokenType == ARIT_OPERATOR) {
             pushToken(&helpList, tok);
         } else if (equalStrings(tok->tokenName.data, "(")) {
             i = evalExpression(tokenList, outList, i+1);
+            justReturned = true;
         } else {
-            deleteList(&helpList);
-            return i+1;
+            while(helpList.first != NULL) {
+                token* helpToken = popToken(&helpList);
+                addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                destroyString(&helpToken->tokenName);
+                free(helpToken);
+            }
+            return i;
         }
     }
-    deleteList(&helpList);
+    while(helpList.first != NULL) {
+        token* helpToken = popToken(&helpList);
+        addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+        destroyString(&helpToken->tokenName);
+        free(helpToken);
+    }
     return tokenList->size;
 }
 
@@ -57,7 +79,14 @@ errorCode applyPrecedence(list* tokenList, tableNodePtr varTable) {
     size_t pos = 0;
     if (evalExpression(tokenList, &outList, pos) != tokenList->size) return INTERNAL_ERROR;
 
+    for (token* tok = copyToken(&outList, 0); tok != NULL; tok = tok->nextToken) {
+        printf("%s ", tok->tokenName.data);
+    }
+    printf("\n");
+
     if (generateExpression(&outList, varTable)) return INTERNAL_ERROR;
+
+    deleteList(&outList);
 
     return OK;
 

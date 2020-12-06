@@ -17,9 +17,14 @@ int main() {
     initString(&testString);
     list testList;
     initList(&testList);
-    makeString("(5+5)",&testString);
+    makeString("4+5*7-(42+5)/42<=15+(8-2*(16-5)+781)",&testString);
     CodeAnalyzer(&testList,testString);
     applyPrecedence(&testList,tabulke);
 
     generatorWrite(stdout);
+    generatorClear();
+
+    destroyString(&testString);
+    deleteList(&testList);
+    deleteTable(&tabulke);
 }
