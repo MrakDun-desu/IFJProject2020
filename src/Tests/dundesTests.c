@@ -15,7 +15,7 @@ int main() {
     initString(&var.tokenName);
     makeString("Hello", &var.tokenName);
     var.tokenType = IDENT;
-    generateMove(&var);
+    generateDefvar(&var);
 
     generatorWrite(stdout);
 

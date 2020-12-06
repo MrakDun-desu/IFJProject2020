@@ -341,14 +341,14 @@ errorCode generateLT(token* var, token* symb1, token* symb2, char* frames){
     char str[100];
     if(symb1->tokenType == INT_LIT){
         if(symb2->tokenType == INT_LIT){
-            sprintf(str,"LT GF@%s float@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+            sprintf(str,"LT GF@%s int@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
         }
         if(symb2->tokenType == IDENT){
             if(frames[1] == 't' ){
-                sprintf(str,"LT GF@%s float@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"LT GF@%s int@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
             if(frames[1] == 'g' ){
-                sprintf(str,"LT GF@%s float@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"LT GF@%s int@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
         }
     }
@@ -423,10 +423,10 @@ errorCode generateLT(token* var, token* symb1, token* symb2, char* frames){
 
         if(symb2->tokenType == INT_LIT){
             if(frames[0] == 't'){
-                sprintf(str,"LT GF@%s TF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"LT GF@%s TF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
             if(frames[0] == 'g'){
-                sprintf(str,"LT GF@%s GF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"LT GF@%s GF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
         }
 
@@ -454,14 +454,14 @@ errorCode generateGT(token* var, token* symb1, token* symb2, char* frames){
     char str[100];
     if(symb1->tokenType == INT_LIT){
         if(symb2->tokenType == INT_LIT){
-            sprintf(str,"GT GF@%s float@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+            sprintf(str,"GT GF@%s int@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
         }
         if(symb2->tokenType == IDENT){
             if(frames[1] == 't' ){
-                sprintf(str,"GT GF@%s float@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"GT GF@%s int@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
             if(frames[1] == 'g' ){
-                sprintf(str,"GT GF@%s float@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"GT GF@%s int@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
         }
     }
@@ -536,10 +536,10 @@ errorCode generateGT(token* var, token* symb1, token* symb2, char* frames){
 
         if(symb2->tokenType == INT_LIT){
             if(frames[0] == 't'){
-                sprintf(str,"GT GF@%s TF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"GT GF@%s TF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
             if(frames[0] == 'g'){
-                sprintf(str,"GT GF@%s GF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"GT GF@%s GF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
         }
 
@@ -567,14 +567,14 @@ errorCode generateEQ(token* var, token* symb1, token* symb2, char* frames){
     char str[100];
     if(symb1->tokenType == INT_LIT){
         if(symb2->tokenType == INT_LIT){
-            sprintf(str,"EQ GF@%s float@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+            sprintf(str,"EQ GF@%s int@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
         }
         if(symb2->tokenType == IDENT){
             if(frames[1] == 't' ){
-                sprintf(str,"EQ GF@%s float@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"EQ GF@%s int@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
             if(frames[1] == 'g' ){
-                sprintf(str,"EQ GF@%s float@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"EQ GF@%s int@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
         }
     }
@@ -649,10 +649,10 @@ errorCode generateEQ(token* var, token* symb1, token* symb2, char* frames){
 
         if(symb2->tokenType == INT_LIT){
             if(frames[0] == 't'){
-                sprintf(str,"EQ GF@%s TF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"EQ GF@%s TF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
             if(frames[0] == 'g'){
-                sprintf(str,"EQ GF@%s GF@%s float@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
+                sprintf(str,"EQ GF@%s GF@%s int@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
             }
         }
 
@@ -705,67 +705,47 @@ errorCode generateConcat(token* var, token* symb1, token* symb2, char* frames){
 
     }
     if(symb1->tokenType == IDENT && symb2->tokenType == IDENT){
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data,&tmp1);
-        transformString(&tmp1);
-        string tmp2;
-        initString(&tmp2);
-        makeString(symb2->tokenName.data,&tmp2);
-        transformString(&tmp2);
 
         if(equalStrings("tt",frames)){
-            sprintf(str, "CONCAT GF%s TF@%s TF@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s TF@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
         }
         if(equalStrings("tg",frames)){
-            sprintf(str, "CONCAT GF%s TF@%s GF@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s TF@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
         }
         if(equalStrings("gt",frames)){
-            sprintf(str, "CONCAT GF%s GF@%s TF@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s GF@%s TF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
         }
         if(equalStrings("gg",frames)){
-            sprintf(str, "CONCAT GF%s GF@%s GF@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s GF@%s GF@%s\n",var->tokenName.data, symb1->tokenName.data, symb2->tokenName.data);
         }
-        destroyString(&tmp1);
-        destroyString(&tmp2);
     }
     if(symb1->tokenType == IDENT && symb2->tokenType == STRING_LIT){
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data,&tmp1);
-        transformString(&tmp1);
-        string tmp2;
-        initString(&tmp2);
-        makeString(symb2->tokenName.data,&tmp2);
-        transformString(&tmp2);
+        string tmp;
+        initString(&tmp);
+        makeString(symb1->tokenName.data,&tmp);
+        transformString(&tmp);
 
         if(frames[0] == 't'){
-            sprintf(str, "CONCAT GF%s TF@%s string@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s TF@%s string@%s\n",var->tokenName.data, symb1->tokenName.data, tmp.data);
         }
         if(frames[0] == 'g'){
-            sprintf(str, "CONCAT GF%s GF@%s string@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s GF@%s string@%s\n",var->tokenName.data, symb1->tokenName.data, tmp.data);
         }
-        destroyString(&tmp1);
-        destroyString(&tmp2);
+        destroyString(&tmp);
     }
     if(symb1->tokenType == STRING_LIT && symb2->tokenType == IDENT){
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data,&tmp1);
-        transformString(&tmp1);
-        string tmp2;
-        initString(&tmp2);
-        makeString(symb2->tokenName.data,&tmp2);
-        transformString(&tmp2);
+        string tmp;
+        initString(&tmp);
+        makeString(symb1->tokenName.data,&tmp);
+        transformString(&tmp);
 
         if(frames[1] == 't'){
-            sprintf(str, "CONCAT GF%s string@%s TF@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s string@%s TF@%s\n",var->tokenName.data, tmp.data, symb2->tokenName.data);
         }
         if(frames[1] == 'g'){
-            sprintf(str, "CONCAT GF%s string@%s GF@%s\n",var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "CONCAT GF%s string@%s GF@%s\n",var->tokenName.data, tmp.data, symb2->tokenName.data);
         }
-        destroyString(&tmp1);
-        destroyString(&tmp2);
+        destroyString(&tmp);
     }
 
     ADDCHAR(gen.program,str)
@@ -782,7 +762,7 @@ errorCode generateFunctionStart(data* function){
         ADDCHAR(gen.program, str)
         return OK;
 
-    }else{
+    } else {
         sprintf(str, "LABEL %s\n", function->id.data);
         ADDCHAR(gen.program, str)
         sprintf(str, "CREATEFRAME\n");

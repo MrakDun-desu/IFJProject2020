@@ -30,7 +30,7 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
  * @param tokenList List of tokens that is to be parsed.
  * @return Error code that represents if finding functions has been successful (can return OK, SYNTAX_ERROR or INTERNAL_ERROR)
  */
-errorCode fillSymtable(tableNodePtr globalTable, list* tokenList); /// xfudor00
+errorCode fillSymtable(tableNodePtr* globalTable, list* tokenList); /// xfudor00
 
 /**
  * @brief Parses list of tokens and returns it as a translated string. If any errors occur, returns corresponding error code.

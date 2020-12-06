@@ -537,11 +537,11 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
 
 }
 
-errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
+errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
 
     size_t length = tokenList->size;
 
-    for (size_t i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) { // run through the whole token list
 
         string funcIdent;
         initString(&funcIdent);
@@ -550,77 +550,33 @@ errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
 
         if (func.tokenType == FUNC) {  // *FUNC* ...
 
-            if (func.nextToken != NULL && func.nextToken->tokenType == IDENT) {
-                i++;
+            if (func.nextToken != NULL && func.nextToken->tokenType == IDENT) { // if next token is ident
+                i++; // increase iterator
                 token ident;
                 initString(&ident.tokenName);
-                getToken(tokenList, i, &ident); // FUNC *IDENT* ...
+                getToken(tokenList, i, &ident); // get the identifier token
                 makeString(ident.tokenName.data, &funcIdent); //uloží identifikator do stringu
 
-                if (equalStrings(funcIdent.data, "main")) {
+                if (equalStrings(funcIdent.data, "main")) { // if identifier is main, ignore it
                     destroyString(&funcIdent);
                     continue;
                 }
 
-                if ((ident.nextToken != NULL) && (ident.nextToken->tokenType == BRACKET_ROUND) &&
-                    equalStrings("(", ident.tokenName.data)) {
-                    i++;
+                if (ident.nextToken != NULL && equalStrings("(", ident.nextToken->tokenName.data)) { // if next token is opening bracket
+                    i += 2; // increase past the bracket
                     token param;
-                    getToken(tokenList, i, &param); // FUNC IDENT *(* ...
 
-                    list *parameters = malloc(sizeof(list));
+                    list *parameters = malloc(sizeof(list)); // create the list for storing parameters
                     initList(parameters); //list parametrov
 
-                    i++;
                     getToken(tokenList, i, &param); // FUNC IDENT ( *IDENT* ...
 
-                    while (param.tokenType != BRACKET_ROUND &&
-                           !equalStrings(")", param.tokenName.data)) { //naplní list parametrov
+                    while (!equalStrings(")", param.tokenName.data)) { // while we aren't on closing bracket
                         if (param.nextToken != NULL) {
                             switch (param.tokenType) {
-                                case INT:
-                                    if (param.nextToken->tokenType == COMMA ||
-                                        (param.nextToken->tokenType == BRACKET_ROUND &&
-                                         equalStrings(")", param.nextToken->tokenName.data))) {
-                                        addToken(parameters, param.tokenType, param.tokenName.data);
-                                        i++;
-                                        getToken(tokenList, i, &param);
-                                    } else {
-                                        deleteList(parameters);
-                                        destroyString(&funcIdent);
-                                        return SYNTAX_ERROR;
-                                    }
-                                    break;
-                                case FLOAT:
-                                    if (param.nextToken->tokenType == COMMA ||
-                                        (param.nextToken->tokenType == BRACKET_ROUND &&
-                                         equalStrings(")", param.nextToken->tokenName.data))) {
-                                        addToken(parameters, param.tokenType, param.tokenName.data);
-                                        i++;
-                                        getToken(tokenList, i, &param);
-                                    } else {
-                                        deleteList(parameters);
-                                        destroyString(&funcIdent);
-                                        return SYNTAX_ERROR;
-                                    }
-                                    break;
-                                case STRING:
-                                    if (param.nextToken->tokenType == COMMA ||
-                                        (param.nextToken->tokenType == BRACKET_ROUND &&
-                                         equalStrings(")", param.nextToken->tokenName.data))) {
-                                        addToken(parameters, param.tokenType, param.tokenName.data);
-                                        i++;
-                                        getToken(tokenList, i, &param);
-                                    } else {
-                                        deleteList(parameters);
-                                        destroyString(&funcIdent);
-                                        return SYNTAX_ERROR;
-                                    }
-                                    break;
-
-                                case IDENT:
+                                case IDENT: // if this token is identifier
                                     if (param.nextToken->tokenType == INT || param.nextToken->tokenType == STRING ||
-                                        param.nextToken->tokenType == FLOAT) {
+                                        param.nextToken->tokenType == FLOAT) { // next token can be only a datatype
                                         addToken(parameters, param.tokenType, param.tokenName.data);
                                         i++;
                                         getToken(tokenList, i, &param);
@@ -631,9 +587,24 @@ errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
                                     }
                                     break;
 
-                                case COMMA:
+                                case INT:
+                                case FLOAT:
+                                case STRING: // if this token is datatype
+                                    if (param.nextToken->tokenType == COMMA || // next token can be either a comma or )
+                                         equalStrings(")", param.nextToken->tokenName.data)) {
+                                        addToken(parameters, param.tokenType, param.tokenName.data); // ad the token to parameters list
+                                        i++;
+                                        getToken(tokenList, i, &param); // continue to next token
+                                    } else {
+                                        deleteList(parameters);
+                                        destroyString(&funcIdent);
+                                        return SYNTAX_ERROR;
+                                    }
+                                    break;
+
+                                case COMMA: // if this token is a comma
                                     if (param.nextToken->tokenType == IDENT || param.nextToken->tokenType == EOL) {
-                                        addToken(parameters, param.tokenType, param.tokenName.data);
+                                        addToken(parameters, param.tokenType, param.tokenName.data); // next token can be identifier or eol
                                         i++;
                                         getToken(tokenList, i, &param);
                                     } else {
@@ -642,8 +613,9 @@ errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
                                         return SYNTAX_ERROR;
                                     }
                                     break;
-                                case EOL:
+                                case EOL: // if this token is eol
                                     if (param.nextToken->tokenType == EOL || param.nextToken->tokenType == IDENT) {
+                                        // next token can be identifier or another eol
                                         i++;
                                         getToken(tokenList, i, &param);
                                     } else {
@@ -652,7 +624,7 @@ errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
                                         return SYNTAX_ERROR;
                                     }
                                     break;
-                                default:
+                                default: // if there is anything except eols, idents, commas and datatypes, it's syntax error
                                     deleteList(parameters);
                                     destroyString(&funcIdent);
                                     return SYNTAX_ERROR;
@@ -665,23 +637,18 @@ errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
 
                     } // po while  ->  FUNC IDENT ( TYPE IDENT , ... *)*
 
+                    dataType *retTypesArray = malloc(100 * sizeof(dataType));
+                    for (int iter = 0; iter < 100; iter++) retTypesArray[iter] = TYPE_UNDEFINED;
 
-                    if (param.nextToken != NULL && param.nextToken->tokenType == BRACKET_ROUND &&
-                        equalStrings("(", param.nextToken->tokenName.data)) {
+                    if (param.nextToken != NULL && equalStrings("(", param.nextToken->tokenName.data)) {
 
-                        i++;
+                        i += 2; // jump right to datatype token
                         token returnTypes;
                         getToken(tokenList, i, &returnTypes); // FUNC IDENT ( TYPE IDENT , ... ) *(* ...
                         if (returnTypes.nextToken != NULL) {
-                            i++;
-                            getToken(tokenList, i, &returnTypes); // FUNC IDENT ( TYPE IDENT , ... ) ( *RET_TYPE* ...
 
                             int count = 0;
-                            dataType *retTypesArray = malloc(100 * sizeof(dataType));
-
-
-                            while (returnTypes.tokenType != BRACKET_ROUND &&
-                                   equalStrings(")", returnTypes.tokenName.data)) {
+                            while (!equalStrings(")", returnTypes.tokenName.data)) {
                                 if (returnTypes.nextToken != NULL) {
                                     switch (returnTypes.tokenType) {
                                         case INT:
@@ -745,16 +712,12 @@ errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
 
                             } // FUNC IDENT ( TYPE IDENT , ... ) ( RET_TYPE, ... *)*
 
-                            retTypesArray[count] = TYPE_UNDEFINED;
-
-                            if (returnTypes.nextToken != NULL && returnTypes.nextToken->tokenType == BRACKET_CURLY &&
-                                equalStrings("{", returnTypes.nextToken->tokenName.data)) {
+                            if (returnTypes.nextToken != NULL && equalStrings("{", returnTypes.nextToken->tokenName.data)) {
                                 i++;
-                                getToken(tokenList, i,
-                                         &returnTypes); // FUNC IDENT ( IDENT TYPE , ... ) ( RET_TYPE, ... ) *{*
+                                getToken(tokenList, i, &returnTypes); // FUNC IDENT ( IDENT TYPE , ... ) ( RET_TYPE, ... ) *{*
                                 if (returnTypes.nextToken != NULL && returnTypes.nextToken->tokenType == EOL) {
-                                    if (copyNode(&globalTable, funcIdent.data) == NULL) {
-                                        insertNode(&globalTable, funcIdent.data, retTypesArray, parameters, 0);
+                                    if (copyNode(globalTable, funcIdent.data) == NULL) {
+                                        insertNode(globalTable, funcIdent.data, retTypesArray, parameters, 0);
                                         destroyString(&funcIdent);
                                     } else {
                                         deleteList(parameters);
@@ -775,13 +738,12 @@ errorCode fillSymtable(tableNodePtr globalTable, list *tokenList) {
                         }
 
                     } else {
-                        if (param.nextToken != NULL && param.nextToken->tokenType == BRACKET_CURLY &&
-                            equalStrings("{", param.nextToken->tokenName.data)) {
+                        if (param.nextToken != NULL && equalStrings("{", param.nextToken->tokenName.data)) {
                             i++;
                             getToken(tokenList, i, &param); // FUNC IDENT ( TYPE IDENT , ... ) *{*
-                            if (param.nextToken != NULL && param.nextToken->tokenType == EOL) {
-                                if (copyNode(&globalTable, funcIdent.data) == NULL) {
-                                    insertNode(&globalTable, funcIdent.data, NULL, parameters, 0);
+                            if (param.nextToken != NULL && param.nextToken->tokenType == EOL) { // after { must be an eol
+                                if (copyNode(globalTable, funcIdent.data) == NULL) {
+                                    insertNode(globalTable, funcIdent.data, retTypesArray, parameters, 0);
                                     destroyString(&funcIdent);
                                 } else {
                                     deleteList(parameters);
