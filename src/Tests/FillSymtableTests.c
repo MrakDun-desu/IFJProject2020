@@ -38,7 +38,7 @@ void drawTree(tableNodePtr symtable){
         parameters = *symtable->data.parameters;
         for(int i = 1; i<=symtable->data.parameters->size ; i++)
         {
-            printf("%s, ",parameters.first->tokenName);
+            printf("%s, ",parameters.first->tokenName.data);
             parameters.first = parameters.first->nextToken;
         }
     }

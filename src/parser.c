@@ -31,7 +31,10 @@ bool checkDatatype(dataType type, token *tok, tableNodePtr varTable) {
 }
 
 errorCode checkFunctionTypes(list *tokenList, data *func, size_t i, tableNodePtr localTable, dataType **back) {
-    dataType *paramTypes = malloc(sizeof(dataType) * func->parameters->size / 2);
+    dataType *paramTypes = NULL;
+    if (func->parameters != NULL) {
+        paramTypes = malloc(sizeof(dataType) * func->parameters->size / 2);
+    }
     size_t typeCount = 0;
 
     // first, we need to check which parameter types function expects
@@ -53,8 +56,8 @@ errorCode checkFunctionTypes(list *tokenList, data *func, size_t i, tableNodePtr
     size_t nextCommaCount = 0;
     bool inParams = false;
     token *nextTok = NULL;
-    getToken(tokenList, i + 1, nextTok);
-    for (size_t j = i + 1; nextTok != NULL; getToken(tokenList, ++j, nextTok)) {
+    nextTok = copyToken(tokenList, i + 1);
+    for (size_t j = i + 1; nextTok != NULL; nextTok = copyToken(tokenList, ++j)) {
         if (!inParams && equalStrings(nextTok->tokenName.data, "("))
             inParams = true; // if we encounter (, we need to check parameters
         else if (inParams && equalStrings(nextTok->tokenName.data, ")"))
@@ -97,8 +100,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                 token *operator = tok->nextToken;
                 if (operator->tokenType == ARIT_OPERATOR ||
                     operator->tokenType == COMP_OPERATOR) { // then check if it's operator
-                    if (operator->nextToken !=
-                        NULL) { // check if it has next token just to be sure (should be handled by syntax analysis)
+                    if (operator->nextToken != NULL) { // check if it has next token just to be sure (should be handled by syntax analysis)
                         if (equalStrings(operator->tokenName.data, "/") && // check if operator is division
                             (operator->nextToken->tokenType == INT_LIT ||
                              operator->nextToken->tokenType == FLOAT_LIT)) { // and check if next token is literal
@@ -123,14 +125,13 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                         // checking type compatibility between variables/literals
                         size_t count = 0;
                         token *prevTok;
-                        for (prevTok = tok; prevTok != NULL; getToken(tokenList, tokCounter - count, prevTok)) {
+                        for (prevTok = tok; prevTok != NULL; prevTok = copyToken(tokenList, tokCounter - count)) {
                             // run through tokens until we reach something which isn't ")"
-                            if (equalStrings(prevTok->tokenName.data,
-                                             ")")) // if token isn't ), that means we got variable or literal
+                            if (!equalStrings(prevTok->tokenName.data,")")) // if token isn't ), that means we got variable or literal
                                 break;
                             count++;
                         }
-                        tokCounter += count; // update i so it still represents current token
+
                         data *var = copyNode(&localTable, prevTok->tokenName.data);
                         bool varString = false;
                         bool varInt = false;
@@ -150,6 +151,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                                     // run through next tokens until variable or literal is reached
                                     if (!checkDatatype(TYPE_STRING, nextTok, localTable))
                                         return TYPE_COMPATIBILITY_ERROR;
+                                    else break;
                                 }
                             }
                         } else if (prevTok->tokenType == INT_LIT || varInt) {
@@ -158,6 +160,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                                     // run through next tokens until variable or literal is reached
                                     if (!checkDatatype(TYPE_INT, nextTok, localTable))
                                         return TYPE_COMPATIBILITY_ERROR;
+                                    else break;
                                 }
                             }
                         } else if (prevTok->tokenType == FLOAT_LIT || varFloat) {
@@ -166,6 +169,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                                     // run through next tokens until variable or literal is reached
                                     if (!checkDatatype(TYPE_FLOAT, nextTok, localTable))
                                         return TYPE_COMPATIBILITY_ERROR;
+                                    else break;
                                 }
                             }
                         }
@@ -313,8 +317,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
             bool wasAssign = false;
             for (token *tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
                 if (tok->tokenType == ASIGN_OPERATOR) wasAssign = true;
-                if (equalStrings(tok->nextToken->tokenName.data,
-                                 ":=")) { // if this is the definition command, create new entry in symtable
+                if (tok->nextToken != NULL && equalStrings(tok->nextToken->tokenName.data,":=")) {
+                    // if this is the definition command, create new entry in symtable
                     data *thisSymbol;
                     if (equalStrings(tok->tokenName.data, "_")) return DEFINITION_ERROR;
 
@@ -416,19 +420,19 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
 
             for (size_t i = 0; i < tokenList->size; i++) { // we run through the list with a number so we can come back
                 token *tok = NULL;
-                getToken(tokenList, i, tok);
+                tok = copyToken(tokenList, i);
                 if (equalStrings(tok->tokenName.data, "=")) { // if we encounter =, it means this is assign
                     size_t prevCommaCount = 0; // comma counts to check the same number of expressions
                     size_t nextCommaCount = 0;
                     token *prevTok = NULL;
-                    getToken(tokenList, i - 1, prevTok); // previous token to check before the = operator
+                    prevTok = copyToken(tokenList, i - 1); // previous token to check before the = operator
                     token *nextTok = NULL;
-                    getToken(tokenList, i + 1, nextTok); // next token to check after the = operator
+                    nextTok = copyToken(tokenList, i + 1); // next token to check after the = operator
 
                     dataType *prevTypes = NULL; // types that are before operator
                     dataType *nextTypes = NULL; // types that are after the operator
 
-                    for (size_t j = i - 1; j != 0 && prevTok != NULL; getToken(tokenList, --j, prevTok)) {
+                    for (size_t j = i - 1; j != 0 && prevTok != NULL; prevTok = copyToken(tokenList, --j)) {
                         // before the = operator, there should only be commas and variable identifiers.
 
                         if (prevTok->tokenType == COMMA)
@@ -441,7 +445,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                     if ((func = copyNode(&globalTable, nextTok->tokenName.data)) == NULL) {
                         // after the = operator, there can be function or a list of
                         // expressions separated by commas.
-                        for (size_t j = i + 1; nextTok != NULL; getToken(tokenList, ++j, nextTok)) {
+                        for (size_t j = i + 1; nextTok != NULL; nextTok = copyToken(tokenList, ++j)) {
                             // if there isn't a function, we need to count the commas
                             if (prevTok->tokenType == COMMA)
                                 nextCommaCount++;
@@ -473,9 +477,9 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                         for (size_t j = 0; j < nextCommaCount + 2; j++)
                             nextTypes[j] = TYPE_UNDEFINED;
                         // if there was no function, we need to check next data types term after term
-                        getToken(tokenList, i + 1, nextTok); // begin the iteration from start again
+                        nextTok = copyToken(tokenList, i + 1); // begin the iteration from start again
                         nextCommaCount = 0;
-                        for (size_t j = i + 1; nextTok != NULL; getToken(tokenList, ++j, nextTok)) {
+                        for (size_t j = i + 1; nextTok != NULL; nextTok = copyToken(tokenList, ++j)) {
                             if (nextTok->tokenType == COMMA)
                                 nextCommaCount++;
                             else {
@@ -491,9 +495,9 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
                     prevTypes = malloc(sizeof(dataType) * (prevCommaCount + 2));
                     for (size_t j = 0; j < prevCommaCount + 2; j++)
                         prevTypes[j] = TYPE_UNDEFINED;
-                    getToken(tokenList, i - 1, prevTok); // begin the iteration from start again
+                    prevTok = copyToken(tokenList, i - 1); // begin the iteration from start again
                     prevCommaCount = 0;
-                    for (size_t j = i - 1; prevTok != NULL; getToken(tokenList, --j, prevTok)) {
+                    for (size_t j = i - 1; prevTok != NULL; prevTok = copyToken(tokenList, --j)) {
                         if (prevTok->tokenType == COMMA)
                             prevCommaCount++;
                         else {
@@ -520,12 +524,10 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
             // ------------------------------ Checking function call semantics ------------------------------ //
 
             data *func;
-            if ((func = copyNode(&globalTable, tokenList->first->tokenName.data)) ==
-                NULL) { // if we use function without assign
+            if ((func = copyNode(&globalTable, tokenList->first->tokenName.data)) != NULL) { // if we use function without assign
                 dataType *types = NULL;
                 errorCode code;
-                if ((code = checkFunctionTypes(tokenList, func, 0, localTable,
-                                               &types))) // check if types had been correctly assigned
+                if ((code = checkFunctionTypes(tokenList, func, 0, localTable, &types))) // check if types had been correctly assigned
                     return code;
                 else if (types[0] != TYPE_UNDEFINED) // if yes, check if function has no returns
                     return SEMANTIC_ERROR;

@@ -11,20 +11,20 @@ int main() {
     string out;
     gen.program = &out;
     generatorInit();
-    tableNodePtr tabulke;
-    initTable(&tabulke);
+    tableNodePtr symtable;
+    initTable(&symtable);
     string testString;
     initString(&testString);
     list testList;
     initList(&testList);
     makeString("4+5*7-(42+5)/42<=15+(8-2*(16-5)+781)",&testString);
     CodeAnalyzer(&testList,testString);
-    applyPrecedence(&testList,tabulke);
+    applyPrecedence(&testList, symtable);
 
     generatorWrite(stdout);
     generatorClear();
 
     destroyString(&testString);
     deleteList(&testList);
-    deleteTable(&tabulke);
+    deleteTable(&symtable);
 }
