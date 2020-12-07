@@ -16,7 +16,6 @@ int main(){
     char line[200];
     do
         {
-
             fgets( line, 200, in_file );
             makeString(line,&testString);
             if(CodeAnalyzer(&testList,testString)) {

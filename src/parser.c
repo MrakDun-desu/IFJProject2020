@@ -89,10 +89,9 @@ errorCode checkFunctionTypes(list *tokenList, data *func, size_t i, tableNodePtr
     return OK;
 }
 
-errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNodePtr* localTable, data *function) {
+errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNodePtr *localTable, data *function) {
 
     // ------------------------------ Checking datatype compatibility and zero division ------------------------------ //
-    // tested
 
     if (tokenList != NULL) {
         size_t tokCounter = 0;
@@ -102,7 +101,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
         for (token *tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
             if (tok->tokenType == IF)
                 wasIf = true;
-            else if (tok->tokenType == FOR) // if we are in for, we can't control, because some variables may not be in symtable
+            else if (tok->tokenType ==
+                     FOR) // if we are in for, we can't control, because some variables may not be in symtable
                 wasFor = true;
             else if (wasFor && tok->tokenType == SEMICOL)
                 semicolonCount++;
@@ -111,7 +111,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                 if (operator->tokenType == ARIT_OPERATOR ||
                     operator->tokenType == COMP_OPERATOR) { // then check if it's operator
                     if (!wasIf && !wasFor && operator->tokenType == COMP_OPERATOR) return TYPE_COMPATIBILITY_ERROR;
-                    if (operator->nextToken != NULL) { // check if it has next token just to be sure (should be handled by syntax analysis)
+                    if (operator->nextToken !=
+                        NULL) { // check if it has next token just to be sure (should be handled by syntax analysis)
                         if (equalStrings(operator->tokenName.data, "/") && // check if operator is division
                             (operator->nextToken->tokenType == INT_LIT ||
                              operator->nextToken->tokenType == FLOAT_LIT)) { // and check if next token is literal
@@ -273,7 +274,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                             }
 
                             decidedType = true; // we are going to add this to symtable, so setting this so we don't do it again
-                            dataType *type = malloc(sizeof(dataType)*2);
+                            dataType *type = malloc(sizeof(dataType) * 2);
                             bool isVar = false;
                             switch (nextTok->tokenType) { // token type just before the semicolon should only be a literal or identifier
                                 case INT_LIT:
@@ -394,7 +395,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
             bool wasAssign = false;
             for (token *tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
                 if (tok->tokenType == ASIGN_OPERATOR) wasAssign = true;
-                if (tok->nextToken != NULL && equalStrings(tok->nextToken->tokenName.data,":=")) {
+                if (tok->nextToken != NULL && equalStrings(tok->nextToken->tokenName.data, ":=")) {
                     // if this is the definition command, create new entry in symtable
                     data *thisSymbol;
                     if (equalStrings(tok->tokenName.data, "_")) return DEFINITION_ERROR;
@@ -402,7 +403,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                     thisSymbol = copyNode(localTable, tok->tokenName.data);
                     bool isNull = thisSymbol == NULL;
                     if (isNull || scope > thisSymbol->scope || !thisSymbol->defined) {
-                        dataType *newType = malloc(sizeof(dataType)*2);
+                        dataType *newType = malloc(sizeof(dataType) * 2);
                         for (token *nextTok = tok->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
                             // with this cycle, we decide which datatype the variable should be
                             if (nextTok->tokenType == IDENT) {
@@ -449,7 +450,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                         }
                     } else return DEFINITION_ERROR;
                 } else if (tok->tokenType == IDENT && (!equalStrings(tok->tokenName.data, "_")) &&
-                (!equalStrings(tok->tokenName.data, "print")) || wasAssign) {
+                           (!equalStrings(tok->tokenName.data, "print")) || wasAssign) {
                     if (copyNode(globalTable, tok->tokenName.data) == NULL &&
                         copyNode(localTable, tok->tokenName.data) == NULL)
                         return DEFINITION_ERROR;
@@ -492,7 +493,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                         }
                     }
                 }
-                if (typeCount == 0 && tokenList->first != tokenList->last || typeCount > 0 && commaCounter + 1 != typeCount)
+                if (typeCount == 0 && tokenList->first != tokenList->last ||
+                    typeCount > 0 && commaCounter + 1 != typeCount)
                     return PARAMETER_ERROR;
                 // if there wasn't same count of different expressions as return types, return error
 
@@ -579,7 +581,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                         prevTypes[j] = TYPE_UNDEFINED;
                     prevTok = copyToken(tokenList, 0); // begin the iteration from start again
                     prevCommaCount = 0;
-                    for (size_t j = 0; prevTok != NULL && prevTok->tokenType != ASIGN_OPERATOR; prevTok = copyToken(tokenList, ++j)) {
+                    for (size_t j = 0;
+                         prevTok != NULL && prevTok->tokenType != ASIGN_OPERATOR; prevTok = copyToken(tokenList, ++j)) {
                         if (prevTok->tokenType == COMMA)
                             prevCommaCount++;
                         else {
@@ -592,7 +595,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                         }
                     }
 
-                    for (size_t j = 0; j < prevCommaCount + 1; j++) { // at the end, iterate one last time to check if data types match
+                    for (size_t j = 0; j < prevCommaCount +
+                                           1; j++) { // at the end, iterate one last time to check if data types match
                         if (nextTypes[j] != prevTypes[j] && prevTypes[j] != TYPE_UNDEFINED)
                             // we need to add TYPE_UNDEFINED here in case one of prev identifiers was _ and undefined stayed with it
                             return TYPE_COMPATIBILITY_ERROR;
@@ -605,10 +609,12 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
             // ------------------------------ Checking function call semantics ------------------------------ //
 
             data *func;
-            if ((func = copyNode(globalTable, tokenList->first->tokenName.data)) != NULL) { // if we use function without assign
+            if ((func = copyNode(globalTable, tokenList->first->tokenName.data)) !=
+                NULL) { // if we use function without assign
                 dataType *types = NULL;
                 errorCode code;
-                if ((code = checkFunctionTypes(tokenList, func, 0, *localTable, &types))) // check if types had been correctly assigned
+                if ((code = checkFunctionTypes(tokenList, func, 0, *localTable,
+                                               &types))) // check if types had been correctly assigned
                     return code;
                 else if (types[0] != TYPE_UNDEFINED) // if yes, check if function has no returns
                     return SEMANTIC_ERROR;
@@ -620,7 +626,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
 
 }
 
-errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
+errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
 
     size_t length = tokenList->size;
 
@@ -645,7 +651,8 @@ errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
                     continue;
                 }
 
-                if (ident.nextToken != NULL && equalStrings("(", ident.nextToken->tokenName.data)) { // if next token is opening bracket
+                if (ident.nextToken != NULL &&
+                    equalStrings("(", ident.nextToken->tokenName.data)) { // if next token is opening bracket
                     i += 2; // increase past the bracket
                     token param;
 
@@ -674,8 +681,9 @@ errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
                                 case FLOAT:
                                 case STRING: // if this token is datatype
                                     if (param.nextToken->tokenType == COMMA || // next token can be either a comma or )
-                                         equalStrings(")", param.nextToken->tokenName.data)) {
-                                        addToken(parameters, param.tokenType, param.tokenName.data); // ad the token to parameters list
+                                        equalStrings(")", param.nextToken->tokenName.data)) {
+                                        addToken(parameters, param.tokenType,
+                                                 param.tokenName.data); // ad the token to parameters list
                                         i++;
                                         getToken(tokenList, i, &param); // continue to next token
                                     } else {
@@ -687,7 +695,8 @@ errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
 
                                 case COMMA: // if this token is a comma
                                     if (param.nextToken->tokenType == IDENT || param.nextToken->tokenType == EOL) {
-                                        addToken(parameters, param.tokenType, param.tokenName.data); // next token can be identifier or eol
+                                        addToken(parameters, param.tokenType,
+                                                 param.tokenName.data); // next token can be identifier or eol
                                         i++;
                                         getToken(tokenList, i, &param);
                                     } else {
@@ -795,9 +804,11 @@ errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
 
                             } // FUNC IDENT ( TYPE IDENT , ... ) ( RET_TYPE, ... *)*
 
-                            if (returnTypes.nextToken != NULL && equalStrings("{", returnTypes.nextToken->tokenName.data)) {
+                            if (returnTypes.nextToken != NULL &&
+                                equalStrings("{", returnTypes.nextToken->tokenName.data)) {
                                 i++;
-                                getToken(tokenList, i, &returnTypes); // FUNC IDENT ( IDENT TYPE , ... ) ( RET_TYPE, ... ) *{*
+                                getToken(tokenList, i,
+                                         &returnTypes); // FUNC IDENT ( IDENT TYPE , ... ) ( RET_TYPE, ... ) *{*
                                 if (returnTypes.nextToken != NULL && returnTypes.nextToken->tokenType == EOL) {
                                     if (copyNode(globalTable, funcIdent.data) == NULL) {
                                         insertNode(globalTable, funcIdent.data, retTypesArray, parameters, 0);
@@ -824,7 +835,8 @@ errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
                         if (param.nextToken != NULL && equalStrings("{", param.nextToken->tokenName.data)) {
                             i++;
                             getToken(tokenList, i, &param); // FUNC IDENT ( TYPE IDENT , ... ) *{*
-                            if (param.nextToken != NULL && param.nextToken->tokenType == EOL) { // after { must be an eol
+                            if (param.nextToken != NULL &&
+                                param.nextToken->tokenType == EOL) { // after { must be an eol
                                 if (copyNode(globalTable, funcIdent.data) == NULL) {
                                     insertNode(globalTable, funcIdent.data, retTypesArray, parameters, 0);
                                     destroyString(&funcIdent);
@@ -860,7 +872,7 @@ errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
 }
 
 //package main
-errorCode blockA(list *tokenList) {
+errorCode blockPackage(list *tokenList) {
     token curToken;
     getToken(tokenList, 0, &curToken);
 
@@ -875,7 +887,7 @@ errorCode blockA(list *tokenList) {
 }
 
 //function code
-errorCode blockB(list *tokenList, token curToken) {
+errorCode blockBrackets(list *tokenList, token curToken) {
 
     int openBracketCount = 1;
     int closedBracketCount = 0;
@@ -1027,70 +1039,30 @@ errorCode blockAssign(list *tokenList, token *curToken, bool forState) {
 }
 
 //term
-errorCode pregenerateDefvar(token curToken) {
-
+errorCode pregenerateDefvar(list *tokenList, token curToken, size_t i) {
 
     list localList;
     initList(&localList);
 
+    for (; curToken.nextToken != NULL && curToken.tokenType != FUNC; curToken = *curToken.nextToken) {
 
-    int ifCount = 0;
-    int forCount = 0;
-
-
-    while (curToken.tokenType != FUNC) {
-
-        if (curToken.nextToken == NULL) break;
-
-        if (curToken.tokenType != EOL) {
-
-            addToken(&localList, curToken.tokenType, curToken.tokenName.data);
-
-        } else {
-
-            for (int i = 0; i < localList.size; i++) {
-
-                token localToken;
-                initString(&localToken.tokenName);
-                getToken(&localList, i, &localToken);
-
-                if (localToken.tokenType == ASIGN_OPERATOR) {
-                    deleteList(&localList);
+        if (equalStrings(curToken.tokenName.data, ":=")) {
+            token localToken;
+            getToken(tokenList, i - 1, &localToken);
+            bool wasDefined = false;
+            for (token *tmp = localList.first; tmp != NULL; tmp = tmp->nextToken) {
+                if (equalStrings(tmp->tokenName.data, localToken.tokenName.data)) {
+                    wasDefined = true;
                     break;
                 }
-
-
-                if (localToken.tokenType == IF) {
-                    ifCount++;
-
-                    char *name = malloc(50 * sizeof(char));
-                    if (name == NULL) return INTERNAL_ERROR;
-
-                    sprintf(name, "ifBool_%d", ifCount);
-                    makeString(name, &localToken.tokenName);
-
-                    free(name);
-
-
-                }
-                if (localToken.tokenType == FOR) {
-                    forCount++;
-
-                    char *name = malloc(50 * sizeof(char));
-                    if (name == NULL) return INTERNAL_ERROR;
-
-                    sprintf(name, "forBool_%d", ifCount);
-                    makeString(name, &localToken.tokenName);
-
-                    free(name);
-                }
-
+            }
+            if (!wasDefined && localToken.tokenType == IDENT) {
+                if (addToken(&localList, localToken.tokenType, localToken.tokenName.data)) return INTERNAL_ERROR;
                 generateDefvar(&localToken);
-
-
             }
         }
-        curToken = *curToken.nextToken;
+
+        i++;
     }
 
 
@@ -1134,8 +1106,12 @@ errorCode blockDefinition(list *tokenList, token *curToken, bool forState) {
 errorCode parse(list *tokenList) {
 
     tableNodePtr globalTable;
+    data* currentFunc = NULL;
     initTable(&globalTable);
     errorCode returnError = fillSymtable(&globalTable, tokenList);
+    if (returnError != OK) {
+        return returnError;
+    }
 
     tableNodePtr localTable;
     initTable(&localTable);
@@ -1145,7 +1121,6 @@ errorCode parse(list *tokenList) {
     size_t ifCount = 0;
     size_t retCount = 0;
 
-
     list buffer;
     initList(&buffer);
 
@@ -1153,20 +1128,16 @@ errorCode parse(list *tokenList) {
     bool isFor = false;
     bool isFunc = false;
 
-    if (returnError != OK) {
-        return returnError;
-    }
+    returnError = blockPackage(tokenList);
+    if (returnError) return returnError;
 
-    returnError = blockA(tokenList);
-    if (returnError != OK) return returnError;
-
-    string* s = malloc(sizeof(string));
+    string *s = malloc(sizeof(string));
     gen.program = s;
 
     generatorInit();
 
     errorCode generatorError = generatorStart();
-    if (generatorError != OK) return generatorError;
+    if (generatorError) return generatorError;
 
 
     token savedToken;
@@ -1176,13 +1147,10 @@ errorCode parse(list *tokenList) {
         token curToken;
         getToken(tokenList, i, &curToken);
 
-        if (curToken.tokenType == EOL)
-            if (curToken.nextToken->tokenType != EOL) savedToken = *curToken.nextToken;
-
+        savedToken = *curToken.nextToken;
 
         if (curToken.tokenType == BRACKET_CURLY) {
             if (equalStrings(curToken.tokenName.data, "{")) {
-                curLevel++;
                 token tempToken;
                 initString(&tempToken.tokenName);
 
@@ -1195,15 +1163,13 @@ errorCode parse(list *tokenList) {
                     if (isIf) {
                         isIf = false;
                         tempToken.tokenType = IF;
-                        ifCount++;
 
-                        sprintf(name, "%zu", ifCount);
+                        sprintf(name, "%zu", ++ifCount);
                     } else {
                         isFor = false;
                         tempToken.tokenType = FOR;
-                        isFor++;
 
-                        sprintf(name, "%zu", forCount);
+                        sprintf(name, "%zu", ++forCount);
                     }
 
                     makeString(name, &tempToken.tokenName);
@@ -1213,11 +1179,18 @@ errorCode parse(list *tokenList) {
 
                 }
 
+
             } else {
                 if (buffer.first->tokenType == IF) {
+                    if (curToken.nextToken->tokenType == ELSE) {
+                        int x = atoi(buffer.first->tokenName.data);
+                        generateElse(x);
+                    }
                     int x = atoi(buffer.first->tokenName.data);
                     generateIfEnd(x);
                 } else {
+                    if (curToken.nextToken->tokenType == ELSE)
+                        return SYNTAX_ERROR;
                     int x = atoi(buffer.first->tokenName.data);
                     generateForEndLabel(x);
 
@@ -1225,58 +1198,64 @@ errorCode parse(list *tokenList) {
                 popToken(&buffer);
                 curLevel--;
             }
-        }
+        } else if (curToken.tokenType == FUNC) {
 
-        if (curToken.tokenType == FUNC) {
+            currentFunc = copyNode(&globalTable, curToken.nextToken->tokenName.data);
 
             list args;
             initList(&args);
 
+            curToken = *curToken.nextToken->nextToken;
+
             while (curToken.tokenType != BRACKET_CURLY) {
-                if (curToken.tokenType != COMMA)
+                if (equalStrings(curToken.tokenName.data, ")"))
+                    break;
+                if (equalStrings(curToken.tokenName.data, "("))
                     addToken(&args, curToken.tokenType, curToken.tokenName.data);
+                curToken = *curToken.nextToken;
             }
-            curToken = *savedToken.nextToken;
             token temp = *args.first;
 
 
-            for(int j = 0; j < args.size; j++){
-                dataType *type = malloc(sizeof(dataType));
+            for (int j = 0; j < args.size; j++) {
+                dataType *type = malloc(sizeof(dataType) * 2);
 
-                if(temp.tokenType == INT){
+                if (temp.tokenType == INT) {
                     type[0] = TYPE_INT;
-                    insertNode(&localTable, temp.tokenName.data, type , NULL, 0);
+                    type[1] = TYPE_UNDEFINED;
+                    insertNode(&localTable, temp.tokenName.data, type, NULL, 0);
                 }
-                if(temp.tokenType == FLOAT){
+                if (temp.tokenType == FLOAT) {
                     type[0] = TYPE_FLOAT;
-                    insertNode(&localTable, temp.tokenName.data, type , NULL, 0);
+                    type[1] = TYPE_UNDEFINED;
+                    insertNode(&localTable, temp.tokenName.data, type, NULL, 0);
                 }
-                if(temp.tokenType == STRING){
+                if (temp.tokenType == STRING) {
                     type[0] = TYPE_STRING;
-                    insertNode(&localTable, temp.tokenName.data, type , NULL, 0);
+                    type[1] = TYPE_UNDEFINED;
+                    insertNode(&localTable, temp.tokenName.data, type, NULL, 0);
                 }
-                temp = *temp.nextToken;
+                if (temp.nextToken != NULL)
+                    temp = *temp.nextToken;
             }
+
             deleteList(&args);
             curToken = savedToken;
-
             isFunc = true;
 
             //GENERATE FUNC START
             generatorError = generateFunctionStart(copyNode(&globalTable, curToken.nextToken->tokenName.data));
-
-
             if (generatorError != OK) return generatorError;
 
             //GENERATE FUNC DEFVAR
-
-            generatorError = pregenerateDefvar(*curToken.nextToken);
+            generatorError = pregenerateDefvar(tokenList, curToken, i);
             if (generatorError != OK) return generatorError;
+
         }
 
         if (equalStrings(curToken.tokenName.data, "{") && isFunc == true) {
 
-            returnError = blockB(tokenList, curToken);
+            returnError = blockBrackets(tokenList, curToken);
             if (returnError != OK) return returnError;
         }
 
@@ -1301,15 +1280,6 @@ errorCode parse(list *tokenList) {
 
         }
 
-        //CHECK IF IF HAS ELSE FOR SYNTAX
-        //GENERATE ELSE
-        if (curToken.tokenType == ELSE) {
-
-            if (buffer.first->tokenType == FOR) return SYNTAX_ERROR;
-
-            int x = atoi(buffer.first->tokenName.data);
-            generateElse(x);
-        }
         //GENERATE FOR
         if (curToken.tokenType == FOR) {
 
