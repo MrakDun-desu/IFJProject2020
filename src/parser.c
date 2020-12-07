@@ -1131,7 +1131,7 @@ errorCode blockDefinition(list *tokenList, token *curToken, bool forState) {
 }
 
 
-errorCode parse(list *tokenList, string *code) {
+errorCode parse(list *tokenList) {
 
     tableNodePtr globalTable;
     initTable(&globalTable);
@@ -1160,6 +1160,8 @@ errorCode parse(list *tokenList, string *code) {
     returnError = blockA(tokenList);
     if (returnError != OK) return returnError;
 
+    string* s = malloc(sizeof(string));
+    gen.program = s;
 
     generatorInit();
 

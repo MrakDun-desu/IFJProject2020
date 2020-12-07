@@ -770,10 +770,12 @@ errorCode generateFunctionStart(data* function){
         for(size_t i = 0; i < function->parameters->size; i++){
             token tmp;
             getToken(function->parameters, i, &tmp);
-            sprintf(str, "DEFVAR TF@%s\n", tmp.tokenName.data);
-            ADDCHAR(gen.program, str)
-            sprintf(str, "POPS TF@%s\n", tmp.tokenName.data);
-            ADDCHAR(gen.program, str)
+            if (tmp.tokenType == IDENT) {
+                sprintf(str, "DEFVAR TF@%s\n", tmp.tokenName.data);
+                ADDCHAR(gen.program, str)
+                sprintf(str, "POPS TF@%s\n", tmp.tokenName.data);
+                ADDCHAR(gen.program, str)
+            }
         }
         size_t  i = 0;
         dataType tmpType;
@@ -782,8 +784,7 @@ errorCode generateFunctionStart(data* function){
         while(tmpType != TYPE_UNDEFINED){
             sprintf(str, "DEFVAR TF@ret%zu\n", i);
             ADDCHAR(gen.program, str)
-            i++;
-            tmpType = function->types[i];
+            tmpType = function->types[++i];
         }
     }
 
@@ -796,7 +797,23 @@ errorCode generateFunctionCall(data* function, list* argValues){
     for(size_t i = 0; i < argValues->size; i++){
         token tmp;
         getToken(argValues, i, &tmp);
-        sprintf(str, "PUSHS TF@%s\n", tmp.tokenName.data);
+        switch (tmp.tokenType) {
+            case INT_LIT:
+                sprintf(str, "PUSHS int@%s\n", tmp.tokenName.data);
+                break;
+            case STRING_LIT:
+                if (transformString(&tmp.tokenName)) return INTERNAL_ERROR;
+                sprintf(str, "PUSHS string@%s\n", tmp.tokenName.data);
+                break;
+            case FLOAT_LIT:
+                sprintf(str, "PUSHS float@%s\n", tmp.tokenName.data);
+                break;
+            case IDENT:
+                sprintf(str, "PUSHS TF@%s\n", tmp.tokenName.data);
+            break;
+            default:
+                break;
+        }
         ADDCHAR(gen.program, str)
     }
     sprintf(str, "PUSHFRAME\n");
@@ -824,9 +841,36 @@ errorCode generateFunctionReturn(data* function, list* assignVariables){
 }
 
 errorCode generateFunctionEnd(){
+
+    ADDCHAR(gen.program, "RETURN")
+    return OK;
+}
+
+errorCode generatePrint(list* argValues) {
     char str[100];
-    sprintf(str, "RETURN\n");
+
+    for (token* tok = copyToken(argValues, 0); tok != NULL; tok = tok->nextToken) {
+        switch (tok->tokenType) {
+            case INT_LIT:
+                sprintf(str, "WRITE int@%s\n", tok->tokenName.data);
+                break;
+            case STRING_LIT:
+                if (transformString(&tok->tokenName)) return INTERNAL_ERROR;
+                sprintf(str, "WRITE string@%s\n", tok->tokenName.data);
+                break;
+            case FLOAT_LIT:
+                sprintf(str, "WRITE float@%s\n", tok->tokenName.data);
+                break;
+            case IDENT:
+                sprintf(str, "WRITE TF@%s\n", tok->tokenName.data);
+                break;
+            default:
+                break;
+        }
+    }
+    
     ADDCHAR(gen.program, str)
+    
     return OK;
 }
 
@@ -851,10 +895,7 @@ errorCode generateIfStart(list* condition, tableNodePtr varTable, size_t ifCount
 
     applyPrecedence(condition, varTable);
 
-    sprintf(str, "MOVE TF@bool%zu GF@expVar0\n", ifCount);
-    ADDCHAR(gen.program, str)
-
-    sprintf(str, "JUMPIFNEQ else%zu TF@bool%zu bool@true\n", ifCount, ifCount);
+    sprintf(str, "JUMPIFNEQ else%zu GF@expVar0 bool@true\n", ifCount);
     ADDCHAR(gen.program, str)
 
     return OK;
@@ -894,10 +935,7 @@ errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCou
 
     applyPrecedence(condition, varTable);
 
-    sprintf(str,"MOVE TF@bool%zu GF@expVar0\n", forCount);
-    ADDCHAR(gen.program, str)
-
-    sprintf(str,"JUMPIFNEQ forEnd%zu TF@bool%zu bool@true\n", forCount, forCount);
+    sprintf(str,"JUMPIFNEQ forEnd%zu GF@expVar0 bool@true\n", forCount);
     ADDCHAR(gen.program, str)
 
     return OK;

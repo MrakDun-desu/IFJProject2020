@@ -377,6 +377,8 @@ errorCode generateDefvar(token* var);
  */
 errorCode generateMove(token* var);
 
+errorCode generatePrint(list* argValues);
+
 /**
  * @brief Generates the arithmetic command (command is determined by char).
  * @param var Variable that should store the result of addition.
