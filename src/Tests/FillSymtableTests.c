@@ -9,47 +9,40 @@
 
 /// TODO Otestovat funkciu fillSymtable//prve
 
-void printSymtable(tableNodePtr symtable) {
-
-}
 void drawTree(tableNodePtr symtable){
-    string types ;
-    initString(&types);
-    switch(*symtable->data.types){
-        case TYPE_UNDEFINED : makeString("Undefined",&types);
-            break;
-        case TYPE_STRING : makeString("String",&types);
-        break;
-        case TYPE_INT : makeString("int",&types);
-        break;
-        case TYPE_FLOAT : makeString("float",&types);
-            break;
-    }
 
-    if(symtable == NULL)
-    {
-        printf("symtable is empty");
+    if (symtable->left != NULL)
+        drawTree(symtable->left);
+
+    if(symtable == NULL) {
+        printf("Symtable is empty\n");
         return;
     }
-    if(symtable != NULL){
-        printf("\nid: %s ; type:%s parameters: ",symtable->data.id.data,types.data);
-        list parameters;
-        initList(&parameters);
-        parameters = *symtable->data.parameters;
-        for(int i = 1; i<=symtable->data.parameters->size ; i++)
-        {
-            printf("%s, ",parameters.first->tokenName.data);
-            parameters.first = parameters.first->nextToken;
+
+    printf("Identifier: %s\n", symtable->data.id.data);
+    string types;
+    initString(&types);
+    int counter = 0;
+    for (dataType type = symtable->data.types[counter]; type != TYPE_UNDEFINED; type = symtable->data.types[++counter]){
+        printf("Datatype %d: %d\n", counter, type);
+    }
+
+    list* parameters;
+    parameters = symtable->data.parameters;
+    if (parameters != NULL) {
+        printf("This symbol is a function. Parameters:\n");
+        for (int i = 1; i <= symtable->data.parameters->size; i++) {
+            printf("%s, ", parameters->first->tokenName.data);
+            parameters->first = parameters->first->nextToken;
         }
+    } else {
+        printf("This symbol is a variable.");
     }
-    if(symtable->right !=NULL)
-    {
+
+    printf("\nScope: %zu\n", symtable->data.scope);
+
+    if (symtable->right != NULL)
         drawTree(symtable->right);
-    }
-    if(symtable->left !=NULL)
-    {
-        drawTree(symtable->left);
-    }
 
 }
 

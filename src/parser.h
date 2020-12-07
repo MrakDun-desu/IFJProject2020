@@ -22,7 +22,7 @@ size_t scope;
  * @param data Function that we are currently in (for checking return types).
  * @return Error code that represents if discrepancy has been found. Can be OK or between 2 and 9.
  */
-errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, data* function); /// xdanco00
+errorCode semanticAnalyser(list* tokenList, tableNodePtr* globalTable, tableNodePtr* localTable, data* function); /// xdanco00
 
 /**
  * @brief First run through token list. Only needs to identify functions and add them to global symtable.

@@ -10,8 +10,8 @@
 
 typedef enum tDataType {
     TYPE_UNDEFINED,
-    TYPE_STRING,
     TYPE_INT,
+    TYPE_STRING,
     TYPE_FLOAT
 } dataType;
 
