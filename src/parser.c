@@ -541,6 +541,256 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr globalTable, tableNodeP
 
 errorCode fillSymtable(tableNodePtr* globalTable, list *tokenList) {
 
+    ///FUNC INPUTS
+    string funcId;
+    initString(&funcId);
+    makeString("inputs", &funcId);
+
+    dataType *funcInputsRetTypes = malloc(3 * sizeof(dataType));
+    funcInputsRetTypes[0] = TYPE_STRING;
+    funcInputsRetTypes[1] = TYPE_INT;
+    funcInputsRetTypes[2] = TYPE_UNDEFINED;
+
+    list *funcInputsParams = malloc(sizeof(list));
+    initList(funcInputsParams);
+
+    insertNode(globalTable, funcId.data, funcInputsRetTypes, funcInputsParams, 0);
+
+    ///FUNC INPUTI
+    makeString("inputi", &funcId);
+
+    dataType *funcInputiRetTypes = malloc(3 * sizeof(dataType));
+    funcInputiRetTypes[0] = TYPE_INT;
+    funcInputiRetTypes[1] = TYPE_INT;
+    funcInputiRetTypes[2] = TYPE_UNDEFINED;
+
+    list *funcInputiParams = malloc(sizeof(list));
+    initList(funcInputiParams);
+
+    insertNode(globalTable, funcId.data, funcInputsRetTypes, funcInputiParams, 0);
+
+    ///FUNC INPUTF
+    makeString("inputf", &funcId);
+
+    dataType *funcInputfRetTypes = malloc(3 * sizeof(dataType));
+    funcInputfRetTypes[0] = TYPE_INT;
+    funcInputfRetTypes[1] = TYPE_INT;
+    funcInputfRetTypes[2] = TYPE_UNDEFINED;
+
+    list *funcInputfParams = malloc(sizeof(list));
+    initList(funcInputfParams);
+
+    insertNode(globalTable, funcId.data, funcInputfRetTypes, funcInputfParams, 0);
+
+    ///FUNC INT2FLOAT
+    makeString("int2float", &funcId);
+
+    dataType *funcInt2FloatRetTypes = malloc(2 * sizeof(dataType));
+    funcInt2FloatRetTypes[0] = TYPE_FLOAT;
+    funcInt2FloatRetTypes[1] = TYPE_UNDEFINED;
+
+    list *funcInt2FloatParams = malloc(sizeof(list));
+    initList(funcInt2FloatParams);
+
+    string funcParamId;
+    initString(&funcParamId);
+    makeString("i", &funcParamId);
+
+    token funcParam;
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+
+    addToken(funcInt2FloatParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("int", &funcParamId);
+
+    funcParam.tokenType = INT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcInt2FloatParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    insertNode(globalTable, funcId.data, funcInt2FloatRetTypes, funcInt2FloatParams, 0);
+
+    ///FUNC FLOAT2INT
+    makeString("float2int", &funcId);
+
+    dataType *funcFloat2IntRetTypes = malloc(2 * sizeof(dataType));
+    funcFloat2IntRetTypes[0] = TYPE_INT;
+    funcFloat2IntRetTypes[1] = TYPE_UNDEFINED;
+
+    list *funcFloat2IntParams = malloc(sizeof(list));
+    initList(funcFloat2IntParams);
+
+    makeString("f", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+
+    addToken(funcFloat2IntParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("float64", &funcParamId);
+
+    funcParam.tokenType = FLOAT;
+    funcParam.tokenName = funcParamId;
+
+    addToken(funcFloat2IntParams, funcParam.tokenType, funcParam.tokenName.data);
+    insertNode(globalTable, funcId.data, funcFloat2IntRetTypes, funcFloat2IntParams, 0);
+
+    ///FUNC LEN
+    makeString("len", &funcId);
+
+    dataType *funcLenRetTypes = malloc(2 * sizeof(dataType));
+    funcLenRetTypes[0] = TYPE_INT;
+    funcLenRetTypes[1] = TYPE_UNDEFINED;
+
+    list *funcLenParams = malloc(sizeof(list));
+    initList(funcLenParams);
+
+    makeString("s", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+
+    addToken(funcLenParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("string", &funcParamId);
+
+    funcParam.tokenType = STRING;
+    funcParam.tokenName = funcParamId;
+
+    addToken(funcLenParams, funcParam.tokenType, funcParam.tokenName.data);
+    insertNode(globalTable, funcId.data, funcLenRetTypes, funcLenParams, 0);
+
+    ///FUNC SUBSTR
+    makeString("substr", &funcId);
+
+    dataType *funcSubstrRetTypes = malloc(3 * sizeof(dataType));
+    funcSubstrRetTypes[0] = TYPE_STRING;
+    funcSubstrRetTypes[1] = TYPE_INT;
+    funcSubstrRetTypes[2] = TYPE_UNDEFINED;
+
+    list *funcSubstrParams = malloc(sizeof(list));
+    initList(funcSubstrParams);
+
+    makeString("s", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("string", &funcParamId);
+
+    funcParam.tokenType = STRING;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString(",", &funcParamId);
+
+    funcParam.tokenType = COMMA;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("i", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("int", &funcParamId);
+
+    funcParam.tokenType = INT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString(",", &funcParamId);
+
+    funcParam.tokenType = COMMA;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("n", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("int", &funcParamId);
+
+    funcParam.tokenType = INT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    insertNode(globalTable, funcId.data, funcSubstrRetTypes, funcSubstrParams, 0);
+
+    ///FUNC ORD
+    makeString("ord", &funcId);
+
+    dataType *funcOrdRetTypes = malloc(3 * sizeof(dataType));
+    funcOrdRetTypes[0] = TYPE_INT;
+    funcOrdRetTypes[1] = TYPE_INT;
+    funcOrdRetTypes[2] = TYPE_UNDEFINED;
+
+    list *funcOrdParams = malloc(sizeof(list));
+    initList(funcOrdParams);
+
+    makeString("s", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcOrdParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("string", &funcParamId);
+
+    funcParam.tokenType = STRING;
+    funcParam.tokenName = funcParamId;
+    addToken(funcOrdParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString(",", &funcParamId);
+
+    funcParam.tokenType = COMMA;
+    funcParam.tokenName = funcParamId;
+    addToken(funcOrdParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("i", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcOrdParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("int", &funcParamId);
+
+    funcParam.tokenType = INT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcOrdParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    insertNode(globalTable, funcId.data, funcOrdRetTypes, funcOrdParams, 0);
+
+    ///FUNC CHR
+    makeString("chr", &funcId);
+
+    dataType *funcChrRetTypes = malloc(3 * sizeof(dataType));
+    funcChrRetTypes[0] = TYPE_STRING;
+    funcChrRetTypes[1] = TYPE_INT;
+    funcChrRetTypes[2] = TYPE_UNDEFINED;
+
+    list *funcChrParams = malloc(sizeof(list));
+    initList(funcChrParams);
+
+    makeString("i", &funcParamId);
+
+    funcParam.tokenType = IDENT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcChrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    makeString("int", &funcParamId);
+
+    funcParam.tokenType = INT;
+    funcParam.tokenName = funcParamId;
+    addToken(funcChrParams, funcParam.tokenType, funcParam.tokenName.data);
+
+    insertNode(globalTable, funcId.data, funcChrRetTypes, funcChrParams, 0);
+
+    destroyString(&funcId);
+
     size_t length = tokenList->size;
 
     for (size_t i = 0; i < length; i++) { // run through the whole token list
