@@ -181,11 +181,59 @@ int main() {
     testCommand("}", &globalTable, &localTable, &func);
     testCommand("for ;12.5 + 48.2; {", &globalTable, &localTable, &func);
     testCommand("for ;4+5*7-(42+5)/5<18+(8-2*(16-5)+781); {", &globalTable, &localTable, &func);
+    testCommand("for c:= 18 ;42<c; c = c +1 {", &globalTable, &localTable, &func);
+
     drawTree(localTable);
 
     printf("\n");
 
     scope = 0;
+    deleteTable(&localTable);
+
+    printf("----Testing assign semantics----\n");
+    testCommand("_ = 42", &globalTable, &localTable, &func);
+    testCommand("a = 42", &globalTable, &localTable, &func);
+    testCommand("a := 42", &globalTable, &localTable, &func);
+    testCommand("a = 17", &globalTable, &localTable, &func);
+    testCommand("a = 17.4", &globalTable, &localTable, &func);
+    testCommand("b := 13.5", &globalTable, &localTable, &func);
+    testCommand("a, b = 11, 16.5", &globalTable, &localTable, &func);
+    testCommand("a, b = 11.5, 17.8", &globalTable, &localTable, &func);
+    testCommand("_, b = 11.5, 17.8", &globalTable, &localTable, &func);
+    // testing functions
+    dataType* types = malloc(sizeof(dataType)*3);
+    types[0] = TYPE_INT;
+    types[1] = TYPE_FLOAT;
+    types[2] = TYPE_UNDEFINED;
+    list* testFuncParams = malloc(sizeof(list));
+    initList(testFuncParams);
+    insertNode(&globalTable, "testFunc", types, testFuncParams, 0);
+    testCommand("a, b = testFunc()", &globalTable, &localTable, &func);
+    testCommand("testFunc()", &globalTable, &localTable, &func);
+    globalTable->data.types[0] = TYPE_UNDEFINED;
+    testCommand("a, b = testFunc()", &globalTable, &localTable, &func);
+    testCommand("testFunc()", &globalTable, &localTable, &func);
+
+
+    func.types = malloc(sizeof(dataType));
+    func.types[0] = TYPE_UNDEFINED;
+    func.parameters = NULL;
+    func.defined = true;
+    func.scope = 0;
+    testCommand("return 42", &globalTable, &localTable, &func);
+    testCommand("return", &globalTable, &localTable, &func);
+    realloc(func.types, sizeof(dataType)*3);
+    func.types[0] = TYPE_INT;
+    func.types[1] = TYPE_FLOAT;
+    func.types[2] = TYPE_UNDEFINED;
+    func.parameters = NULL;
+    func.defined = true;
+    func.scope = 0;
+    testCommand("return a, b", &globalTable, &localTable, &func);
+    testCommand("return 14, 5.4", &globalTable, &localTable, &func);
+
+    testCommand("print(a)", &globalTable, &localTable, &func);
+
     deleteTable(&localTable);
 
     generatorClear();

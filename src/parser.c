@@ -80,7 +80,7 @@ errorCode checkFunctionTypes(list *tokenList, data *func, size_t i, tableNodePtr
         }
 
     }
-    if (typeCount != 0 && nextCommaCount != typeCount - 1) {
+    if (typeCount != 0 && nextCommaCount + 1 != typeCount) {
         free(paramTypes);
         return PARAMETER_ERROR;
     }
@@ -96,15 +96,21 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
 
     if (tokenList != NULL) {
         size_t tokCounter = 0;
-        bool wasIfOrFor = false;
+        bool wasIf = false;
+        bool wasFor = false;
+        int semicolonCount = 0;
         for (token *tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
-            if (tok->tokenType == IF || tok->tokenType == FOR)
-                wasIfOrFor = true;
+            if (tok->tokenType == IF)
+                wasIf = true;
+            else if (tok->tokenType == FOR) // if we are in for, we can't control, because some variables may not be in symtable
+                wasFor = true;
+            else if (wasFor && tok->tokenType == SEMICOL)
+                semicolonCount++;
             if (tok->nextToken != NULL) { // first check if there is next token
                 token *operator = tok->nextToken;
                 if (operator->tokenType == ARIT_OPERATOR ||
                     operator->tokenType == COMP_OPERATOR) { // then check if it's operator
-                    if (!wasIfOrFor && operator->tokenType == COMP_OPERATOR) return TYPE_COMPATIBILITY_ERROR;
+                    if (!wasIf && !wasFor && operator->tokenType == COMP_OPERATOR) return TYPE_COMPATIBILITY_ERROR;
                     if (operator->nextToken != NULL) { // check if it has next token just to be sure (should be handled by syntax analysis)
                         if (equalStrings(operator->tokenName.data, "/") && // check if operator is division
                             (operator->nextToken->tokenType == INT_LIT ||
@@ -127,54 +133,61 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                             }
                             if (isZero) return ZERO_DIVISION_ERROR;
                         }
-                        // checking type compatibility between variables/literals
-                        size_t count = 0;
-                        token *prevTok;
-                        for (prevTok = tok; prevTok != NULL; prevTok = copyToken(tokenList, tokCounter - count)) {
-                            // run through tokens until we reach something which isn't ")"
-                            if (!equalStrings(prevTok->tokenName.data,")")) // if token isn't ), that means we got variable or literal
-                                break;
-                            count++;
-                        }
 
-                        data *var = copyNode(localTable, prevTok->tokenName.data);
-                        bool varString = false;
-                        bool varInt = false;
-                        bool varFloat = false;
-                        if (var != NULL) {
-                            varString = (var->types[0] == TYPE_STRING);
-                            varInt = (var->types[0] == TYPE_INT);
-                            varFloat = (var->types[0] == TYPE_FLOAT);
-                        }
-                        if (prevTok->tokenType == STRING_LIT ||
-                            varString) { // if first token was string, operator cannot be - * /
-                            if (equalStrings(operator->tokenName.data, "-")) return TYPE_COMPATIBILITY_ERROR;
-                            if (equalStrings(operator->tokenName.data, "*")) return TYPE_COMPATIBILITY_ERROR;
-                            if (equalStrings(operator->tokenName.data, "/")) return TYPE_COMPATIBILITY_ERROR;
-                            for (token *nextTok = operator->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
-                                if (!equalStrings(nextTok->tokenName.data, "(")) {
-                                    // run through next tokens until variable or literal is reached
-                                    if (!checkDatatype(TYPE_STRING, nextTok, *localTable))
-                                        return TYPE_COMPATIBILITY_ERROR;
-                                    else break;
-                                }
+                        if (!wasFor || semicolonCount != 2) { // we can only check if we aren't in third portion of for
+                            // checking type compatibility between variables/literals
+                            size_t count = 0;
+                            token *prevTok;
+                            for (prevTok = tok; prevTok != NULL; prevTok = copyToken(tokenList, tokCounter - count)) {
+                                // run through tokens until we reach something which isn't ")"
+                                if (!equalStrings(prevTok->tokenName.data,
+                                                  ")")) // if token isn't ), that means we got variable or literal
+                                    break;
+                                count++;
                             }
-                        } else if (prevTok->tokenType == INT_LIT || varInt) {
-                            for (token *nextTok = operator->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
-                                if (!equalStrings(nextTok->tokenName.data, "(")) {
-                                    // run through next tokens until variable or literal is reached
-                                    if (!checkDatatype(TYPE_INT, nextTok, *localTable))
-                                        return TYPE_COMPATIBILITY_ERROR;
-                                    else break;
-                                }
+
+                            data *var = copyNode(localTable, prevTok->tokenName.data);
+                            bool varString = false;
+                            bool varInt = false;
+                            bool varFloat = false;
+                            if (var != NULL) {
+                                varString = (var->types[0] == TYPE_STRING);
+                                varInt = (var->types[0] == TYPE_INT);
+                                varFloat = (var->types[0] == TYPE_FLOAT);
                             }
-                        } else if (prevTok->tokenType == FLOAT_LIT || varFloat) {
-                            for (token *nextTok = operator->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
-                                if (!equalStrings(nextTok->tokenName.data, "(")) {
-                                    // run through next tokens until variable or literal is reached
-                                    if (!checkDatatype(TYPE_FLOAT, nextTok, *localTable))
-                                        return TYPE_COMPATIBILITY_ERROR;
-                                    else break;
+                            if (prevTok->tokenType == STRING_LIT ||
+                                varString) { // if first token was string, operator cannot be - * /
+                                if (equalStrings(operator->tokenName.data, "-")) return TYPE_COMPATIBILITY_ERROR;
+                                if (equalStrings(operator->tokenName.data, "*")) return TYPE_COMPATIBILITY_ERROR;
+                                if (equalStrings(operator->tokenName.data, "/")) return TYPE_COMPATIBILITY_ERROR;
+                                for (token *nextTok = operator->nextToken;
+                                     nextTok != NULL; nextTok = nextTok->nextToken) {
+                                    if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                        // run through next tokens until variable or literal is reached
+                                        if (!checkDatatype(TYPE_STRING, nextTok, *localTable))
+                                            return TYPE_COMPATIBILITY_ERROR;
+                                        else break;
+                                    }
+                                }
+                            } else if (prevTok->tokenType == INT_LIT || varInt) {
+                                for (token *nextTok = operator->nextToken;
+                                     nextTok != NULL; nextTok = nextTok->nextToken) {
+                                    if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                        // run through next tokens until variable or literal is reached
+                                        if (!checkDatatype(TYPE_INT, nextTok, *localTable))
+                                            return TYPE_COMPATIBILITY_ERROR;
+                                        else break;
+                                    }
+                                }
+                            } else if (prevTok->tokenType == FLOAT_LIT || varFloat) {
+                                for (token *nextTok = operator->nextToken;
+                                     nextTok != NULL; nextTok = nextTok->nextToken) {
+                                    if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                        // run through next tokens until variable or literal is reached
+                                        if (!checkDatatype(TYPE_FLOAT, nextTok, *localTable))
+                                            return TYPE_COMPATIBILITY_ERROR;
+                                        else break;
+                                    }
                                 }
                             }
                         }
@@ -231,7 +244,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
 
             if (tokenList->first->tokenType == FOR) {
                 scope++; // increasing the scope for the first line
-                int semicolonCount = 0;
+                semicolonCount = 0;
                 bool wasComparator = false;
                 size_t wasBracket = 0;
                 bool wasDefinition = false;
@@ -313,6 +326,64 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                             wasBracket++;
                         else if (equalStrings(tok->tokenName.data, ")"))
                             wasBracket--;
+                    } else {
+                        token *operator = tok->nextToken;
+                        if (operator != NULL && operator->tokenType == ARIT_OPERATOR) {
+                            size_t count = 0;
+                            token *prevTok;
+                            for (prevTok = tok; prevTok != NULL; prevTok = copyToken(tokenList, tokCounter - count)) {
+                                // run through tokens until we reach something which isn't ")"
+                                if (!equalStrings(prevTok->tokenName.data,
+                                                  ")")) // if token isn't ), that means we got variable or literal
+                                    break;
+                                count++;
+                            }
+
+                            data *var = copyNode(localTable, prevTok->tokenName.data);
+                            bool varString = false;
+                            bool varInt = false;
+                            bool varFloat = false;
+                            if (var != NULL) {
+                                varString = (var->types[0] == TYPE_STRING);
+                                varInt = (var->types[0] == TYPE_INT);
+                                varFloat = (var->types[0] == TYPE_FLOAT);
+                            }
+                            if (prevTok->tokenType == STRING_LIT ||
+                                varString) { // if first token was string, operator cannot be - * /
+                                if (equalStrings(operator->tokenName.data, "-")) return TYPE_COMPATIBILITY_ERROR;
+                                if (equalStrings(operator->tokenName.data, "*")) return TYPE_COMPATIBILITY_ERROR;
+                                if (equalStrings(operator->tokenName.data, "/")) return TYPE_COMPATIBILITY_ERROR;
+                                for (token *nextTok = operator->nextToken;
+                                     nextTok != NULL; nextTok = nextTok->nextToken) {
+                                    if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                        // run through next tokens until variable or literal is reached
+                                        if (!checkDatatype(TYPE_STRING, nextTok, *localTable))
+                                            return TYPE_COMPATIBILITY_ERROR;
+                                        else break;
+                                    }
+                                }
+                            } else if (prevTok->tokenType == INT_LIT || varInt) {
+                                for (token *nextTok = operator->nextToken;
+                                     nextTok != NULL; nextTok = nextTok->nextToken) {
+                                    if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                        // run through next tokens until variable or literal is reached
+                                        if (!checkDatatype(TYPE_INT, nextTok, *localTable))
+                                            return TYPE_COMPATIBILITY_ERROR;
+                                        else break;
+                                    }
+                                }
+                            } else if (prevTok->tokenType == FLOAT_LIT || varFloat) {
+                                for (token *nextTok = operator->nextToken;
+                                     nextTok != NULL; nextTok = nextTok->nextToken) {
+                                    if (!equalStrings(nextTok->tokenName.data, "(")) {
+                                        // run through next tokens until variable or literal is reached
+                                        if (!checkDatatype(TYPE_FLOAT, nextTok, *localTable))
+                                            return TYPE_COMPATIBILITY_ERROR;
+                                        else break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 scope++; // increasing the scope again after first line
@@ -377,7 +448,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                             thisSymbol->scope = scope; // scope will be overwritten, since we are defining it again
                         }
                     } else return DEFINITION_ERROR;
-                } else if (tok->tokenType == IDENT && (!equalStrings(tok->tokenName.data, "_") || wasAssign)) {
+                } else if (tok->tokenType == IDENT && (!equalStrings(tok->tokenName.data, "_")) &&
+                (!equalStrings(tok->tokenName.data, "print")) || wasAssign) {
                     if (copyNode(globalTable, tok->tokenName.data) == NULL &&
                         copyNode(localTable, tok->tokenName.data) == NULL)
                         return DEFINITION_ERROR;
@@ -391,35 +463,37 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                 size_t typeCount = 0; // for knowing how much types we have to control
                 dataType *types = function->types;
                 for (dataType type = types[0]; type != TYPE_UNDEFINED; type = types[++typeCount]);
-                for (token *tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
-                    if (tok->tokenType == COMMA) { // if we are at a coma, just increase the counter
-                        commaCounter++;
-                        if (commaCounter >= typeCount) return PARAMETER_ERROR;
-                        // if commaCounter is bigger than it should, jump out of function right away
-                    } else {
+                if (typeCount != 0) {
+                    for (token *tok = tokenList->first->nextToken; tok != NULL; tok = tok->nextToken) {
+                        if (tok->tokenType == COMMA) { // if we are at a coma, just increase the counter
+                            commaCounter++;
+                            if (commaCounter >= typeCount) return PARAMETER_ERROR;
+                            // if commaCounter is bigger than it should, jump out of function right away
+                        } else {
 
-                        // return expressions must have the same data types as all variables/literals in expressions
+                            // return expressions must have the same data types as all variables/literals in expressions
 
-                        if (types[commaCounter] == TYPE_INT) {
-                            if (tok->tokenType != INT_LIT) { // if it's correct literal, we don't have to check
-                                if (!checkDatatype(TYPE_INT, tok, *localTable))
-                                    return PARAMETER_ERROR;
-                            }
-                        } else if (types[commaCounter] == TYPE_STRING) {
-                            if (tok->tokenType != STRING_LIT) {
-                                if (!checkDatatype(TYPE_STRING, tok, *localTable))
-                                    return PARAMETER_ERROR;
-                            }
-                        } else if (types[commaCounter] == TYPE_FLOAT) {
-                            if (tok->tokenType != FLOAT_LIT) {
-                                if (!checkDatatype(TYPE_FLOAT, tok, *localTable))
-                                    return PARAMETER_ERROR;
+                            if (types[commaCounter] == TYPE_INT) {
+                                if (tok->tokenType != INT_LIT) { // if it's correct literal, we don't have to check
+                                    if (!checkDatatype(TYPE_INT, tok, *localTable))
+                                        return PARAMETER_ERROR;
+                                }
+                            } else if (types[commaCounter] == TYPE_STRING) {
+                                if (tok->tokenType != STRING_LIT) {
+                                    if (!checkDatatype(TYPE_STRING, tok, *localTable))
+                                        return PARAMETER_ERROR;
+                                }
+                            } else if (types[commaCounter] == TYPE_FLOAT) {
+                                if (tok->tokenType != FLOAT_LIT) {
+                                    if (!checkDatatype(TYPE_FLOAT, tok, *localTable))
+                                        return PARAMETER_ERROR;
+                                }
                             }
                         }
                     }
                 }
-
-                if (commaCounter != typeCount - 1) return PARAMETER_ERROR;
+                if (typeCount == 0 && tokenList->first != tokenList->last || typeCount > 0 && commaCounter + 1 != typeCount)
+                    return PARAMETER_ERROR;
                 // if there wasn't same count of different expressions as return types, return error
 
             }
@@ -455,17 +529,17 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                         // expressions separated by commas.
                         for (size_t j = i + 1; nextTok != NULL; nextTok = copyToken(tokenList, ++j)) {
                             // if there isn't a function, we need to count the commas
-                            if (prevTok->tokenType == COMMA)
+                            if (nextTok->tokenType == COMMA)
                                 nextCommaCount++;
-                            else if (prevTok->tokenType == COMP_OPERATOR)
+                            else if (nextTok->tokenType == COMP_OPERATOR)
                                 return DATATYPE_ERROR;
                                 // if there was comparator, that is not the right type to assign
-                            else if (prevTok->tokenType != IDENT &&
-                                     prevTok->tokenType != BRACKET_ROUND &&
-                                     prevTok->tokenType != ARIT_OPERATOR &&
-                                     prevTok->tokenType != INT_LIT &&
-                                     prevTok->tokenType != STRING_LIT &&
-                                     prevTok->tokenType != FLOAT_LIT)
+                            else if (nextTok->tokenType != IDENT &&
+                                     nextTok->tokenType != BRACKET_ROUND &&
+                                     nextTok->tokenType != ARIT_OPERATOR &&
+                                     nextTok->tokenType != INT_LIT &&
+                                     nextTok->tokenType != STRING_LIT &&
+                                     nextTok->tokenType != FLOAT_LIT)
                                 break;
                             // if it isn't any of these types, we are out of the expression, so break the cycle
                         }
@@ -503,9 +577,9 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                     prevTypes = malloc(sizeof(dataType) * (prevCommaCount + 2));
                     for (size_t j = 0; j < prevCommaCount + 2; j++)
                         prevTypes[j] = TYPE_UNDEFINED;
-                    prevTok = copyToken(tokenList, i - 1); // begin the iteration from start again
+                    prevTok = copyToken(tokenList, 0); // begin the iteration from start again
                     prevCommaCount = 0;
-                    for (size_t j = i - 1; prevTok != NULL; prevTok = copyToken(tokenList, --j)) {
+                    for (size_t j = 0; prevTok != NULL && prevTok->tokenType != ASIGN_OPERATOR; prevTok = copyToken(tokenList, ++j)) {
                         if (prevTok->tokenType == COMMA)
                             prevCommaCount++;
                         else {
@@ -518,9 +592,8 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr* globalTable, tableNode
                         }
                     }
 
-                    for (size_t j = 0; j < prevCommaCount +
-                                           1; j++) { // at the end, iterate one last time to check if data types match
-                        if (nextTypes[j] != prevTypes[j] || prevTypes[j] != TYPE_UNDEFINED)
+                    for (size_t j = 0; j < prevCommaCount + 1; j++) { // at the end, iterate one last time to check if data types match
+                        if (nextTypes[j] != prevTypes[j] && prevTypes[j] != TYPE_UNDEFINED)
                             // we need to add TYPE_UNDEFINED here in case one of prev identifiers was _ and undefined stayed with it
                             return TYPE_COMPATIBILITY_ERROR;
                     }
@@ -1062,7 +1135,7 @@ errorCode parse(list *tokenList, string *code) {
 
     tableNodePtr globalTable;
     initTable(&globalTable);
-    errorCode returnError = fillSymtable(globalTable, tokenList);
+    errorCode returnError = fillSymtable(&globalTable, tokenList);
 
     tableNodePtr localTable;
     initTable(&localTable);

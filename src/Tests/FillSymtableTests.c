@@ -3,21 +3,19 @@
 //
 
 #include "../parser.h"
-#include "../DynamicString.h"
-#include "../List.h"
 #include "../Scanner.h"
 
 /// TODO Otestovat funkciu fillSymtable//prve
 
 void drawTree(tableNodePtr symtable){
 
-    if (symtable->left != NULL)
-        drawTree(symtable->left);
-
     if(symtable == NULL) {
         printf("Symtable is empty\n");
         return;
     }
+
+    if (symtable->left != NULL)
+        drawTree(symtable->left);
 
     printf("Identifier: %s\n", symtable->data.id.data);
     string types;
