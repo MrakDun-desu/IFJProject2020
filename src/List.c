@@ -12,7 +12,7 @@ void initList (list* l) {
 
 void deleteList(list* l){
     token *tToken = l->first;
-    while(tToken != NULL){
+    while(l->first != NULL){
         l->first = l->first->nextToken;
         destroyString(&tToken->tokenName);
         free(tToken);
@@ -26,9 +26,9 @@ void getToken(list* l, size_t pos, token* t){
     if(pos >= l->size)
         t = NULL;
     else {
-        t = l->first;
+        *t = *l->first;
         for (size_t i = 0; i < pos; i++)
-            t = t->nextToken;
+            *t = *t->nextToken;
     }
 }
 
@@ -37,8 +37,7 @@ int addToken(list* l, type tType, char* tName ){
     token *tNew;
     tNew = malloc(sizeof(token));
     if(tNew == NULL){
-        printf("Allocation went wrong!\n");
-        return 1;
+        return INTERNAL_ERROR;
     }
     tNew->tokenType = tType;
     initString(&tNew->tokenName);
@@ -53,5 +52,47 @@ int addToken(list* l, type tType, char* tName ){
         l->first = tNew;
     }
     l->size++;
-    return 0;
+    return OK;
 }
+
+token* copyToken(list* l, size_t pos){
+    if(pos >= l->size)
+        return NULL;
+    else {
+        token* temp = l->first;
+        for (size_t i = 0; i < pos; i++)
+           temp = temp->nextToken;
+        return temp;
+    }
+}
+
+errorCode pushToken(list *l, token *tok) {
+    if (l != NULL) {
+        token *newToken;
+        if ((newToken = malloc(sizeof(token))) == NULL) return INTERNAL_ERROR;
+        initString(&newToken->tokenName);
+        if (makeString(tok->tokenName.data, &newToken->tokenName)) return INTERNAL_ERROR;
+        newToken->tokenType = tok->tokenType;
+        token* temp = l->first;
+        l->first = newToken;
+        if (temp == NULL)
+            l->last = newToken;
+        l->first = newToken;
+        l->size++;
+        newToken->nextToken = temp;
+    }
+    return OK;
+}
+
+token* popToken(list *l) {
+    if (l != NULL) {
+        token *back = l->first;
+        if (l->first != NULL) {
+            l->first = l->first->nextToken;
+            l->size--;
+        }
+        return back;
+    }
+    return NULL;
+}
+

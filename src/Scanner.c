@@ -49,8 +49,11 @@ int isFloatLit(string *lexem) {
 }
 
 int isIdent(string *lexem) {
+    if (isdigit(lexem->data[0]) != 0)
+        return 0;
+
     for (int i = 0; i < lexem->len - 1; i++) {
-        if (isalnum(lexem->data[i]) == 0)
+        if (isalnum(lexem->data[i]) == 0 && lexem->data[i] != '_')
             return 0;
     }
     return 1;
@@ -185,7 +188,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
         return INTERNAL_ERROR;
     }
 
-    const char operators[] = "<>{}()*/-+.'=:";
+    const char operators[] = "<>{}()*/-+.'=:!";
 
     bool comment = false;
     bool stringLoaded = false;
@@ -366,7 +369,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
                     }
                 }
-                if (currentChar == '<' || currentChar == '>') {
+                if (currentChar == '<' || currentChar == '>' || currentChar == '!') {
                     if (i != code.len) {
                         if (code.data[i + 1] == '=') {
 
@@ -416,43 +419,3 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
     destroyString(&currentLexem);
     return 0;
 }
-
-
-//this is "main" function that handles the entire scanner
-
-errorCode ScannerHandler() {
-
-    string tempCode; //THIS SHOULD BE CHANGED LATER
-    initString(&tempCode);
-    makeString(
-            "if(Jakub location == doma){ \n } \n else{ \n Jakub smrdi while corona true} sranda() 1 * 1 pecka = 1 /* adasdadas*/ af //sdaasddsaad",
-            &tempCode);
-
-    list sortedList;
-    initList(&sortedList);
-
-
-    //tempCode is input static representation
-    errorCode returnErrorCode;
-    returnErrorCode = CodeAnalyzer(&sortedList, tempCode); //CHANGE TEMPCODE LATER
-
-    /*
-    token tempToken;
-    printf("\nTOKEN TYPES: \n");
-    for (int i = 0; i < sortedList.size; i++) {
-        getToken(&sortedList, i, &tempToken);
-        printf("%s ", tempToken.tokenName);
-        printf("%d | ", tempToken.tokenType);
-    }
-*/
-    destroyString(&tempCode);
-    deleteList(&sortedList);
-
-    return returnErrorCode;
-
-
-}
-/*
-int main(int argc, char *argv[]) {
-    return ScannerHandler();
-}*/

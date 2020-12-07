@@ -1,5 +1,5 @@
 //
-// Created by praca on 15. 11. 2020.
+// Created by xdanco00 on 15. 11. 2020.
 //
 
 #include "symtable.h"
@@ -56,6 +56,10 @@ int main() {
     printf("%d\n", type[0]);
 
     deleteTable(&symtable);
+
+    char* idk = malloc(sizeof(char)*8);
+    sprintf(idk, "expVar%d", 0);
+    printf("%s", idk);
 
     return 0;
 }

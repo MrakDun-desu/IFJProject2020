@@ -11,7 +11,7 @@
 #include "List.h"
 #include "Errors.h"
 
-size_t scope = 0;
+size_t scope;
 
 /**
  * @brief Semantic analyser. Takes individual lines and checks for semantic errors. Adds variables to local symtable if needed.
@@ -22,7 +22,7 @@ size_t scope = 0;
  * @param data Function that we are currently in (for checking return types).
  * @return Error code that represents if discrepancy has been found. Can be OK or between 2 and 9.
  */
-errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, data* function); /// xdanco00
+errorCode semanticAnalyser(list* tokenList, tableNodePtr* globalTable, tableNodePtr* localTable, data* function); /// xdanco00
 
 /**
  * @brief First run through token list. Only needs to identify functions and add them to global symtable.
@@ -30,13 +30,13 @@ errorCode semanticAnalyser(list* tokenList, tableNodePtr globalTable, tableNodeP
  * @param tokenList List of tokens that is to be parsed.
  * @return Error code that represents if finding functions has been successful (can return OK, SYNTAX_ERROR or INTERNAL_ERROR)
  */
-errorCode fillSymtable(tableNodePtr globalTable, list* tokenList); /// xfudor00
+errorCode fillSymtable(tableNodePtr* globalTable, list* tokenList); /// xfudor00
 
 /**
  * @brief Parses list of tokens and returns it as a translated string. If any errors occur, returns corresponding error code.
  * @param tokenList Token list that is to be parsed.
  * @return Returns code OK if parsing and translation was successful, returns nonzero corresponding error code otherwise.
  */
-errorCode parse(list* tokenList, string* code); /// xolsia00
+errorCode parse(list* tokenList); /// xolsia00
 
 #endif //SRC_PARSER_H
