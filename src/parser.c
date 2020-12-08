@@ -1452,6 +1452,9 @@ errorCode parse(list *tokenList) {
     int latestElse = 0;
     int lineCount = 0;
 
+    int ifCount = 0;
+    int forCount = 0;
+
     list buffer;
     initList(&buffer);
 
@@ -1535,15 +1538,21 @@ errorCode parse(list *tokenList) {
                 errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
             }
-
+            ifCount++;
             //CHECK IF if HAS else
             int j = 0;
             savedToken = curToken;
 
-            token temp;
-            temp.tokenType = IF;
-            temp.tokenName.data = "if";
-            pushToken(&ifStack, &temp);
+
+            token ifToken;
+            initString(&ifToken.tokenName);
+            ifToken.tokenType = IF;
+            char *ifName = malloc(50 * sizeof(char));
+            sprintf(ifName, "%d", ifCount);
+
+            makeString(ifName, &ifToken.tokenName);
+            pushToken(&ifStack, &ifToken);
+            destroyString(&ifToken.tokenName);
 
             int openBracket = 1;
             int closedBracket = 0;
@@ -1561,10 +1570,16 @@ errorCode parse(list *tokenList) {
             }
             char *name = malloc(50 * sizeof(char));
             sprintf(name, "%d", i + j + 1);
-            temp = curToken;
+            token temp = curToken;
+            initString(&temp.tokenName);
 
             makeString(name, &temp.tokenName);
             pushToken(&buffer, &temp);
+            destroyString(&temp.tokenName);
+
+            free(name);
+            //free(ifName);
+
             if (curToken.nextToken->tokenType != ELSE) {
                 errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
@@ -1577,10 +1592,14 @@ errorCode parse(list *tokenList) {
         else if (lineTable.first->tokenType == FOR) {
 
             token tempToken = *lineTable.first->nextToken;
+            forCount++;
 
             token temp;
+            initString(&temp.tokenName);
             temp.tokenType = FOR;
-            temp.tokenName.data = "FOR";
+            char *forName = malloc(50 * sizeof(char));
+            sprintf(forName, "%d", forCount);
+            makeString(forName, &temp.tokenName);
             pushToken(&ifStack, &temp);
 
             returnError = blockDefinition(tokenList, tempToken, true);
@@ -1653,7 +1672,7 @@ errorCode parse(list *tokenList) {
                 //CHECK WHETHER THERE IS AN EXPRESSION OR FUNC CALL AFTER ASSIGN
                 if (tempToken.nextToken->tokenType == IDENT &&
                     tempToken.nextToken->nextToken->tokenType == BRACKET_ROUND) {
-                    returnError = blockFunctionCall(tokenList, tempToken);
+                    returnError = blockFunctionCall(tokenList, *tempToken.nextToken);
                     if (returnError) {
                         errorPrint(&lineTable, lineCount);
                         return returnError;
