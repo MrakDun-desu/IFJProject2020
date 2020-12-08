@@ -73,8 +73,8 @@ generator gen; /// generator that all specified functions will use so program st
     CREATEFRAME \n\
     DEFVAR TF@p \n\
     POPS TF@p \n\
-    DEFVAR TF@ret \n\
-    INT2FLOAT TF@ret TF@p \n\
+    DEFVAR TF@ret0 \n\
+    INT2FLOAT TF@ret0 TF@p \n\
     RETURN \n\
      \n\
     "
@@ -82,19 +82,19 @@ generator gen; /// generator that all specified functions will use so program st
     CREATEFRAME \n\
     DEFVAR TF@p \n\
     POPS TF@p \n\
-    DEFVAR TF@ret \n\
-    FLOAT2INT TF@ret TF@p \n\
+    DEFVAR TF@ret0 \n\
+    FLOAT2INT TF@ret0 TF@p \n\
     RETURN \n\
      \n\
     "
 
 // String functions
-#define FUNC_LEN "LABEL funclen \n\
+#define FUNC_LEN "LABEL len \n\
     CREATEFRAME \n\
     DEFVAR TF@s \n\
     POPS TF@s \n\
-    DEFVAR TF@ret \n\
-    STRLEN TF@ret TF@s \n\
+    DEFVAR TF@ret0 \n\
+    STRLEN TF@ret0 TF@s \n\
     RETURN \n\
      \n\
     "
@@ -148,7 +148,7 @@ generator gen; /// generator that all specified functions will use so program st
      \n\
     "
 
-#define FUNC_ORD "LABEL funcord \n\
+#define FUNC_ORD "LABEL ord \n\
     CREATEFRAME \n\
     DEFVAR TF@i \n\
     POPS TF@i \n\
@@ -174,26 +174,26 @@ generator gen; /// generator that all specified functions will use so program st
     "
 
 #define FUNC_CHR "LABEL chr \n\
-CREATEFRAME \n\
-DEFVAR TF@ascii \n\
-POPS TF@ascii \n\
-DEFVAR TF@ret0 \n\
-DEFVAR TF@ret1 \n\
-DEFVAR TF@out \n\
-MOVE TF@out bool@false \n\
-MOVE TF@ret0 int@0 \n\
-JUMPIFEQ chr_err TF@ascii nil@nil \n\
-GT TF@out TF@ascii int@255 \n\
-\n\
-LT TF@out TF@ascii int@1 \n\
-JUMPIFEQ chr_err TF@out bool@true \n\
-INT2CHAR TF@ret0 TF@ascii \n\
-RETURN \n\
-LABEL chr_err \n\
-MOVE TF@ret1 int@1 \n\
-MOVE TF@ret0 string@OUT_OF_RANGE_(0;255) \n\
-RETURN \n\
- \n\
+    CREATEFRAME \n\
+    DEFVAR TF@ascii \n\
+    POPS TF@ascii \n\
+    DEFVAR TF@ret0 \n\
+    DEFVAR TF@ret1 \n\
+    DEFVAR TF@out \n\
+    MOVE TF@out bool@false \n\
+    MOVE TF@ret0 int@0 \n\
+    JUMPIFEQ chr_err TF@ascii nil@nil \n\
+    GT TF@out TF@ascii int@255 \n\
+    \n\
+    LT TF@out TF@ascii int@1 \n\
+    JUMPIFEQ chr_err TF@out bool@true \n\
+    INT2CHAR TF@ret0 TF@ascii \n\
+    RETURN \n\
+    LABEL chr_err \n\
+    MOVE TF@ret1 int@1 \n\
+    MOVE TF@ret0 string@OUT_OF_RANGE_(0;255) \n\
+    RETURN \n\
+     \n\
 "
 
 /**

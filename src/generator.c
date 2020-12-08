@@ -1049,39 +1049,39 @@ errorCode generateConcat(token *var, token *symb1, token *symb2, char *frames) {
         makeString(symb2->tokenName.data, &tmp2);
         transformString(&tmp2);
 
-        sprintf(str, "CONCAT GF%s string@%s string@%s\n", var->tokenName.data, tmp1.data, tmp2.data);
+        sprintf(str, "CONCAT GF@%s string@%s string@%s\n", var->tokenName.data, tmp1.data, tmp2.data);
 
     }
     if (symb1->tokenType == IDENT && symb2->tokenType == IDENT) {
 
         if (equalStrings("tt", frames)) {
-            sprintf(str, "CONCAT GF%s TF@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
+            sprintf(str, "CONCAT GF@%s TF@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
         if (equalStrings("tg", frames)) {
-            sprintf(str, "CONCAT GF%s TF@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
+            sprintf(str, "CONCAT GF@%s TF@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
         if (equalStrings("gt", frames)) {
-            sprintf(str, "CONCAT GF%s GF@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
+            sprintf(str, "CONCAT GF@%s GF@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
         if (equalStrings("gg", frames)) {
-            sprintf(str, "CONCAT GF%s GF@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
+            sprintf(str, "CONCAT GF@%s GF@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
     }
     if (symb1->tokenType == IDENT && symb2->tokenType == STRING_LIT) {
         string tmp;
         initString(&tmp);
-        makeString(symb1->tokenName.data, &tmp);
+        makeString(symb2->tokenName.data, &tmp);
         transformString(&tmp);
 
         if (frames[0] == 't') {
-            sprintf(str, "CONCAT GF%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+            sprintf(str, "CONCAT GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
         }
         if (frames[0] == 'g') {
-            sprintf(str, "CONCAT GF%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+            sprintf(str, "CONCAT GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
         }
         destroyString(&tmp);
     }
@@ -1092,10 +1092,10 @@ errorCode generateConcat(token *var, token *symb1, token *symb2, char *frames) {
         transformString(&tmp);
 
         if (frames[1] == 't') {
-            sprintf(str, "CONCAT GF%s string@%s TF@%s\n", var->tokenName.data, tmp.data, symb2->tokenName.data);
+            sprintf(str, "CONCAT GF@%s string@%s TF@%s\n", var->tokenName.data, tmp.data, symb2->tokenName.data);
         }
         if (frames[1] == 'g') {
-            sprintf(str, "CONCAT GF%s string@%s GF@%s\n", var->tokenName.data, tmp.data, symb2->tokenName.data);
+            sprintf(str, "CONCAT GF@%s string@%s GF@%s\n", var->tokenName.data, tmp.data, symb2->tokenName.data);
         }
         destroyString(&tmp);
     }
