@@ -1341,6 +1341,7 @@ errorCode blockIdentList(list *tokenList, token curToken) {
     }
     if(equalStrings(curToken.tokenName.data, ")"))
         if(curToken.tokenType != EOL) return SYNTAX_ERROR;
+
     return OK;
 }
 
@@ -1351,11 +1352,12 @@ errorCode blockFunctionCall(list *tokenList, token curToken) {
 
     while (curToken.tokenType != BRACKET_ROUND) {
 
-        return returnError = blockIdentList(tokenList, curToken);
-        if (returnError) return returnError;
+        returnError = blockIdentList(tokenList, curToken);
+        if (returnError != OK) return returnError;
 
         curToken = *curToken.nextToken;
     }
+
     return OK;
 }
 
@@ -1466,16 +1468,29 @@ errorCode parse(list *tokenList) {
     returnError = blockBrackets(tokenList);
     if (returnError != OK) return returnError;
 
+    list lineTable;
+    initList(&lineTable);
+
+    token curToken;
+    getToken(tokenList, 0, &curToken);
+
+    while(curToken.tokenType != EOL){
+        addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
+        curToken = *curToken.nextToken;
+    }
+
+    semanticAnalyser(&lineTable, &globalTable, &localTable, currentFunc);
+    //generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
+
+
     token savedToken;
 
     for (int i = 2; i < tokenList->size; i++) {
-        token curToken;
         getToken(tokenList, i, &curToken);
-
+        initList(&lineTable);
         lineCount++;
 
-        list lineTable;
-        initList(&lineTable);
+
         //FILL LINELIST
         while (curToken.tokenType != EOL) {
             addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
