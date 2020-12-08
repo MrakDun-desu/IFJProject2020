@@ -44,12 +44,12 @@ int main() {
     out = parse(&tokenList);
     if (out) return out;
 
-    generatorWrite(output);
+    //generatorWrite(output);
 
     destroyString(&sourceCode);
     free(buffer);
     deleteList(&tokenList);
-    generatorClear();
+   // generatorClear();
 
     return 0;
 }

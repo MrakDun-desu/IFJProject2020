@@ -204,32 +204,140 @@ src/Scanner.c.s:
 	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/Scanner.c.s
 .PHONY : src/Scanner.c.s
 
-src/ScannerTest.o: src/ScannerTest.c.o
+src/expression.o: src/expression.c.o
 
-.PHONY : src/ScannerTest.o
+.PHONY : src/expression.o
 
 # target to build an object file
-src/ScannerTest.c.o:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o
-.PHONY : src/ScannerTest.c.o
+src/expression.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/expression.c.o
+.PHONY : src/expression.c.o
 
-src/ScannerTest.i: src/ScannerTest.c.i
+src/expression.i: src/expression.c.i
 
-.PHONY : src/ScannerTest.i
+.PHONY : src/expression.i
 
 # target to preprocess a source file
-src/ScannerTest.c.i:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.i
-.PHONY : src/ScannerTest.c.i
+src/expression.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/expression.c.i
+.PHONY : src/expression.c.i
 
-src/ScannerTest.s: src/ScannerTest.c.s
+src/expression.s: src/expression.c.s
 
-.PHONY : src/ScannerTest.s
+.PHONY : src/expression.s
 
 # target to generate assembly for a file
-src/ScannerTest.c.s:
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.s
-.PHONY : src/ScannerTest.c.s
+src/expression.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/expression.c.s
+.PHONY : src/expression.c.s
+
+src/generator.o: src/generator.c.o
+
+.PHONY : src/generator.o
+
+# target to build an object file
+src/generator.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/generator.c.o
+.PHONY : src/generator.c.o
+
+src/generator.i: src/generator.c.i
+
+.PHONY : src/generator.i
+
+# target to preprocess a source file
+src/generator.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/generator.c.i
+.PHONY : src/generator.c.i
+
+src/generator.s: src/generator.c.s
+
+.PHONY : src/generator.s
+
+# target to generate assembly for a file
+src/generator.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/generator.c.s
+.PHONY : src/generator.c.s
+
+src/main.o: src/main.c.o
+
+.PHONY : src/main.o
+
+# target to build an object file
+src/main.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/main.c.o
+.PHONY : src/main.c.o
+
+src/main.i: src/main.c.i
+
+.PHONY : src/main.i
+
+# target to preprocess a source file
+src/main.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/main.c.i
+.PHONY : src/main.c.i
+
+src/main.s: src/main.c.s
+
+.PHONY : src/main.s
+
+# target to generate assembly for a file
+src/main.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/main.c.s
+.PHONY : src/main.c.s
+
+src/parser.o: src/parser.c.o
+
+.PHONY : src/parser.o
+
+# target to build an object file
+src/parser.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/parser.c.o
+.PHONY : src/parser.c.o
+
+src/parser.i: src/parser.c.i
+
+.PHONY : src/parser.i
+
+# target to preprocess a source file
+src/parser.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/parser.c.i
+.PHONY : src/parser.c.i
+
+src/parser.s: src/parser.c.s
+
+.PHONY : src/parser.s
+
+# target to generate assembly for a file
+src/parser.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/parser.c.s
+.PHONY : src/parser.c.s
+
+src/symtable.o: src/symtable.c.o
+
+.PHONY : src/symtable.o
+
+# target to build an object file
+src/symtable.c.o:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/symtable.c.o
+.PHONY : src/symtable.c.o
+
+src/symtable.i: src/symtable.c.i
+
+.PHONY : src/symtable.i
+
+# target to preprocess a source file
+src/symtable.c.i:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/symtable.c.i
+.PHONY : src/symtable.c.i
+
+src/symtable.s: src/symtable.c.s
+
+.PHONY : src/symtable.s
+
+# target to generate assembly for a file
+src/symtable.c.s:
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/symtable.c.s
+.PHONY : src/symtable.c.s
 
 # Help Target
 help:
@@ -249,9 +357,21 @@ help:
 	@echo "... src/Scanner.o"
 	@echo "... src/Scanner.i"
 	@echo "... src/Scanner.s"
-	@echo "... src/ScannerTest.o"
-	@echo "... src/ScannerTest.i"
-	@echo "... src/ScannerTest.s"
+	@echo "... src/expression.o"
+	@echo "... src/expression.i"
+	@echo "... src/expression.s"
+	@echo "... src/generator.o"
+	@echo "... src/generator.i"
+	@echo "... src/generator.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
+	@echo "... src/parser.o"
+	@echo "... src/parser.i"
+	@echo "... src/parser.s"
+	@echo "... src/symtable.o"
+	@echo "... src/symtable.i"
+	@echo "... src/symtable.s"
 .PHONY : help
 
 

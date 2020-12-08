@@ -105,9 +105,105 @@ CMakeFiles/IFJProject2020.dir/src/Scanner.c.o.provides: CMakeFiles/IFJProject202
 CMakeFiles/IFJProject2020.dir/src/Scanner.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/Scanner.c.o
 
 
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: CMakeFiles/IFJProject2020.dir/flags.make
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/parser.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/IFJProject2020.dir/src/parser.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/IFJProject2020.dir/src/parser.c.o   -c /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.c
+
+CMakeFiles/IFJProject2020.dir/src/parser.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/IFJProject2020.dir/src/parser.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.c > CMakeFiles/IFJProject2020.dir/src/parser.c.i
+
+CMakeFiles/IFJProject2020.dir/src/parser.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/IFJProject2020.dir/src/parser.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.c -o CMakeFiles/IFJProject2020.dir/src/parser.c.s
+
+CMakeFiles/IFJProject2020.dir/src/parser.c.o.requires:
+
+.PHONY : CMakeFiles/IFJProject2020.dir/src/parser.c.o.requires
+
+CMakeFiles/IFJProject2020.dir/src/parser.c.o.provides: CMakeFiles/IFJProject2020.dir/src/parser.c.o.requires
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/parser.c.o.provides.build
+.PHONY : CMakeFiles/IFJProject2020.dir/src/parser.c.o.provides
+
+CMakeFiles/IFJProject2020.dir/src/parser.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/parser.c.o
+
+
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: CMakeFiles/IFJProject2020.dir/flags.make
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/expression.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/IFJProject2020.dir/src/expression.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/IFJProject2020.dir/src/expression.c.o   -c /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.c
+
+CMakeFiles/IFJProject2020.dir/src/expression.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/IFJProject2020.dir/src/expression.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.c > CMakeFiles/IFJProject2020.dir/src/expression.c.i
+
+CMakeFiles/IFJProject2020.dir/src/expression.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/IFJProject2020.dir/src/expression.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.c -o CMakeFiles/IFJProject2020.dir/src/expression.c.s
+
+CMakeFiles/IFJProject2020.dir/src/expression.c.o.requires:
+
+.PHONY : CMakeFiles/IFJProject2020.dir/src/expression.c.o.requires
+
+CMakeFiles/IFJProject2020.dir/src/expression.c.o.provides: CMakeFiles/IFJProject2020.dir/src/expression.c.o.requires
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/expression.c.o.provides.build
+.PHONY : CMakeFiles/IFJProject2020.dir/src/expression.c.o.provides
+
+CMakeFiles/IFJProject2020.dir/src/expression.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/expression.c.o
+
+
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: CMakeFiles/IFJProject2020.dir/flags.make
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/generator.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/IFJProject2020.dir/src/generator.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/IFJProject2020.dir/src/generator.c.o   -c /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.c
+
+CMakeFiles/IFJProject2020.dir/src/generator.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/IFJProject2020.dir/src/generator.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.c > CMakeFiles/IFJProject2020.dir/src/generator.c.i
+
+CMakeFiles/IFJProject2020.dir/src/generator.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/IFJProject2020.dir/src/generator.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.c -o CMakeFiles/IFJProject2020.dir/src/generator.c.s
+
+CMakeFiles/IFJProject2020.dir/src/generator.c.o.requires:
+
+.PHONY : CMakeFiles/IFJProject2020.dir/src/generator.c.o.requires
+
+CMakeFiles/IFJProject2020.dir/src/generator.c.o.provides: CMakeFiles/IFJProject2020.dir/src/generator.c.o.requires
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/generator.c.o.provides.build
+.PHONY : CMakeFiles/IFJProject2020.dir/src/generator.c.o.provides
+
+CMakeFiles/IFJProject2020.dir/src/generator.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/generator.c.o
+
+
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o: CMakeFiles/IFJProject2020.dir/flags.make
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o: ../src/symtable.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/IFJProject2020.dir/src/symtable.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/IFJProject2020.dir/src/symtable.c.o   -c /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.c
+
+CMakeFiles/IFJProject2020.dir/src/symtable.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/IFJProject2020.dir/src/symtable.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.c > CMakeFiles/IFJProject2020.dir/src/symtable.c.i
+
+CMakeFiles/IFJProject2020.dir/src/symtable.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/IFJProject2020.dir/src/symtable.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.c -o CMakeFiles/IFJProject2020.dir/src/symtable.c.s
+
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o.requires:
+
+.PHONY : CMakeFiles/IFJProject2020.dir/src/symtable.c.o.requires
+
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o.provides: CMakeFiles/IFJProject2020.dir/src/symtable.c.o.requires
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/symtable.c.o.provides.build
+.PHONY : CMakeFiles/IFJProject2020.dir/src/symtable.c.o.provides
+
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/symtable.c.o
+
+
 CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o: CMakeFiles/IFJProject2020.dir/flags.make
 CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o: ../src/DynamicString.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o   -c /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.c
 
 CMakeFiles/IFJProject2020.dir/src/DynamicString.c.i: cmake_force
@@ -129,47 +225,55 @@ CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o.provides: CMakeFiles/IFJProj
 CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o
 
 
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o: CMakeFiles/IFJProject2020.dir/flags.make
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o: ../src/ScannerTest.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o   -c /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c
+CMakeFiles/IFJProject2020.dir/src/main.c.o: CMakeFiles/IFJProject2020.dir/flags.make
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/main.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/IFJProject2020.dir/src/main.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/IFJProject2020.dir/src/main.c.o   -c /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/main.c
 
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c > CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.i
+CMakeFiles/IFJProject2020.dir/src/main.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/IFJProject2020.dir/src/main.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/main.c > CMakeFiles/IFJProject2020.dir/src/main.c.i
 
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c -o CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.s
+CMakeFiles/IFJProject2020.dir/src/main.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/IFJProject2020.dir/src/main.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/main.c -o CMakeFiles/IFJProject2020.dir/src/main.c.s
 
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.requires:
+CMakeFiles/IFJProject2020.dir/src/main.c.o.requires:
 
-.PHONY : CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.requires
+.PHONY : CMakeFiles/IFJProject2020.dir/src/main.c.o.requires
 
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.provides: CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.requires
-	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.provides.build
-.PHONY : CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.provides
+CMakeFiles/IFJProject2020.dir/src/main.c.o.provides: CMakeFiles/IFJProject2020.dir/src/main.c.o.requires
+	$(MAKE) -f CMakeFiles/IFJProject2020.dir/build.make CMakeFiles/IFJProject2020.dir/src/main.c.o.provides.build
+.PHONY : CMakeFiles/IFJProject2020.dir/src/main.c.o.provides
 
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o
+CMakeFiles/IFJProject2020.dir/src/main.c.o.provides.build: CMakeFiles/IFJProject2020.dir/src/main.c.o
 
 
 # Object files for target IFJProject2020
 IFJProject2020_OBJECTS = \
 "CMakeFiles/IFJProject2020.dir/src/List.c.o" \
 "CMakeFiles/IFJProject2020.dir/src/Scanner.c.o" \
+"CMakeFiles/IFJProject2020.dir/src/parser.c.o" \
+"CMakeFiles/IFJProject2020.dir/src/expression.c.o" \
+"CMakeFiles/IFJProject2020.dir/src/generator.c.o" \
+"CMakeFiles/IFJProject2020.dir/src/symtable.c.o" \
 "CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o" \
-"CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o"
+"CMakeFiles/IFJProject2020.dir/src/main.c.o"
 
 # External object files for target IFJProject2020
 IFJProject2020_EXTERNAL_OBJECTS =
 
 IFJProject2020: CMakeFiles/IFJProject2020.dir/src/List.c.o
 IFJProject2020: CMakeFiles/IFJProject2020.dir/src/Scanner.c.o
+IFJProject2020: CMakeFiles/IFJProject2020.dir/src/parser.c.o
+IFJProject2020: CMakeFiles/IFJProject2020.dir/src/expression.c.o
+IFJProject2020: CMakeFiles/IFJProject2020.dir/src/generator.c.o
+IFJProject2020: CMakeFiles/IFJProject2020.dir/src/symtable.c.o
 IFJProject2020: CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o
-IFJProject2020: CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o
+IFJProject2020: CMakeFiles/IFJProject2020.dir/src/main.c.o
 IFJProject2020: CMakeFiles/IFJProject2020.dir/build.make
 IFJProject2020: CMakeFiles/IFJProject2020.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C executable IFJProject2020"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking C executable IFJProject2020"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/IFJProject2020.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -179,8 +283,12 @@ CMakeFiles/IFJProject2020.dir/build: IFJProject2020
 
 CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/List.c.o.requires
 CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/Scanner.c.o.requires
+CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/parser.c.o.requires
+CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/expression.c.o.requires
+CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/generator.c.o.requires
+CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/symtable.c.o.requires
 CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o.requires
-CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o.requires
+CMakeFiles/IFJProject2020.dir/requires: CMakeFiles/IFJProject2020.dir/src/main.c.o.requires
 
 .PHONY : CMakeFiles/IFJProject2020.dir/requires
 
