@@ -1137,12 +1137,15 @@ errorCode blockPackage(list *tokenList) {
 }
 
 //function code
-errorCode blockBrackets(list *tokenList, token curToken) {
+errorCode blockBrackets(list *tokenList) {
 
-    int openBracketCount = 1;
+    token curToken;
+    getToken(tokenList, 0, &curToken);
+
+    int openBracketCount = 0;
     int closedBracketCount = 0;
 
-    while (openBracketCount != closedBracketCount) {
+    while (curToken.nextToken != NULL) {
 
         if (curToken.nextToken == NULL)
             if (openBracketCount != closedBracketCount) return SYNTAX_ERROR;
@@ -1166,53 +1169,63 @@ errorCode blockBrackets(list *tokenList, token curToken) {
 }
 
 //expression
-errorCode blockExpression(list *tokenList, token *curToken, bool forState, bool expressionList) {
+errorCode blockExpression(list *tokenList, token curToken, bool forState, bool expressionList) {
 
     int openBracketCount = 0;
     int closedBracketCount = 0;
 
-    while (curToken->tokenType != EOL) {
+    while (curToken.tokenType != EOL) {
+        if (forState && curToken.tokenType == SEMICOL) return OK;
 
-        if (forState == true && curToken->tokenType == SEMICOL) break;
+        if (!expressionList && curToken.nextToken->tokenType == COMMA) return SYNTAX_ERROR;
 
-        if (!expressionList && curToken->nextToken->tokenType == COMMA) return SYNTAX_ERROR;
+        if (curToken.tokenType == COMMA)
+            if (curToken.nextToken->tokenType != IDENT && curToken.nextToken->tokenType != INT_LIT &&
+                curToken.nextToken->tokenType != FLOAT_LIT &&
+                curToken.nextToken->tokenType != STRING_LIT)
 
-        if (curToken->tokenType == COMMA)
-            if (curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != INT_LIT &&
-                curToken->nextToken->tokenType != FLOAT_LIT &&
-                curToken->nextToken->tokenType != STRING_LIT)
-
-                if (curToken->tokenType == BRACKET_ROUND && equalStrings(curToken->tokenName.data, "(")) {
+                if (curToken.tokenType == BRACKET_ROUND && equalStrings(curToken.tokenName.data, "(")) {
                     openBracketCount++;
-                    if (curToken->nextToken->tokenType != IDENT) return SYNTAX_ERROR;
-                    curToken = curToken->nextToken;
+                    if (curToken.nextToken->tokenType != IDENT) return SYNTAX_ERROR;
+                    curToken = *curToken.nextToken;
                     continue;
                 }
 
-        if (curToken->tokenType == BRACKET_ROUND && equalStrings(curToken->tokenName.data, ")")) {
+        if (curToken.tokenType == BRACKET_ROUND && equalStrings(curToken.tokenName.data, ")")) {
             closedBracketCount++;
-            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERATOR &&
-                curToken->nextToken->tokenType != EOL)
+            if (curToken.nextToken->tokenType != ARIT_OPERATOR && curToken.nextToken->tokenType != COMP_OPERATOR &&
+                curToken.nextToken->tokenType != EOL)
                 return SYNTAX_ERROR;
-            curToken = curToken->nextToken;
+            curToken = *curToken.nextToken;
             continue;
         }
 
-        if (curToken->tokenType == IDENT || curToken->tokenType == INT_LIT || curToken->tokenType == FLOAT_LIT ||
-            curToken->tokenType == STRING_LIT) {
-            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != COMP_OPERATOR &&
-                curToken->nextToken->tokenType != COMMA && curToken->nextToken->tokenType != EOL)
+        if (curToken.tokenType == IDENT || curToken.tokenType == INT_LIT || curToken.tokenType == FLOAT_LIT ||
+            curToken.tokenType == STRING_LIT) {
+            if (curToken.nextToken->tokenType != ARIT_OPERATOR && curToken.nextToken->tokenType != COMP_OPERATOR &&
+                curToken.nextToken->tokenType != EOL &&
+                curToken.nextToken->tokenType != BRACKET_CURLY &&
+                curToken.nextToken->tokenType != SEMICOL)
                 return SYNTAX_ERROR;
-            curToken = curToken->nextToken;
+            curToken = *curToken.nextToken;
             continue;
         }
 
-        if (curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == COMP_OPERATOR) {
-            if (curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != BRACKET_ROUND)
+        if (curToken.tokenType == ARIT_OPERATOR || curToken.tokenType == COMP_OPERATOR) {
+            if (curToken.nextToken->tokenType != IDENT && curToken.nextToken->tokenType != INT_LIT &&
+                curToken.nextToken->tokenType != FLOAT_LIT &&
+                curToken.nextToken->tokenType != STRING_LIT)
                 return SYNTAX_ERROR;
-            curToken = curToken->nextToken;
+            curToken = *curToken.nextToken;
             continue;
         }
+
+        if (equalStrings(curToken.tokenName.data, "{")) {
+            if (curToken.nextToken->tokenType != EOL) return SYNTAX_ERROR;
+            curToken = *curToken.nextToken;
+            continue;
+        }
+
 
         return SYNTAX_ERROR;
 
@@ -1224,61 +1237,70 @@ errorCode blockExpression(list *tokenList, token *curToken, bool forState, bool 
 }
 
 //asign
-errorCode blockAssign(list *tokenList, token *curToken, bool forState) {
+errorCode blockAssign(list *tokenList, token curToken, bool forState) {
 
     int openBracketCount = 0;
     int closedBracketCount = 0;
+    if (forState)
+        if (equalStrings(curToken.tokenName.data, "{")) return OK;
 
-    if (curToken->tokenType != IDENT) return SYNTAX_ERROR;
 
-    while (curToken->tokenType != EOL) {
+    if (curToken.tokenType != IDENT) return SYNTAX_ERROR;
 
-        if (curToken->tokenType == COMMA) {
-            if (curToken->nextToken->tokenType != IDENT) return SYNTAX_ERROR;
-            curToken = curToken->nextToken;
+    while (curToken.tokenType != EOL) {
+        if (curToken.tokenType == ASIGN_OPERATOR) {
+            curToken = *curToken.nextToken;
+            break;
+        }
+        if (curToken.tokenType == IDENT)
+            if (curToken.nextToken->tokenType != COMMA && curToken.nextToken->tokenType != ASIGN_OPERATOR)
+                return SYNTAX_ERROR;
+
+        if (curToken.tokenType == COMMA)
+            if (curToken.nextToken->tokenType != IDENT) return SYNTAX_ERROR;
+
+        if (curToken.nextToken == NULL) return SYNTAX_ERROR;
+        curToken = *curToken.nextToken;
+    }
+
+
+    while (curToken.tokenType != EOL) {
+        if (forState && equalStrings(curToken.tokenName.data, "{")) break;
+
+        if (curToken.tokenType == IDENT || curToken.tokenType == INT_LIT || curToken.tokenType == FLOAT_LIT ||
+            curToken.tokenType == STRING_LIT) {
+
+            if (curToken.nextToken->tokenType != ARIT_OPERATOR && curToken.nextToken->tokenType != BRACKET_ROUND &&
+                curToken.nextToken->tokenType != ASIGN_OPERATOR && curToken.nextToken->tokenType != BRACKET_CURLY &&
+                curToken.nextToken->tokenType != EOL)
+                return SYNTAX_ERROR;
+
+            if (!forState && curToken.nextToken->tokenType == BRACKET_CURLY) return SYNTAX_ERROR;
+            if (forState && equalStrings(curToken.nextToken->tokenName.data, "}")) return SYNTAX_ERROR;
+
+            if (curToken.nextToken->tokenType == BRACKET_ROUND &&
+                equalStrings(curToken.nextToken->tokenName.data, ")"))
+                return SYNTAX_ERROR;
+
+            curToken = *curToken.nextToken;
             continue;
         }
 
+        if (curToken.tokenType == ARIT_OPERATOR || curToken.tokenType == BRACKET_ROUND) {
 
-        if (forState == true && curToken->tokenType == SEMICOL) break;
-
-        if (curToken->tokenType == IDENT || curToken->tokenType == INT_LIT || curToken->tokenType == FLOAT_LIT ||
-            curToken->tokenType == STRING_LIT) {
-            if (curToken->nextToken->tokenType == ASIGN_OPERATOR &&
-                equalStrings(curToken->nextToken->tokenName.data, "="))
+            if (curToken.tokenType == BRACKET_ROUND && equalStrings(curToken.tokenName.data, ")"))
                 return SYNTAX_ERROR;
 
-            if (curToken->nextToken->tokenType != ARIT_OPERATOR && curToken->nextToken->tokenType != BRACKET_ROUND &&
-                curToken->nextToken->tokenType != ASIGN_OPERATOR)
-                return SYNTAX_ERROR;
-
-            if (curToken->nextToken->tokenType == BRACKET_ROUND &&
-                equalStrings(curToken->nextToken->tokenName.data, ")"))
-                return SYNTAX_ERROR;
-
-            curToken = curToken->nextToken;
-            continue;
-        }
-
-        if (curToken->tokenType == ARIT_OPERATOR || curToken->tokenType == BRACKET_ROUND ||
-            curToken->tokenType == ASIGN_OPERATOR) {
-
-            if (equalStrings(curToken->tokenName.data, "("))
+            if (equalStrings(curToken.tokenName.data, "("))
                 openBracketCount++;
-            if (equalStrings(curToken->tokenName.data, ")"))
+            if (equalStrings(curToken.tokenName.data, ")"))
                 closedBracketCount++;
 
-            if (curToken->tokenType == ASIGN_OPERATOR && equalStrings(curToken->tokenName.data, "="))
+            if (curToken.nextToken->tokenType != IDENT && curToken.nextToken->tokenType != INT_LIT &&
+                curToken.nextToken->tokenType != FLOAT_LIT && curToken.nextToken->tokenType != STRING_LIT)
                 return SYNTAX_ERROR;
 
-            if (curToken->nextToken->tokenType != IDENT && curToken->nextToken->tokenType != INT_LIT &&
-                curToken->nextToken->tokenType != FLOAT_LIT && curToken->nextToken->tokenType != STRING_LIT)
-                return SYNTAX_ERROR;
-
-            if (curToken->tokenType == BRACKET_ROUND && equalStrings(curToken->tokenName.data, ")"))
-                return SYNTAX_ERROR;
-
-            curToken = curToken->nextToken;
+            curToken = *curToken.nextToken;
             continue;
         }
 
@@ -1288,75 +1310,146 @@ errorCode blockAssign(list *tokenList, token *curToken, bool forState) {
     return OK;
 }
 
-//term
-errorCode pregenerateDefvar(list *tokenList, token curToken, size_t i) {
+//definition
+errorCode blockDefinition(list *tokenList, token curToken, bool forState) {
 
-    list localList;
-    initList(&localList);
+    if (forState)
+        if (curToken.tokenType == SEMICOL) return OK;
 
-    for (; curToken.nextToken != NULL && curToken.tokenType != FUNC; curToken = *curToken.nextToken) {
+    if (curToken.tokenType != IDENT) return SYNTAX_ERROR;
+    curToken = *curToken.nextToken;
 
-        if (equalStrings(curToken.tokenName.data, ":=")) {
-            token localToken;
-            getToken(tokenList, i - 1, &localToken);
-            bool wasDefined = false;
-            for (token *tmp = localList.first; tmp != NULL; tmp = tmp->nextToken) {
-                if (equalStrings(tmp->tokenName.data, localToken.tokenName.data)) {
-                    wasDefined = true;
-                    break;
-                }
-            }
-            if (!wasDefined && localToken.tokenType == IDENT) {
-                if (addToken(&localList, localToken.tokenType, localToken.tokenName.data)) return INTERNAL_ERROR;
-                generateDefvar(&localToken);
-            }
+    if (curToken.tokenType != ASIGN_OPERATOR && !equalStrings(":=", curToken.tokenName.data)) return SYNTAX_ERROR;
+    curToken = *curToken.nextToken;
+
+    return blockExpression(tokenList, curToken, forState, false);
+
+}
+
+errorCode blockIdentList(list *tokenList, token curToken) {
+
+    if (curToken.tokenType == STRING_LIT || curToken.tokenType == INT_LIT || curToken.tokenType == FLOAT_LIT ||
+        curToken.tokenType == IDENT) {
+        if (curToken.nextToken->tokenType != COMMA && curToken.nextToken->tokenType != BRACKET_ROUND)
+            return SYNTAX_ERROR;
+    }
+    if (curToken.tokenType == COMMA) {
+        if (curToken.nextToken->tokenType != STRING_LIT && curToken.nextToken->tokenType != INT_LIT &&
+            curToken.nextToken->tokenType != FLOAT_LIT &&
+            curToken.nextToken->tokenType != IDENT)
+            return SYNTAX_ERROR;
+    }
+    if(equalStrings(curToken.tokenName.data, ")"))
+        if(curToken.tokenType != EOL) return SYNTAX_ERROR;
+    return OK;
+}
+
+//eats function ident
+errorCode blockFunctionCall(list *tokenList, token curToken) {
+    errorCode returnError;
+    curToken = *curToken.nextToken->nextToken;
+
+    while (curToken.tokenType != BRACKET_ROUND) {
+
+        return returnError = blockIdentList(tokenList, curToken);
+        if (returnError) return returnError;
+
+        curToken = *curToken.nextToken;
+    }
+    return OK;
+}
+
+//eats first line ident
+errorCode blockFunctionDeclare(list *tokenList, token curToken) {
+
+    if (curToken.tokenType != IDENT) return SYNTAX_ERROR;
+
+    if (equalStrings(curToken.tokenName.data, "main")) {
+        if (equalStrings(curToken.nextToken->tokenName.data, "("))
+            if (equalStrings(curToken.nextToken->nextToken->tokenName.data, ")"))
+                if (equalStrings(curToken.nextToken->nextToken->nextToken->tokenName.data, "{"))
+                    if (curToken.nextToken->nextToken->nextToken->nextToken->tokenType == EOL)
+                        return OK;
+    }
+
+    curToken = *curToken.nextToken;
+    if (!equalStrings(curToken.tokenName.data, "(")) return SYNTAX_ERROR;
+    curToken = *curToken.nextToken;
+
+    while (curToken.tokenType != BRACKET_ROUND) {
+
+        if (curToken.tokenType == IDENT) {
+            if (curToken.nextToken->tokenType != STRING && curToken.nextToken->tokenType != FLOAT &&
+                curToken.nextToken->tokenType != INT)
+                return SYNTAX_ERROR;
         }
 
-        i++;
+        if (curToken.tokenType == COMMA) {
+            if (curToken.nextToken->tokenType != IDENT) return SYNTAX_ERROR;
+        }
+
+        if (curToken.tokenType == STRING || curToken.tokenType == FLOAT || curToken.tokenType == INT) {
+            if (curToken.nextToken->tokenType != COMMA && !equalStrings(curToken.nextToken->tokenName.data, ")"))
+                return SYNTAX_ERROR;
+
+        }
+        curToken = *curToken.nextToken;
+    }
+
+
+    if (!equalStrings(curToken.tokenName.data, ")")) return SYNTAX_ERROR;
+
+    curToken = *curToken.nextToken;
+    if (!equalStrings(curToken.tokenName.data, "(")) return SYNTAX_ERROR;
+    curToken = *curToken.nextToken;
+
+    if (curToken.tokenType == EOL) return OK;
+
+    while (curToken.tokenType != BRACKET_ROUND) {
+
+        if (curToken.tokenType == COMMA) {
+            if (curToken.nextToken->tokenType != STRING && curToken.nextToken->tokenType != INT &&
+                curToken.nextToken->tokenType != FLOAT)
+                return SYNTAX_ERROR;
+        }
+
+        if (curToken.tokenType == STRING || curToken.tokenType == FLOAT || curToken.tokenType == INT) {
+            if (curToken.nextToken->tokenType != COMMA && !equalStrings(curToken.nextToken->tokenName.data, ")"))
+                return SYNTAX_ERROR;
+        }
+
+        curToken = *curToken.nextToken;
     }
 
 
     return OK;
+
 }
 
-//definition
-errorCode blockDefinition(list *tokenList, token *curToken, bool forState) {
+void errorPrint(list *lineTable, int lineCount) {
 
-    if (curToken->tokenType != IDENT) return SYNTAX_ERROR;
-    curToken = curToken->nextToken;
-
-    while (curToken->tokenType != EOL || equalStrings(":=", curToken->tokenName.data)) {
-
-        if (forState == true && curToken->tokenType == SEMICOL) break;
-
-        if (curToken->tokenType == COMMA) {
-            if (curToken->nextToken->tokenType != IDENT) return SYNTAX_ERROR;
-            curToken = curToken->nextToken;
-            continue;
-        }
-
-        if (curToken->tokenType == IDENT) {
-            if (curToken->nextToken->tokenType != COMMA && !equalStrings(":=", curToken->tokenName.data))
-                return SYNTAX_ERROR;
-            curToken = curToken->nextToken;
-            continue;
-        }
-        if (curToken->tokenType == EOL) return SYNTAX_ERROR;
-
+    fprintf(stderr, "SYNTAX_ERROR on line %d \n ", lineCount);
+    token curToken = *lineTable->first;
+    for (int i = 0; i < lineTable->size; i++) {
+        fprintf(stderr, "%s ", curToken.tokenName.data);
+        curToken = *curToken.nextToken;
     }
-
-    if (curToken->tokenType != ASIGN_OPERATOR && !equalStrings(":=", curToken->tokenName.data)) return SYNTAX_ERROR;
-    curToken = curToken->nextToken;
-
-    return blockExpression(tokenList, curToken, forState, false);
-
 }
 
 
 errorCode parse(list *tokenList) {
 
     tableNodePtr globalTable;
-    data* currentFunc = NULL;
+    data *currentFunc = NULL;
+    int latestElse = 0;
+    int lineCount = 0;
+
+    list buffer;
+    initList(&buffer);
+
+    list ifStack;
+    initList(&ifStack);
+
     initTable(&globalTable);
     errorCode returnError = fillSymtable(&globalTable, tokenList);
     if (returnError != OK) {
@@ -1366,446 +1459,228 @@ errorCode parse(list *tokenList) {
     tableNodePtr localTable;
     initTable(&localTable);
 
-    size_t curLevel = 0;
-    size_t forCount = 0;
-    size_t ifCount = 0;
-    size_t retCount = 0;
-
-    list buffer;
-    initList(&buffer);
-
-    bool isIf = false;
-    bool isFor = false;
-    bool isFunc = false;
 
     returnError = blockPackage(tokenList);
     if (returnError) return returnError;
 
-    string *s = malloc(sizeof(string));
-    gen.program = s;
-
-    generatorInit();
-
-    errorCode generatorError = generatorStart();
-    if (generatorError) return generatorError;
-
+    returnError = blockBrackets(tokenList);
+    if (returnError != OK) return returnError;
 
     token savedToken;
 
     for (int i = 2; i < tokenList->size; i++) {
-
         token curToken;
         getToken(tokenList, i, &curToken);
 
-        savedToken = *curToken.nextToken;
+        lineCount++;
 
-        if (curToken.tokenType == BRACKET_CURLY) {
-            if (equalStrings(curToken.tokenName.data, "{")) {
-                token tempToken;
-                initString(&tempToken.tokenName);
+        list lineTable;
+        initList(&lineTable);
+        //FILL LINELIST
+        while (curToken.tokenType != EOL) {
+            addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
+            i++;
 
+            if (curToken.nextToken == NULL) break;
 
-                if (isIf || isFor) {
-
-                    char *name = malloc(50 * sizeof(char));
-                    if (name == NULL) return INTERNAL_ERROR;
-
-                    if (isIf) {
-                        isIf = false;
-                        tempToken.tokenType = IF;
-
-                        sprintf(name, "%zu", ++ifCount);
-                    } else {
-                        isFor = false;
-                        tempToken.tokenType = FOR;
-
-                        sprintf(name, "%zu", ++forCount);
-                    }
-
-                    makeString(name, &tempToken.tokenName);
-                    pushToken(&buffer, &tempToken);
-
-                    free(name);
-
-                }
-
-
-            } else {
-                if (buffer.first->tokenType == IF) {
-                    if (curToken.nextToken->tokenType == ELSE) {
-                        int x = atoi(buffer.first->tokenName.data);
-                        generateElse(x);
-                    }
-                    int x = atoi(buffer.first->tokenName.data);
-                    generateIfEnd(x);
-                } else {
-                    if (curToken.nextToken->tokenType == ELSE)
-                        return SYNTAX_ERROR;
-                    int x = atoi(buffer.first->tokenName.data);
-                    generateForEndLabel(x);
-
-                }
-                popToken(&buffer);
-                curLevel--;
-            }
-        } else if (curToken.tokenType == FUNC) {
-
-            currentFunc = copyNode(&globalTable, curToken.nextToken->tokenName.data);
-
-            list args;
-            initList(&args);
-
-            curToken = *curToken.nextToken->nextToken;
-
-            while (curToken.tokenType != BRACKET_CURLY) {
-                if (equalStrings(curToken.tokenName.data, ")"))
-                    break;
-                if (equalStrings(curToken.tokenName.data, "("))
-                    addToken(&args, curToken.tokenType, curToken.tokenName.data);
-                curToken = *curToken.nextToken;
-            }
-            token temp = *args.first;
-
-
-            for (int j = 0; j < args.size; j++) {
-                dataType *type = malloc(sizeof(dataType) * 2);
-
-                if (temp.tokenType == INT) {
-                    type[0] = TYPE_INT;
-                    type[1] = TYPE_UNDEFINED;
-                    insertNode(&localTable, temp.tokenName.data, type, NULL, 0);
-                }
-                if (temp.tokenType == FLOAT) {
-                    type[0] = TYPE_FLOAT;
-                    type[1] = TYPE_UNDEFINED;
-                    insertNode(&localTable, temp.tokenName.data, type, NULL, 0);
-                }
-                if (temp.tokenType == STRING) {
-                    type[0] = TYPE_STRING;
-                    type[1] = TYPE_UNDEFINED;
-                    insertNode(&localTable, temp.tokenName.data, type, NULL, 0);
-                }
-                if (temp.nextToken != NULL)
-                    temp = *temp.nextToken;
-            }
-
-            deleteList(&args);
-            curToken = savedToken;
-            isFunc = true;
-
-            //GENERATE FUNC START
-            generatorError = generateFunctionStart(copyNode(&globalTable, curToken.nextToken->tokenName.data));
-            if (generatorError != OK) return generatorError;
-
-            //GENERATE FUNC DEFVAR
-            generatorError = pregenerateDefvar(tokenList, curToken, i);
-            if (generatorError != OK) return generatorError;
-
+            curToken = *curToken.nextToken;
         }
-
-        if (equalStrings(curToken.tokenName.data, "{") && isFunc == true) {
-
-            returnError = blockBrackets(tokenList, curToken);
-            if (returnError != OK) return returnError;
+        if (lineTable.size == 0) {
+            continue;
         }
-
-        //GENERATE IF START
-        if (curToken.tokenType == IF) {
-            ifCount++;
-            isIf = true;
-            list condition;
-            initList(&condition);
-
-            token temp = curToken;
-
-            while (temp.tokenType != EOL) {
-                addToken(&condition, temp.tokenType, temp.tokenName.data);
-            }
-
-            generateIfStart(&condition, localTable, ifCount);
-
-
-            returnError = blockExpression(tokenList, curToken.nextToken, false, false);
-            if (returnError != OK) return returnError;
-
-        }
-
-        //GENERATE FOR
-        if (curToken.tokenType == FOR) {
-
-            forCount++;
-            isFor = true;
-            list condition;
-            initList(&condition);
-
-            list savedVars;
-            initList(&savedVars);
-
-            token firstTemp = curToken;
-            token secondTemp;
-            token thirdTemp;
-
-            token appliedToken;
-            token forVar;
-
-            bool foundDef = false;
-
-            forVar = firstTemp;
-
-            returnError = blockDefinition(tokenList, curToken.nextToken, true);
-            if (returnError != OK) return returnError;
-
-            secondTemp = *curToken.nextToken;
-
-
-            returnError = blockExpression(tokenList, curToken.nextToken, true, false);
-            if (returnError != OK) return returnError;
-
-            thirdTemp = curToken;
-
-            returnError = blockAssign(tokenList, curToken.nextToken, true);
-            if (returnError != OK) return returnError;
-
-            generateForPrequel(forCount);
-
-            while (firstTemp.tokenType != SEMICOL) {
-                firstTemp = *firstTemp.nextToken;
-
-                if (foundDef)
-                    addToken(&condition, firstTemp.tokenType, firstTemp.tokenName.data);
-
-                if (equalStrings(firstTemp.tokenName.data, ":=")) {
-                    foundDef = true;
-                }
-            }
-            if (foundDef) {
-                generatorError = applyPrecedence(&condition, localTable);
-                if (generatorError != OK) return generatorError;
-
-                generatorError = generateMove(&forVar);
-                if (generatorError != OK) return generatorError;
-            } else {
+        if (lineTable.first->tokenType == FOR || lineTable.first->tokenType == IF)
+            if (lineTable.last->tokenType != BRACKET_CURLY || !equalStrings(lineTable.last->tokenName.data, "{")) {
+                errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
             }
 
-            deleteList(&condition);
-            initList(&condition);
 
-            while (thirdTemp.tokenType != ASIGN_OPERATOR) {
-                thirdTemp = *thirdTemp.nextToken;
+        addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
 
-                addToken(&savedVars, thirdTemp.tokenType, thirdTemp.tokenName.data);
 
-            }
-            while (thirdTemp.tokenType != BRACKET_CURLY) {
-                thirdTemp = *thirdTemp.nextToken;
 
-                addToken(&condition, thirdTemp.tokenType, thirdTemp.tokenName.data);
+        //CHECK IF SYNTAX
+        if (lineTable.first->tokenType == IF) {
+            returnError = blockExpression(tokenList, *lineTable.first->nextToken, false, false);
+            if (returnError) {
+                errorPrint(&lineTable, lineCount);
+                return SYNTAX_ERROR;
             }
 
-            for (int j = 0; j < savedVars.size; j++) {
-                token temp;
-                getToken(&savedVars, j, &temp);
-                applyPrecedence(&condition, localTable);
-                generateMove(&temp);
+            //CHECK IF if HAS else
+            int j = 0;
+            savedToken = curToken;
+
+            token temp;
+            temp.tokenType = IF;
+            temp.tokenName.data = "if";
+            pushToken(&ifStack, &temp);
+
+            int openBracket = 1;
+            int closedBracket = 0;
+            while (openBracket != closedBracket) {
+                if (curToken.nextToken == NULL) {
+                    errorPrint(&lineTable, lineCount);
+                    return SYNTAX_ERROR;
+                }
+                curToken = *curToken.nextToken;
+                j++;
+                if (equalStrings(curToken.tokenName.data, "{"))
+                    openBracket++;
+                if (equalStrings(curToken.tokenName.data, "}"))
+                    closedBracket++;
             }
-            deleteList(&condition);
-            initList(&condition);
-            deleteList(&savedVars);
-
-            while (secondTemp.tokenType != SEMICOL) {
-                addToken(&condition, secondTemp.tokenType, secondTemp.tokenName.data);
+            char *name = malloc(50 * sizeof(char));
+            sprintf(name, "%d", i + j + 1);
+            makeString(name, &curToken.tokenName);
+            pushToken(&buffer, &curToken);
+            if (curToken.nextToken->tokenType != ELSE) {
+                errorPrint(&lineTable, lineCount);
+                return SYNTAX_ERROR;
             }
-            generateForStart(&condition, localTable, forCount);
-
-            deleteList(&savedVars);
-            deleteList(&condition);
-
-        }
-
-        if (curToken.tokenType == RETURN) {
-
-            retCount++;
-            if (curToken.nextToken->tokenType != EOL)
-                returnError = blockExpression(tokenList, curToken.nextToken, false, true);
-            if (returnError != OK) return returnError;
 
             curToken = savedToken;
 
-            while (curToken.tokenType != EOL) {
-                curToken = *curToken.nextToken;
+        }
+            //CHECK FOR SYNTAX
+        else if (lineTable.first->tokenType == FOR) {
 
-                token temp;
-                list condition;
-                initList(&condition);
-                token appliedToken;
-                token retToken;
-                retToken.tokenType = RETURN;
-                initString(&retToken.tokenName);
-                char *name = malloc(6 * sizeof(char));
-                sprintf(name, "ret%zu", retCount);
+            token tempToken = *lineTable.first->nextToken;
 
-                makeString(name, &retToken.tokenName);
+            token temp;
+            temp.tokenType = FOR;
+            temp.tokenName.data = "FOR";
+            pushToken(&ifStack, &temp);
 
-                applyPrecedence(&condition, localTable);
-                generateMove(&retToken);
-                free(name);
-                destroyString(&retToken.tokenName);
-                deleteList(&condition);
+            returnError = blockDefinition(tokenList, tempToken, true);
+            if (returnError) {
+                errorPrint(&lineTable, lineCount);
+                return returnError;
+            };
+
+            while (tempToken.tokenType != SEMICOL) {
+                if (tempToken.nextToken == NULL) {
+                    errorPrint(&lineTable, lineCount);
+                    return SYNTAX_ERROR;
+                };
+                tempToken = *tempToken.nextToken;
             }
 
-            //GENERATE FUNCTION END
-            generatorError = generateFunctionEnd();
-            if (generatorError != OK) return generatorError;
+            returnError = blockExpression(tokenList, *tempToken.nextToken, true, false);
+            if (returnError) {
+                errorPrint(&lineTable, lineCount);
+                return returnError;
+            }
 
+            do {
+                if (tempToken.nextToken == NULL) return SYNTAX_ERROR;
+                tempToken = *tempToken.nextToken;
+            } while (tempToken.tokenType != SEMICOL);
 
-            isFunc = false;
+            returnError = blockAssign(tokenList, *tempToken.nextToken, true);
+            if (returnError) {
+                errorPrint(&lineTable, lineCount);
+                return returnError;
+            }
         }
+            //CHECK RETURN
+        else if (lineTable.first->tokenType == RETURN) {
+            if (lineTable.first->nextToken->tokenType != EOL) {
+                returnError = blockExpression(tokenList, *lineTable.first->nextToken, false, true);
+                if (returnError) {
+                    errorPrint(&lineTable, lineCount);
+                    return returnError;
+                }
+            }
+        }
+            //CHECK DEF AND ASIGN COMMANDS
+        else if (lineTable.first->tokenType == IDENT) {
+            token tempToken = *lineTable.first;
 
-        if (curToken.tokenType == IDENT) {
-            savedToken = curToken;
+            while (tempToken.tokenType != EOL) {
+                if (tempToken.tokenType == ASIGN_OPERATOR) break;
+                tempToken = *tempToken.nextToken;
+            }
 
-            bool foundDefAsign = false;
+            //DEF COMMAND
+            if (equalStrings(tempToken.tokenName.data, ":=")) {
 
-            list condition;
-            initList(&condition);
-
-            list savedVar;
-            initList(&savedVar);
-
-            list asignVar;
-            initList(&asignVar);
-            addToken(&asignVar, curToken.tokenType, curToken.tokenName.data);
-
-            bool beforeAsignOperator = false;
-
-            while (curToken.tokenType != EOL) {
-
-                if (beforeAsignOperator)
-                    addToken(&asignVar, curToken.tokenType, curToken.tokenName.data);
-
-                if (curToken.tokenType == ASIGN_OPERATOR && equalStrings(curToken.tokenName.data, ":=")) {
-
-                    while (curToken.tokenType != EOL) {
-                        addToken(&condition, curToken.tokenType, curToken.tokenName.data);
-                    }
-
-                    beforeAsignOperator = true;
-                    curToken = savedToken;
-                    returnError = blockDefinition(tokenList, &curToken, false);
-                    if (returnError != OK) return returnError;
-
-                    curToken = savedToken;
-
-                    //GENERATE ASSIGN
-                    token temp;
-                    generatorError = applyPrecedence(&condition, localTable);
-                    if (generatorError != OK) return generatorError;
-
-                    generatorError = generateMove(&savedToken);
-                    if (generatorError != OK) return generatorError;
-
-                    foundDefAsign = true;
-                    break;
-                } else if (curToken.tokenType == ASIGN_OPERATOR && equalStrings(curToken.tokenName.data, "=")) {
-                    beforeAsignOperator = true;
-
-                    data *curFunc = copyNode(&globalTable, curToken.nextToken->tokenName.data);
-                    if (curFunc != NULL) {
-                        list argValues;
-                        initList(&argValues);
-                        while (equalStrings(curToken.tokenName.data, ")")) {
-                            curToken = *curToken.nextToken;
-                            if (curToken.tokenType != COMMA)
-                                addToken(&argValues, curToken.tokenType, curToken.tokenName.data);
-                        }
-
-                        //GENERATE FUNCTION CALLS AND RETURN
-                        curToken = savedToken;
-                        generatorError = generateFunctionCall(curFunc, &argValues);
-                        if (generatorError != OK) return generatorError;
-
-                        generatorError = generateFunctionReturn(curFunc, &asignVar);
-                        if (generatorError != OK) return generatorError;
-
-
-                    } else {
-                        //GENERATE ASIGN 2
-
-                        while (curToken.tokenType != EOL) {
-                            addToken(&condition, curToken.tokenType, curToken.tokenName.data);
-                        }
-
-                        curToken = savedToken;
-
-                        while (curToken.tokenType != ASIGN_OPERATOR) {
-                            if (curToken.tokenType == IDENT)
-                                addToken(&savedVar, curToken.tokenType, curToken.tokenName.data);
-                        }
-
-                        curToken = savedToken;
-
-                        for (int j = 0; j < savedVar.size; j++) {
-                            token temp;
-                            token appliedToken;
-                            getToken(&savedVar, j, &temp);
-
-                            generatorError = applyPrecedence(&condition, localTable);
-                            if (generatorError != OK) return generatorError;
-                            generatorError = generateMove(&temp);
-                            if (generatorError != OK) return generatorError;
-                        }
-
-                        deleteList(&condition);
-                        deleteList(&savedVar);
-                    }
-
-                    returnError = blockAssign(tokenList, &curToken, false);
-                    if (returnError != OK) return returnError;
-
-                    foundDefAsign = true;
-                    break;
+                returnError = blockDefinition(tokenList, *lineTable.first, false);
+                if (returnError) {
+                    errorPrint(&lineTable, lineCount);
+                    return returnError;
                 }
 
-                curToken = *curToken.nextToken;
             }
+                //ASSIGN COMMAND
+            else if (equalStrings(tempToken.tokenName.data, "=")) {
+                token savedTemp = *lineTable.first;
+                while (savedTemp.tokenType != ASIGN_OPERATOR) {
+                    blockIdentList(tokenList, savedTemp);
+                    savedTemp = *savedTemp.nextToken;
+                }
+                //CHECK WHETHER THERE IS AN EXPRESSION OR FUNC CALL AFTER ASSIGN
+                if (tempToken.nextToken->tokenType == IDENT &&
+                    tempToken.nextToken->nextToken->tokenType == BRACKET_ROUND) {
+                    returnError = blockFunctionCall(tokenList, tempToken);
+                    if (returnError) {
+                        errorPrint(&lineTable, lineCount);
+                        return returnError;
+                    }
 
-            if (foundDefAsign) {
-                foundDefAsign = false;
+                } else {
+                    returnError = blockAssign(tokenList, *lineTable.first, false);
+                    if (returnError) {
+                        errorPrint(&lineTable, lineCount);
+                        return returnError;
+                    }
+                }
+
+
+            }
+                //FUNC CALL
+            else {
+                returnError = blockFunctionCall(tokenList, *lineTable.first);
+                if (returnError) {
+                    errorPrint(&lineTable, lineCount);
+                    return returnError;
+                }
+            }
+        }
+
+            //FUNC DECLERATION
+        else if (lineTable.first->tokenType == FUNC) {
+
+            if (equalStrings(lineTable.first->nextToken->tokenName.data, "main")) {
+                currentFunc = NULL;
             } else {
-
-                list argValues;
-                initList(&argValues);
-
-                curToken = savedToken;
-                data *curFunc = copyNode(&globalTable, curToken.tokenName.data);
-
-                if (curFunc != NULL) {
-                    while (equalStrings(curToken.tokenName.data, ")")) {
-                        curToken = *curToken.nextToken;
-                        if (curToken.tokenType != COMMA)
-                            addToken(&argValues, curToken.tokenType, curToken.tokenName.data);
-                    }
-
-                    generatorError = generateFunctionCall(curFunc, &argValues);
-                    if (generatorError != OK) return generatorError;
-
-                    generatorError = generateFunctionReturn(curFunc, NULL);
-                    if (generatorError != OK) return generatorError;
-
-                }
-
-
-                returnError = blockExpression(tokenList, &curToken, false, false);
-                if (returnError != OK) return returnError;
+                currentFunc = copyNode(&globalTable, lineTable.first->nextToken->tokenName.data);
             }
 
-
+            returnError = blockFunctionDeclare(tokenList, *lineTable.first->nextToken);
+            if (returnError) {
+                errorPrint(&lineTable, lineCount);
+                return returnError;
+            }
         }
+        //CHECK IF THERE IS } BEFORE ELSE
+        if (equalStrings(lineTable.first->tokenName.data, "}")) {
+            if (lineTable.first->nextToken != NULL)
+                if (lineTable.first->nextToken->tokenType == ELSE) {
+                    if (atoi(buffer.first->tokenName.data) != i + 1 - (lineTable.size - 1)) {
+                        errorPrint(&lineTable, lineCount);
+                        return SYNTAX_ERROR;
+                    }
+                    popToken(&buffer);
+                }
+        }
+
+
+        semanticAnalyser(&lineTable, &globalTable, &localTable, currentFunc);
+        //generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
+        deleteList(&lineTable);
 
     }
-    deleteList(&buffer);
-    generatorWrite(stdout);
-    generatorClear();
+
     return OK;
 }

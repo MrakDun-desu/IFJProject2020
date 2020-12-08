@@ -224,6 +224,9 @@ errorCode generatorStart();
  */
 void generatorClear();
 
+errorCode generatorHandle(list* currentLine, list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, list* ifStack, data* currentFunc);
+
+
 /**
  * @brief Writes program string into a specified file.
  * @param dest File that string will be written to.

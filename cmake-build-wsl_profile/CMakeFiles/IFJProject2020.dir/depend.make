@@ -16,9 +16,44 @@ CMakeFiles/IFJProject2020.dir/src/Scanner.c.o: ../src/List.h
 CMakeFiles/IFJProject2020.dir/src/Scanner.c.o: ../src/Scanner.c
 CMakeFiles/IFJProject2020.dir/src/Scanner.c.o: ../src/Scanner.h
 
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o: ../src/DynamicString.h
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o: ../src/Errors.h
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o: ../src/List.h
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o: ../src/Scanner.h
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o: ../src/ScannerTest.c
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/DynamicString.h
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/Errors.h
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/List.h
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/expression.c
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/expression.h
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/generator.h
+CMakeFiles/IFJProject2020.dir/src/expression.c.o: ../src/symtable.h
+
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/DynamicString.h
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/Errors.h
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/List.h
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/expression.h
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/generator.c
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/generator.h
+CMakeFiles/IFJProject2020.dir/src/generator.c.o: ../src/symtable.h
+
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/DynamicString.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/Errors.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/List.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/Scanner.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/expression.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/generator.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/main.c
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/parser.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o: ../src/symtable.h
+
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/DynamicString.h
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/Errors.h
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/List.h
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/expression.h
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/generator.h
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/parser.c
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/parser.h
+CMakeFiles/IFJProject2020.dir/src/parser.c.o: ../src/symtable.h
+
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o: ../src/DynamicString.h
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o: ../src/Errors.h
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o: ../src/List.h
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o: ../src/symtable.c
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o: ../src/symtable.h
 

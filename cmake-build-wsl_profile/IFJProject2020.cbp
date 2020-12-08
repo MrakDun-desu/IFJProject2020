@@ -88,6 +88,9 @@
 		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.h">
 			<Option target="IFJProject2020"/>
 		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Errors.h">
+			<Option target="IFJProject2020"/>
+		</Unit>
 		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.c">
 			<Option target="IFJProject2020"/>
 		</Unit>
@@ -100,7 +103,31 @@
 		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.h">
 			<Option target="IFJProject2020"/>
 		</Unit>
-		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c">
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.c">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.h">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.c">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.h">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/main.c">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.c">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.h">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.c">
+			<Option target="IFJProject2020"/>
+		</Unit>
+		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.h">
 			<Option target="IFJProject2020"/>
 		</Unit>
 		<Unit filename="/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/CMakeLists.txt">

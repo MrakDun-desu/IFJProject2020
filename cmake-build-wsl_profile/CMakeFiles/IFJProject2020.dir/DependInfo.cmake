@@ -7,7 +7,11 @@ set(CMAKE_DEPENDS_CHECK_C
   "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/DynamicString.c.o"
   "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/List.c.o"
   "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/Scanner.c.o"
-  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/expression.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/generator.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/main.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/main.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/parser.c.o"
+  "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.c" "/mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/cmake-build-wsl_profile/CMakeFiles/IFJProject2020.dir/src/symtable.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

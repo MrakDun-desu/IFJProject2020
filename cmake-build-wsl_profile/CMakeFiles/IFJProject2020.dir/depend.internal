@@ -16,9 +16,44 @@ CMakeFiles/IFJProject2020.dir/src/Scanner.c.o
  /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.h
  /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.c
  /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.h
-CMakeFiles/IFJProject2020.dir/src/ScannerTest.c.o
+CMakeFiles/IFJProject2020.dir/src/expression.c.o
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Errors.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.c
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.h
+CMakeFiles/IFJProject2020.dir/src/generator.c.o
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Errors.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.c
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.h
+CMakeFiles/IFJProject2020.dir/src/main.c.o
  /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.h
  /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Errors.h
  /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.h
  /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Scanner.h
- /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/ScannerTest.c
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/main.c
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.h
+CMakeFiles/IFJProject2020.dir/src/parser.c.o
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Errors.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/expression.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/generator.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.c
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/parser.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.h
+CMakeFiles/IFJProject2020.dir/src/symtable.c.o
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/DynamicString.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/Errors.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/List.h
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.c
+ /mnt/c/Users/Martin/Documents/GitHub/IFJProject2020/src/symtable.h
