@@ -1332,15 +1332,17 @@ errorCode blockIdentList(list *tokenList, token curToken) {
         curToken.tokenType == IDENT) {
         if (curToken.nextToken->tokenType != COMMA && curToken.nextToken->tokenType != BRACKET_ROUND)
             return SYNTAX_ERROR;
-    }
-    if (curToken.tokenType == COMMA) {
+    } else if (curToken.tokenType == COMMA) {
         if (curToken.nextToken->tokenType != STRING_LIT && curToken.nextToken->tokenType != INT_LIT &&
             curToken.nextToken->tokenType != FLOAT_LIT &&
             curToken.nextToken->tokenType != IDENT)
             return SYNTAX_ERROR;
+    } else if (equalStrings(curToken.tokenName.data, ")")) {
+        if (curToken.tokenType != EOL) return SYNTAX_ERROR;
+    } else {
+        return SYNTAX_ERROR;
+
     }
-    if(equalStrings(curToken.tokenName.data, ")"))
-        if(curToken.tokenType != EOL) return SYNTAX_ERROR;
 
     return OK;
 }
@@ -1357,6 +1359,9 @@ errorCode blockFunctionCall(list *tokenList, token curToken) {
 
         curToken = *curToken.nextToken;
     }
+
+    if (equalStrings(curToken.tokenName.data, ")"))
+        if (curToken.nextToken->tokenType != EOL) return SYNTAX_ERROR;
 
     return OK;
 }
@@ -1434,6 +1439,7 @@ void errorPrint(list *lineTable, int lineCount) {
     token curToken = *lineTable->first;
     for (int i = 0; i < lineTable->size; i++) {
         fprintf(stderr, "%s ", curToken.tokenName.data);
+        if (curToken.nextToken == NULL) break;
         curToken = *curToken.nextToken;
     }
 }
@@ -1462,22 +1468,30 @@ errorCode parse(list *tokenList) {
     initTable(&localTable);
 
 
-    returnError = blockPackage(tokenList);
-    if (returnError) return returnError;
-
-    returnError = blockBrackets(tokenList);
-    if (returnError != OK) return returnError;
-
     list lineTable;
     initList(&lineTable);
 
     token curToken;
     getToken(tokenList, 0, &curToken);
 
-    while(curToken.tokenType != EOL){
+    while (curToken.tokenType != EOL) {
         addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
         curToken = *curToken.nextToken;
     }
+
+
+    returnError = blockPackage(tokenList);
+    if (returnError) {
+        errorPrint(&lineTable, lineCount);
+        return returnError;
+    }
+
+    returnError = blockBrackets(tokenList);
+    if (returnError != OK) {
+        errorPrint(&lineTable, lineCount);
+        return returnError;
+    }
+
 
     semanticAnalyser(&lineTable, &globalTable, &localTable, currentFunc);
     //generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
@@ -1547,8 +1561,10 @@ errorCode parse(list *tokenList) {
             }
             char *name = malloc(50 * sizeof(char));
             sprintf(name, "%d", i + j + 1);
-            makeString(name, &curToken.tokenName);
-            pushToken(&buffer, &curToken);
+            temp = curToken;
+
+            makeString(name, &temp.tokenName);
+            pushToken(&buffer, &temp);
             if (curToken.nextToken->tokenType != ELSE) {
                 errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
@@ -1660,6 +1676,8 @@ errorCode parse(list *tokenList) {
                     errorPrint(&lineTable, lineCount);
                     return returnError;
                 }
+
+
             }
         }
 
