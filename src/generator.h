@@ -174,32 +174,34 @@ generator gen; /// generator that all specified functions will use so program st
     "
 
 #define FUNC_CHR "LABEL chr \n\
-    CREATEFRAME \n\
-    DEFVAR TF@ascii \n\
-    POPS TF@ascii \n\
-    DEFVAR TF@ret0 \n\
-    DEFVAR TF@ret1 \n\
-    DEFVAR TF@out \n\
-    MOVE TF@out bool@false \n\
-    MOVE TF@ret0 int@0 \n\
-    JUMPIFEQ chr_err TF@ascii nil@nil \n\
-    GT TF@out TF@ascii int@255 \n\
-    \n\
-    LT TF@out TF@ascii int@1 \n\
-    JUMPIFEQ chr_err TF@out bool@true \n\
-    INT2CHAR TF@ret0 TF@ascii \n\
-    RETURN \n\
-    LABEL chr_err \n\
-    MOVE TF@ret1 int@1 \n\
-    MOVE TF@ret0 string@OUT_OF_RANGE_(0;255) \n\
-    RETURN \n\
-     \n\
-    "
+CREATEFRAME \n\
+DEFVAR TF@ascii \n\
+POPS TF@ascii \n\
+DEFVAR TF@ret0 \n\
+DEFVAR TF@ret1 \n\
+DEFVAR TF@out \n\
+MOVE TF@out bool@false \n\
+MOVE TF@ret0 int@0 \n\
+JUMPIFEQ chr_err TF@ascii nil@nil \n\
+GT TF@out TF@ascii int@255 \n\
+\n\
+LT TF@out TF@ascii int@1 \n\
+JUMPIFEQ chr_err TF@out bool@true \n\
+INT2CHAR TF@ret0 TF@ascii \n\
+RETURN \n\
+LABEL chr_err \n\
+MOVE TF@ret1 int@1 \n\
+MOVE TF@ret0 string@OUT_OF_RANGE_(0;255) \n\
+RETURN \n\
+ \n\
+"
 
 /**
  * @brief Initializes generator gen and sets all variables to default.
  */
 void generatorInit();
+
+errorCode generatorHandle(list* currentLine, list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, list* ifStack, data* currentFunc);
 
 /**
  * @brief Puts the head of program at start, including the macro functions. Also needs to include jump to main function.
@@ -361,10 +363,10 @@ errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCou
 
 /**
  * @brief Generates the end of for sequence.
- * @param level Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
+ * @param forCount Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateForEndLabel(size_t level);
+errorCode generateForEnd(size_t forCount);
 
 /**
  * @brief Generates definition of a variable.
@@ -380,7 +382,7 @@ errorCode generateDefvar(token* var);
  */
 errorCode generateMove(token* var);
 
-errorCode generatePrint(list* argValues);
+errorCode generatePrint(token* tok);
 
 /**
  * @brief Generates the arithmetic command (command is determined by char).

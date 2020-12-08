@@ -13,8 +13,8 @@ int main() {
     list tokenList;
     FILE *in_file;
     FILE *output;
-    in_file = fopen("example1.go", "r");
-    output = fopen("output.txt", "w");
+    in_file = fopen("example2.go", "r");
+    output = fopen("output.code", "w");
     initList(&tokenList);
     initString(&sourceCode);
     errorCode out;
@@ -42,14 +42,17 @@ int main() {
     if (out) return out;
 
     out = parse(&tokenList);
-    if (out) return out;
+    if (out) {
+        generatorClear();
+        return out;
+    }
 
-    //generatorWrite(output);
+    generatorWrite(output);
 
     destroyString(&sourceCode);
     free(buffer);
     deleteList(&tokenList);
-   // generatorClear();
+    generatorClear();
 
     return 0;
 }
