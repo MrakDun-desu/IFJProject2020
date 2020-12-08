@@ -222,8 +222,9 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
             continue;
         }
 
+
         if (stringLoaded) {
-            if (currentChar == '"') {
+            if (currentChar == '"' && code.data[i-1] != '\\' ) {
                 addChar(&currentLexem, currentChar);
                 stringLoaded = false;
                 if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {

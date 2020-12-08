@@ -6,7 +6,7 @@ func main() {
   s2 := s1 + ", ktery jeste trochu obohatime"
   print(s1, "\n", s2)
   s1len := 0
-  s1len = len(s1)
+  s1len = len(s1);
   s1len = s1len - 4
   s1, _ = substr(s2, s1len, 4)
   s1len = s1len + 1
