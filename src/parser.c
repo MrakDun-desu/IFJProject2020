@@ -1319,6 +1319,18 @@ errorCode blockDefinition(list *tokenList, token curToken, bool forState) {
     if (curToken.tokenType != IDENT) return SYNTAX_ERROR;
     curToken = *curToken.nextToken;
 
+    while (curToken.tokenType != ASIGN_OPERATOR) {
+
+        if (curToken.tokenType == COMMA)
+            if (curToken.nextToken->tokenType != IDENT) return SYNTAX_ERROR;
+
+
+        if (curToken.tokenType == IDENT)
+            if (curToken.nextToken->tokenType != COMMA && curToken.nextToken->tokenType != ASIGN_OPERATOR)
+                return SYNTAX_ERROR;
+        curToken = *curToken.nextToken;
+    }
+
     if (curToken.tokenType != ASIGN_OPERATOR && !equalStrings(":=", curToken.tokenName.data)) return SYNTAX_ERROR;
     curToken = *curToken.nextToken;
 
@@ -1476,6 +1488,12 @@ errorCode parse(list *tokenList) {
 
     token curToken;
     getToken(tokenList, 0, &curToken);
+
+    if (curToken.tokenType == EOL) {
+        while (curToken.tokenType == EOL) {
+            curToken = *curToken.nextToken;
+        }
+    }
 
     while (curToken.tokenType != EOL) {
         addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
@@ -1655,11 +1673,28 @@ errorCode parse(list *tokenList) {
             //DEF COMMAND
             if (equalStrings(tempToken.tokenName.data, ":=")) {
 
-                returnError = blockDefinition(tokenList, *lineTable.first, false);
-                if (returnError) {
-                    errorPrint(&lineTable, lineCount);
-                    return returnError;
+                if (tempToken.nextToken->tokenType == IDENT &&
+                    tempToken.nextToken->nextToken->tokenType == BRACKET_ROUND) {
+                    token savedTemp = *lineTable.first;
+                    while (savedTemp.tokenType != ASIGN_OPERATOR) {
+                        blockIdentList(tokenList, savedTemp);
+                        savedTemp = *savedTemp.nextToken;
+                    }
+
+                    returnError = blockFunctionCall(tokenList, *tempToken.nextToken);
+                    if (returnError) {
+                        errorPrint(&lineTable, lineCount);
+                        return returnError;
+                    }
+
+                } else {
+                    returnError = blockDefinition(tokenList, *lineTable.first, false);
+                    if (returnError) {
+                        errorPrint(&lineTable, lineCount);
+                        return returnError;
+                    }
                 }
+
 
             }
                 //ASSIGN COMMAND
