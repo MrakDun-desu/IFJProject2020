@@ -13,7 +13,7 @@ int main() {
     list tokenList;
     FILE *in_file;
     FILE *output;
-    in_file = fopen("example3.go", "r");
+    in_file = fopen("example1.go", "r");
     output = fopen("output.code", "w");
     initList(&tokenList);
     initString(&sourceCode);

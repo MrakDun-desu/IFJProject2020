@@ -1,0 +1,241 @@
+.IFJcode20
+DEFVAR GF@expVar0
+DEFVAR GF@expVar1
+DEFVAR GF@expVar2
+DEFVAR GF@expVar3
+DEFVAR GF@expVar4
+DEFVAR GF@expVar5
+DEFVAR GF@expVar6
+DEFVAR GF@expVar7
+DEFVAR GF@expVar8
+DEFVAR GF@expVar9
+JUMP main
+LABEL inputs 
+    CREATEFRAME 
+    DEFVAR TF@ret0 
+    DEFVAR TF@ret1 
+    MOVE TF@ret1 int@0 
+    READ TF@ret0 string 
+    JUMPIFNEQ inputs_succ TF@ret0 nil@nil 
+    MOVE TF@ret1 int@1 
+    LABEL inputs_succ 
+    RETURN 
+     
+    LABEL inputi 
+    CREATEFRAME 
+    DEFVAR TF@ret0 
+    DEFVAR TF@ret1 
+    MOVE TF@ret1 int@0 
+    READ TF@ret0 int 
+    DEFVAR TF@type0 
+    TYPE TF@type0 TF@ret0 
+    JUMPIFEQ inputi_err TF@ret0 nil@nil 
+    JUMPIFEQ inputi_succ TF@type0 string@int 
+    JUMP inputi_err 
+    LABEL inputi_succ 
+    RETURN 
+    LABEL inputi_err 
+    MOVE TF@ret1 int@1 
+    RETURN 
+     
+    LABEL inputf 
+    CREATEFRAME 
+    DEFVAR TF@ret0 
+    DEFVAR TF@ret1 
+    MOVE TF@ret1 int@0 
+    READ TF@ret0 float 
+    DEFVAR TF@type0 
+    TYPE TF@type0 TF@ret0 
+    JUMPIFEQ inputf_err TF@ret0 nil@nil 
+    JUMPIFEQ inputf_succ TF@type0 string@float 
+    JUMP inputf_err 
+    LABEL inputf_succ 
+    RETURN 
+    LABEL inputf_err 
+    MOVE TF@ret1 int@1 
+    RETURN 
+     
+    LABEL int2float 
+    CREATEFRAME 
+    DEFVAR TF@p 
+    POPS TF@p 
+    DEFVAR TF@ret0 
+    INT2FLOAT TF@ret0 TF@p 
+    RETURN 
+     
+    LABEL float2int 
+    CREATEFRAME 
+    DEFVAR TF@p 
+    POPS TF@p 
+    DEFVAR TF@ret0 
+    FLOAT2INT TF@ret0 TF@p 
+    RETURN 
+     
+    LABEL len 
+    CREATEFRAME 
+    DEFVAR TF@s 
+    POPS TF@s 
+    DEFVAR TF@ret0 
+    STRLEN TF@ret0 TF@s 
+    RETURN 
+     
+    LABEL substr 
+    CREATEFRAME 
+    DEFVAR TF@n 
+    POPS TF@n 
+    DEFVAR TF@i 
+    POPS TF@i 
+    DEFVAR TF@s 
+    POPS TF@s 
+    DEFVAR TF@temp 
+    DEFVAR TF@lenght 
+    DEFVAR TF@maxIndex 
+    DEFVAR TF@ret0 
+    DEFVAR TF@ret1 
+    
+    DEFVAR TF@out 
+    STRLEN TF@lenght TF@s 
+    MOVE TF@maxIndex TF@lenght 
+    SUB TF@maxIndex TF@maxIndex int@1 
+    MOVE TF@ret1 int@0 
+    MOVE TF@out bool@false 
+    LT TF@out TF@i int@0 
+    GT TF@out TF@i TF@maxIndex 
+    JUMPIFEQ substr_err TF@out bool@true 
+    MOVE TF@out bool@false 
+    LT TF@out TF@n int@0 
+    JUMPIFEQ substr_err TF@out bool@true 
+    
+    MOVE TF@ret0 string@\035 
+    LABEL substr_cyklus 
+    GETCHAR TF@temp TF@s TF@i 
+    JUMPIFEQ substr_greater TF@i TF@maxIndex 
+    ADD TF@i TF@i int@1 
+    SUB TF@n TF@n int@1 
+    LABEL substr_cyklus_back 
+    CONCAT TF@ret0 TF@ret0 TF@temp 
+    MOVE TF@temp nil@nil 
+    JUMPIFNEQ substr_cyklus TF@n int@0 
+    RETURN 
+    
+    LABEL substr_greater 
+    MOVE TF@i int@0 
+    SUB TF@n TF@n int@1 
+    JUMP substr_cyklus_back 
+    LABEL substr_err 
+    MOVE TF@ret1 int@1 
+    MOVE TF@ret0 string@OUT_OF_STRING 
+    RETURN 
+     
+    LABEL ord 
+    CREATEFRAME 
+    DEFVAR TF@i 
+    POPS TF@i 
+    DEFVAR TF@s 
+    POPS TF@s 
+    DEFVAR TF@l 
+    DEFVAR TF@out 
+    STRLEN TF@l TF@s 
+    SUB TF@l TF@l int@1 
+    GT TF@out TF@i TF@l 
+    DEFVAR TF@ret0 
+    DEFVAR TF@ret1 
+    MOVE TF@ret1 int@0 
+    JUMPIFEQ funcord_err TF@out bool@true 
+    STRI2INT TF@ret0 TF@s TF@i 
+    RETURN 
+    
+    LABEL funcord_err 
+    MOVE TF@ret0 nil@nil 
+    MOVE TF@ret1 int@1 
+    RETURN 
+     
+    LABEL chr 
+    CREATEFRAME 
+    DEFVAR TF@ascii 
+    POPS TF@ascii 
+    DEFVAR TF@ret0 
+    DEFVAR TF@ret1 
+    DEFVAR TF@out 
+    MOVE TF@out bool@false 
+    MOVE TF@ret0 int@0 
+    JUMPIFEQ chr_err TF@ascii nil@nil 
+    GT TF@out TF@ascii int@255 
+    
+    LT TF@out TF@ascii int@1 
+    JUMPIFEQ chr_err TF@out bool@true 
+    INT2CHAR TF@ret0 TF@ascii 
+    RETURN 
+    LABEL chr_err 
+    MOVE TF@ret1 int@1 
+    MOVE TF@ret0 string@OUT_OF_RANGE_(0;255) 
+    RETURN 
+     
+LABEL main
+CREATEFRAME
+DEFVAR TF@s1
+DEFVAR TF@s2
+DEFVAR TF@s1len
+DEFVAR TF@err
+MOVE GF@expVar0 string@Toto\032je\032nejaky\032text
+MOVE TF@s1 GF@expVar0
+CONCAT GF@expVar0 TF@s1 string@,\032ktery\032jeste\032trochu\032obohatime
+MOVE TF@s2 GF@expVar0
+WRITE TF@s1
+WRITE string@\010
+WRITE TF@s2
+MOVE GF@expVar0 int@0
+MOVE TF@s1len GF@expVar0
+PUSHS TF@s1
+PUSHFRAME
+CALL len
+MOVE LF@s1len TF@ret0
+POPFRAME
+SUB GF@expVar0 TF@s1len int@4
+MOVE TF@s1len GF@expVar0
+PUSHS TF@s2
+PUSHS TF@s1len
+PUSHS int@4
+PUSHFRAME
+CALL substr
+MOVE LF@s1 TF@ret0
+POPFRAME
+ADD GF@expVar0 TF@s1len int@1
+MOVE TF@s1len GF@expVar0
+WRITE string@4\032znaky\032od
+WRITE TF@s1len
+WRITE string@.\032znaku\032v\032"
+WRITE TF@s2
+WRITE string@":
+WRITE TF@s1
+WRITE string@\010
+WRITE string@Zadejte\032serazenou\032posloupnost\032vsech\032malych\032pismen\032a-h,\032
+WRITE string@pricemz\032se\032pismena\032nesmeji\032v\032posloupnosti\032opakovat:\032
+MOVE GF@expVar0 int@0
+MOVE TF@err GF@expVar0
+PUSHFRAME
+CALL inputs
+MOVE LF@s1 TF@ret0
+MOVE LF@err TF@ret1
+POPFRAME
+EQ GF@expVar0 TF@err int@1
+NOT GF@expVar0 GF@expVar0
+JUMPIFNEQ else1 GF@expVar0 bool@true
+JUMP forFirst1
+LABEL forStart1
+LABEL forFirst1
+EQ GF@expVar0 TF@s1 string@abcdefgh
+NOT GF@expVar0 GF@expVar0
+JUMPIFNEQ forEnd1 GF@expVar0 bool@true
+WRITE string@\010
+WRITE string@Spatne\032zadana\032posloupnost,\032zkuste\032znovu:
+PUSHFRAME
+CALL inputs
+MOVE LF@s1 TF@ret0
+POPFRAME
+JUMP forStart1
+LABEL forEnd1
+JUMP ifEnd1
+LABEL else1
+LABEL ifEnd1
+EXIT int@0

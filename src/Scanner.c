@@ -12,7 +12,7 @@ void removeChar(char *s, int c) {
 
     int j, n = strlen(s);
     for (int i = j = 0; i < n; i++)
-        if (s[i] != c)
+        if (s[i] != c || s[i-1] == '\\')
             s[j++] = s[i];
 
     s[j] = '\0';
@@ -222,9 +222,17 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
             continue;
         }
 
+        if (currentChar == '\\')
+            if (code.len > i + 1)
+                if (code.data[i + 1] == '\"') {
+                    addChar(&currentLexem, '\\');
+                    addChar(&currentLexem, '\"');
+                    i++;
+                    continue;
+                }
 
         if (stringLoaded) {
-            if (currentChar == '"' && code.data[i-1] != '\\' ) {
+            if (currentChar == '"') {
                 addChar(&currentLexem, currentChar);
                 stringLoaded = false;
                 if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
