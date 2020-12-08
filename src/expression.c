@@ -40,11 +40,21 @@ size_t evalExpression(list* tokenList, list* outList, size_t pos) {
             tok->tokenType == STRING_LIT ||
             tok->tokenType == FLOAT_LIT) {
             addToken(outList, tok->tokenType, tok->tokenName.data);
-            while (helpList.first != NULL && isLarger(helpList.first->tokenName.data[0], tok->nextToken->tokenName.data[0])) {
-                token* helpToken = popToken(&helpList);
-                addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
-                destroyString(&helpToken->tokenName);
-                free(helpToken);
+            if (tok->nextToken != NULL) {
+                while (helpList.first != NULL &&
+                       isLarger(helpList.first->tokenName.data[0], tok->nextToken->tokenName.data[0])) {
+                    token *helpToken = popToken(&helpList);
+                    addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                    destroyString(&helpToken->tokenName);
+                    free(helpToken);
+                }
+            } else {
+                while (helpList.first != NULL) {
+                    token *helpToken = popToken(&helpList);
+                    addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                    destroyString(&helpToken->tokenName);
+                    free(helpToken);
+                }
             }
         } else if (tok->tokenType == COMP_OPERATOR ||
             tok->tokenType == ARIT_OPERATOR) {
@@ -52,7 +62,7 @@ size_t evalExpression(list* tokenList, list* outList, size_t pos) {
         } else if (equalStrings(tok->tokenName.data, "(")) {
             i = evalExpression(tokenList, outList, i+1);
             justReturned = true;
-        } else {
+        } else if (equalStrings(tok->tokenName.data, ")")) {
             while(helpList.first != NULL) {
                 token* helpToken = popToken(&helpList);
                 addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
@@ -79,10 +89,10 @@ errorCode applyPrecedence(list* tokenList, tableNodePtr varTable) {
     size_t pos = 0;
     if (evalExpression(tokenList, &outList, pos) != tokenList->size) return INTERNAL_ERROR;
 
-    for (token* tok = copyToken(&outList, 0); tok != NULL; tok = tok->nextToken) {
+    /*for (token* tok = copyToken(&outList, 0); tok != NULL; tok = tok->nextToken) {
         printf("%s ", tok->tokenName.data);
     }
-    printf("\n");
+    printf("\n");*/
 
     if (generateExpression(&outList, varTable)) return INTERNAL_ERROR;
 

@@ -470,7 +470,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
                             commaCounter++;
                             if (commaCounter >= typeCount) return PARAMETER_ERROR;
                             // if commaCounter is bigger than it should, jump out of function right away
-                        } else {
+                        } else if (tok->tokenType == IDENT || tok->tokenType == INT_LIT || tok->tokenType == STRING_LIT || tok->tokenType == FLOAT_LIT) {
 
                             // return expressions must have the same data types as all variables/literals in expressions
 
@@ -1492,9 +1492,8 @@ errorCode parse(list *tokenList) {
         return returnError;
     }
 
-
-    semanticAnalyser(&lineTable, &globalTable, &localTable, currentFunc);
-    //generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
+    returnError = generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
+    if (returnError) return returnError;
 
 
     token savedToken;
@@ -1684,10 +1683,29 @@ errorCode parse(list *tokenList) {
             //FUNC DECLERATION
         else if (lineTable.first->tokenType == FUNC) {
 
-            if (equalStrings(lineTable.first->nextToken->tokenName.data, "main")) {
-                currentFunc = NULL;
-            } else {
-                currentFunc = copyNode(&globalTable, lineTable.first->nextToken->tokenName.data);
+            currentFunc = copyNode(&globalTable, lineTable.first->nextToken->tokenName.data);
+
+            for (token* param = lineTable.first->nextToken->nextToken; param != NULL; param = param->nextToken) {
+                if (param->tokenType == IDENT) {
+                    dataType *dataTypes = malloc(sizeof(dataType) * 2);
+                    dataTypes[1] = TYPE_UNDEFINED;
+                    switch (param->nextToken->tokenType) {
+                        case INT:
+                            dataTypes[0] = TYPE_INT;
+                            break;
+                        case STRING:
+                            dataTypes[0] = TYPE_STRING;
+                            break;
+                        case FLOAT:
+                            dataTypes[0] = TYPE_FLOAT;
+                            break;
+                        default:
+                            return SYNTAX_ERROR;
+                    }
+                    insertNode(&localTable, param->tokenName.data, dataTypes, NULL, 0);
+                } else if (equalStrings(param->tokenName.data, ")")) {
+                    break;
+                }
             }
 
             returnError = blockFunctionDeclare(tokenList, *lineTable.first->nextToken);

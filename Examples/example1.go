@@ -12,6 +12,6 @@ func main() {
     for ; a > 0; a = a - 1 {
       vysl = vysl * a
     }
-    print("Vysledek je ", vysl, "\n")
+    print("Vysledek je ", vysl, "\x96")
   }
 }

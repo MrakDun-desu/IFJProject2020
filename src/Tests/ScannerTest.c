@@ -9,7 +9,7 @@ int main(){
     size_t listSize;
     FILE *in_file;
     FILE *output;
-    in_file = fopen("test.txt", "r");
+    in_file = fopen("example2.go", "r");
     output = fopen("output.txt", "w");
     initList(&testList);
     initString(&testString);
