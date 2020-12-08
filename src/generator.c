@@ -6,6 +6,67 @@
 
 #define ADDCHAR(des_str,src_char) {if(addConstChar(des_str, src_char)) return INTERNAL_ERROR;}
 
+errorCode pregenerateDefvar(list *tokenList, token curToken, size_t i) {
+
+    list localList;
+    initList(&localList);
+
+    for (; curToken.nextToken != NULL && curToken.tokenType != FUNC; curToken = *curToken.nextToken) {
+
+        if (equalStrings(curToken.tokenName.data, ":=")) {
+            token localToken;
+            getToken(tokenList, i - 1, &localToken);
+            bool wasDefined = false;
+            for (token *tmp = localList.first; tmp != NULL; tmp = tmp->nextToken) {
+                if (equalStrings(tmp->tokenName.data, localToken.tokenName.data)) {
+                    wasDefined = true;
+                    break;
+                }
+            }
+            if (!wasDefined && localToken.tokenType == IDENT) {
+                if (addToken(&localList, localToken.tokenType, localToken.tokenName.data)) return INTERNAL_ERROR;
+                generateDefvar(&localToken);
+            }
+        }
+
+        i++;
+    }
+
+
+    return OK;
+}
+
+errorCode generatorHandle(list* currentLine, list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, list* ifStack, data* currentFunc) {
+
+    errorCode code;
+    if (currentLine->first != NULL) {
+        if (currentLine->first->tokenType == PACKAGE) {
+            gen.program = malloc(sizeof(string));
+            generatorInit();
+            code = generatorStart();
+            if (code) return code;
+        }
+        if (currentLine->first->tokenType == FUNC) {
+            token* funcIdent = currentLine->first->nextToken;
+            data* func = copyNode(&globalTable, funcIdent->tokenName.data);
+            code = generateFunctionStart(func);
+            if (code) return code;
+            token* curToken;
+            size_t i = 0;
+            for (curToken = tokenList->first; curToken != NULL; curToken = curToken->nextToken) {
+                if (curToken->tokenType == FUNC && equalStrings(curToken->nextToken->tokenName.data, funcIdent->tokenName.data)) {
+                    break;
+                }
+                i++;
+            }
+            code = pregenerateDefvar(tokenList, *curToken, i);
+            if (code) return code;
+        }
+    }
+
+    return OK;
+}
+
 errorCode transformString(string* str){
 
     string tmp;

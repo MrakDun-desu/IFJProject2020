@@ -201,6 +201,8 @@ generator gen; /// generator that all specified functions will use so program st
  */
 void generatorInit();
 
+errorCode generatorHandle(list* currentLine, list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, list* ifStack, data* currentFunc);
+
 /**
  * @brief Puts the head of program at start, including the macro functions. Also needs to include jump to main function.
  * @return OK if all allocation has been successful, corresponding error code otherwise.

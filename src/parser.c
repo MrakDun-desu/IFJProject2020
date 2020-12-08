@@ -450,7 +450,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
                         }
                     } else return DEFINITION_ERROR;
                 } else if (tok->tokenType == IDENT && (!equalStrings(tok->tokenName.data, "_")) &&
-                           (!equalStrings(tok->tokenName.data, "print")) || wasAssign) {
+                           (!equalStrings(tok->tokenName.data, "print"))) {
                     if (copyNode(globalTable, tok->tokenName.data) == NULL &&
                         copyNode(localTable, tok->tokenName.data) == NULL)
                         return DEFINITION_ERROR;
@@ -654,7 +654,7 @@ errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
     list *funcInputiParams = malloc(sizeof(list));
     initList(funcInputiParams);
 
-    insertNode(globalTable, funcId.data, funcInputsRetTypes, funcInputiParams, 0);
+    insertNode(globalTable, funcId.data, funcInputiRetTypes, funcInputiParams, 0);
 
     ///FUNC INPUTF
     makeString("inputf", &funcId);
@@ -1675,9 +1675,14 @@ errorCode parse(list *tokenList) {
                 }
         }
 
-
-        semanticAnalyser(&lineTable, &globalTable, &localTable, currentFunc);
-        //generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
+        if (lineTable.first->tokenType != FUNC) {
+            returnError = semanticAnalyser(&lineTable, &globalTable, &localTable, currentFunc);
+            if (returnError)
+                return returnError;
+        }
+        returnError = generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
+        if (returnError)
+            return returnError;
         deleteList(&lineTable);
 
     }
