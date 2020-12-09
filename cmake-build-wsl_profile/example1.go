@@ -1,31 +1,25 @@
-// Program 2: Vypocet faktorialu (rekurzivne)
+// Program 3: Prace s retezci a vestavenymi funkcemi
 package main
 
-func factorial(n int) (int) {
-  dec_n := n - 1
-  if n < 2 {
-    return 1
-  } else {
-    tmp := 0
-    tmp = factorial(dec_n)
-    return n * tmp
-  }
-}
-
 func main() {
-  print("Zadejte cislo pro vypocet faktorialu: ")
-  a := 0
+  s1 := "Toto je nejaky text"
+  s2 := s1 + ", ktery jeste trochu obohatime"
+  print(s1, "\n", s2)
+  s1len := 0
+  s1len = len(s1)
+  s1len = s1len - 4
+  s1, _ = substr(s2, s1len, 4)
+  s1len = s1len + 1
+  print("4 znaky od", s1len, ". znaku v \"", s2, "\":", s1, "\n")
+  print("Zadejte serazenou posloupnost vsech malych pismen a-h, ")
+  print("pricemz se pismena nesmeji v posloupnosti opakovat: ")
   err := 0
-  a, err = inputi()
-  if err == 0 {
-    if a < 0 {
-      print("Faktorial nejde spocitat!", "\n")
-    } else {
-      vysl := 0
-      vysl = factorial(a)
-      print("Vysledek je ", vysl, "\n")
+  s1, err = inputs()
+  if err != 1 {
+    for ;s1 != "abcdefgh"; {
+      print("\n", "Spatne zadana posloupnost, zkuste znovu:")
+      s1, _ = inputs()
     }
   } else {
-    print("Chyba pri nacitani celeho cisla!\n")	
   }
 }
