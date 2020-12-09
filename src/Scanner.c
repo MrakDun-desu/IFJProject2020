@@ -205,7 +205,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
         currentChar = code.data[i];
 
-
+        //handle comments
         if (comment == true) {
 
             if (lineComment) {
@@ -226,7 +226,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
             }
             continue;
         }
-
+        //handle \" in strings
         if (currentChar == '\\')
             if (code.len > i + 1)
                 if (code.data[i + 1] == '\"') {
@@ -235,7 +235,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     i++;
                     continue;
                 }
-
+        //handle strings
         if (stringLoaded) {
             if (currentChar == '"') {
                 if (addChar(&currentLexem, currentChar)) {
@@ -259,6 +259,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                 destroyString(&currentLexem);
                 return INTERNAL_ERROR;
             }
+            //handle identifiers
         } else if (isalnum(currentChar) || currentChar == '_' || currentChar == '.') {
             if (currentChar != '\n')
                 if (addChar(&currentLexem, currentChar)) {
@@ -266,7 +267,9 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     return INTERNAL_ERROR;
                 }
 
-        } else if (currentChar == '"') {
+        }
+        //begins strings
+        else if (currentChar == '"') {
             if (currentLexem.len > 0) {
 
                 if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
@@ -289,6 +292,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
         }
             //this will check for comments, spaces and special symbols and will end the word
         else {
+            //check if is a comment and what sort of comment it is
             if (currentChar == '/') {
                 if (code.len >= i + 1) {
                     if (code.data[i + 1] == '*') {
@@ -301,6 +305,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     }
                 }
             }
+            //check for spaces and end the current lexem
             if (currentChar == ' ' && currentLexem.data != NULL) {
 
                 if (currentLexem.len >= 1) {
@@ -316,6 +321,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     }
                 }
             }
+            //check for endline and ends current lexem
             if (currentChar == '\n') {
                 if (currentLexem.len >= 1) {
 
@@ -346,6 +352,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                 }
 
             }
+            //checks for semicollons and commas and ends current lexem and creates a new one with semicollon/comma
             if (currentChar == ';' || currentChar == ',') {
                 if (currentLexem.len >= 1) {
 
@@ -376,7 +383,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
             }
 
-
+            //check for operators and save them in separate lexem
             if (strchr(operators, currentChar) != NULL || currentChar == EOL) {
 
                 if (currentLexem.len >= 1) {
@@ -447,6 +454,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
     }
 
+    //pass the current lexem to lexem automaton
     if (currentLexem.len >= 1) {
         if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
             destroyString(&currentLexem);

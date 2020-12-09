@@ -1120,7 +1120,7 @@ errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
     return OK;
 }
 
-//package main
+//check if the line is "package main"
 errorCode blockPackage(list *tokenList) {
     token curToken;
     getToken(tokenList, 0, &curToken);
@@ -1138,7 +1138,7 @@ errorCode blockPackage(list *tokenList) {
 
 }
 
-//function code
+//checks for correct number of curly brackets
 errorCode blockBrackets(list *tokenList) {
 
     token curToken;
@@ -1170,7 +1170,7 @@ errorCode blockBrackets(list *tokenList) {
 
 }
 
-//expression
+//syntax for expressions
 errorCode blockExpression(token curToken, bool forState, bool expressionList) {
 
     int openBracketCount = 0;
@@ -1238,7 +1238,7 @@ errorCode blockExpression(token curToken, bool forState, bool expressionList) {
     return OK;
 }
 
-//asign
+//syntax for assign commands
 errorCode blockAssign(token curToken, bool forState) {
 
     int openBracketCount = 0;
@@ -1312,7 +1312,7 @@ errorCode blockAssign(token curToken, bool forState) {
     return OK;
 }
 
-//definition
+//syntax for definition commands
 errorCode blockDefinition(token curToken, bool forState) {
 
     if (forState)
@@ -1339,7 +1339,7 @@ errorCode blockDefinition(token curToken, bool forState) {
     return blockExpression(curToken, forState, false);
 
 }
-
+//syntax for list of identifiers
 errorCode blockIdentList(token curToken) {
 
     if (curToken.tokenType == STRING_LIT || curToken.tokenType == INT_LIT || curToken.tokenType == FLOAT_LIT ||
@@ -1361,7 +1361,7 @@ errorCode blockIdentList(token curToken) {
     return OK;
 }
 
-//eats function ident
+//syntax for function calls
 errorCode blockFunctionCall(token curToken) {
     errorCode returnError;
     curToken = *curToken.nextToken->nextToken;
@@ -1380,7 +1380,7 @@ errorCode blockFunctionCall(token curToken) {
     return OK;
 }
 
-//eats first line ident
+//syntax for function declaration
 errorCode blockFunctionDeclare(token curToken) {
 
     if (curToken.tokenType != IDENT) return SYNTAX_ERROR;
@@ -1446,7 +1446,7 @@ errorCode blockFunctionDeclare(token curToken) {
     return OK;
 
 }
-
+//prints out error message - prints number of line and line itself
 void errorPrint(list *lineTable, int lineCount) {
 
     fprintf(stderr, "SYNTAX_ERROR on line %d \n ", lineCount);
@@ -1473,6 +1473,7 @@ errorCode parse(list *tokenList) {
     list ifStack;
     initList(&ifStack);
 
+
     initTable(&globalTable);
     errorCode returnError = fillSymtable(&globalTable, tokenList);
     if (returnError != OK) {
@@ -1488,42 +1489,44 @@ errorCode parse(list *tokenList) {
     token curToken;
     getToken(tokenList, 0, &curToken);
 
+    //skip eols until we find begining of code
     size_t iterationStart = 0;
     while (curToken.tokenType == EOL) {
         curToken = *curToken.nextToken;
         iterationStart++;
     }
 
+    //load the first line
     while (curToken.tokenType != EOL) {
         addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
         curToken = *curToken.nextToken;
     }
-
+    //check if is - package main
     returnError = blockPackage(tokenList);
     if (returnError) {
         errorPrint(&lineTable, lineCount);
         return returnError;
     }
-
+    //check if there is no curly bracket missing
     returnError = blockBrackets(tokenList);
     if (returnError != OK) {
         errorPrint(&lineTable, lineCount);
         return returnError;
     }
-
+    //give first line to the generator
     returnError = generatorHandle(&lineTable, tokenList, globalTable, localTable, &ifStack, currentFunc);
     if (returnError) return returnError;
 
 
     token savedToken;
-
+    //go through the entire code
     for (size_t i = 2+iterationStart; i < tokenList->size; i++) {
         getToken(tokenList, i, &curToken);
         initList(&lineTable);
         lineCount++;
 
 
-        //FILL LINELIST
+        //fill list with 1 line
         while (curToken.tokenType != EOL) {
             addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
             i++;
@@ -1535,18 +1538,19 @@ errorCode parse(list *tokenList) {
         if (lineTable.size == 0) {
             continue;
         }
+        //check if there is curly bracket at the end of the line of if and for commands
         if (lineTable.first->tokenType == FOR || lineTable.first->tokenType == IF)
             if (lineTable.last->tokenType != BRACKET_CURLY || !equalStrings(lineTable.last->tokenName.data, "{")) {
                 errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
             }
 
-
+        //add EOL at the end of the line
         addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
 
 
 
-        //CHECK IF SYNTAX
+        //check if syntax
         if (lineTable.first->tokenType == IF) {
             returnError = blockExpression(*lineTable.first->nextToken, false, false);
             if (returnError) {
@@ -1554,11 +1558,11 @@ errorCode parse(list *tokenList) {
                 return SYNTAX_ERROR;
             }
             ifCount++;
-            //CHECK IF if HAS else
+
             int j = 0;
             savedToken = curToken;
 
-
+            //save token in buffer for generator
             token ifToken;
             initString(&ifToken.tokenName);
             ifToken.tokenType = IF;
@@ -1569,6 +1573,7 @@ errorCode parse(list *tokenList) {
             pushToken(&ifStack, &ifToken);
             destroyString(&ifToken.tokenName);
 
+            //count how many chars until we reach else that belongs to this if
             int openBracket = 1;
             int closedBracket = 0;
             while (openBracket != closedBracket) {
@@ -1583,6 +1588,7 @@ errorCode parse(list *tokenList) {
                 if (equalStrings(curToken.tokenName.data, "}"))
                     closedBracket++;
             }
+            //save token in buffer used to check else
             char *name = malloc(50 * sizeof(char));
             sprintf(name, "%zu", i + j + 1);
             token temp = curToken;
@@ -1593,7 +1599,7 @@ errorCode parse(list *tokenList) {
             destroyString(&temp.tokenName);
 
             free(name);
-            //free(ifName);
+            free(ifName);
 
             if (curToken.nextToken->tokenType != ELSE) {
                 errorPrint(&lineTable, lineCount);
@@ -1603,12 +1609,13 @@ errorCode parse(list *tokenList) {
             curToken = savedToken;
 
         }
-            //CHECK FOR SYNTAX
+            //check for syntax
         else if (lineTable.first->tokenType == FOR) {
 
             token tempToken = *lineTable.first->nextToken;
             forCount++;
 
+            //save for in buffer used by generator
             token temp;
             initString(&temp.tokenName);
             temp.tokenType = FOR;
@@ -1616,7 +1623,7 @@ errorCode parse(list *tokenList) {
             sprintf(forName, "%d", forCount);
             makeString(forName, &temp.tokenName);
             pushToken(&ifStack, &temp);
-
+            //check for definition
             returnError = blockDefinition(tempToken, true);
             if (returnError) {
                 errorPrint(&lineTable, lineCount);
@@ -1630,7 +1637,7 @@ errorCode parse(list *tokenList) {
                 };
                 tempToken = *tempToken.nextToken;
             }
-
+            //check for expression
             returnError = blockExpression(*tempToken.nextToken, true, false);
             if (returnError) {
                 errorPrint(&lineTable, lineCount);
@@ -1641,14 +1648,14 @@ errorCode parse(list *tokenList) {
                 if (tempToken.nextToken == NULL) return SYNTAX_ERROR;
                 tempToken = *tempToken.nextToken;
             } while (tempToken.tokenType != SEMICOL);
-
+            //check for assign command
             returnError = blockAssign(*tempToken.nextToken, true);
             if (returnError) {
                 errorPrint(&lineTable, lineCount);
                 return returnError;
             }
         }
-            //CHECK RETURN
+            //check return syntax
         else if (lineTable.first->tokenType == RETURN) {
             if (lineTable.first->nextToken->tokenType != EOL) {
                 returnError = blockExpression(*lineTable.first->nextToken, false, true);
@@ -1658,7 +1665,7 @@ errorCode parse(list *tokenList) {
                 }
             }
         }
-            //CHECK DEF AND ASIGN COMMANDS
+            //check sytax of definition, asighn commands and function calls
         else if (lineTable.first->tokenType == IDENT) {
             token tempToken = *lineTable.first;
 
@@ -1667,9 +1674,9 @@ errorCode parse(list *tokenList) {
                 tempToken = *tempToken.nextToken;
             }
 
-            //DEF COMMAND
+            //check syntax of definition command
             if (equalStrings(tempToken.tokenName.data, ":=")) {
-
+                //check syntax of definition command with function call
                 if (tempToken.nextToken->tokenType == IDENT &&
                     tempToken.nextToken->nextToken->tokenType == BRACKET_ROUND) {
                     token savedTemp = *lineTable.first;
@@ -1684,7 +1691,9 @@ errorCode parse(list *tokenList) {
                         return returnError;
                     }
 
-                } else {
+                }
+                //check syntax of definition command
+                else {
                     returnError = blockDefinition(*lineTable.first, false);
                     if (returnError) {
                         errorPrint(&lineTable, lineCount);
@@ -1694,14 +1703,14 @@ errorCode parse(list *tokenList) {
 
 
             }
-                //ASSIGN COMMAND
+                //check syntax of asign command
             else if (equalStrings(tempToken.tokenName.data, "=")) {
                 token savedTemp = *lineTable.first;
                 while (savedTemp.tokenType != ASIGN_OPERATOR) {
                     blockIdentList(savedTemp);
                     savedTemp = *savedTemp.nextToken;
                 }
-                //CHECK WHETHER THERE IS AN EXPRESSION OR FUNC CALL AFTER ASSIGN
+                //check syntax of assign command with function call
                 if (tempToken.nextToken->tokenType == IDENT &&
                     tempToken.nextToken->nextToken->tokenType == BRACKET_ROUND) {
                     returnError = blockFunctionCall(*tempToken.nextToken);
@@ -1710,7 +1719,9 @@ errorCode parse(list *tokenList) {
                         return returnError;
                     }
 
-                } else {
+                }
+                //check syntax of assign command
+                else {
                     returnError = blockAssign(*lineTable.first, false);
                     if (returnError) {
                         errorPrint(&lineTable, lineCount);
@@ -1720,7 +1731,7 @@ errorCode parse(list *tokenList) {
 
 
             }
-                //FUNC CALL
+                //check syntax of function call
             else {
                 returnError = blockFunctionCall(*lineTable.first);
                 if (returnError) {
@@ -1732,7 +1743,7 @@ errorCode parse(list *tokenList) {
             }
         }
 
-            //FUNC DECLERATION
+            //check syntax of function definition
         else if (lineTable.first->tokenType == FUNC) {
 
             currentFunc = copyNode(&globalTable, lineTable.first->nextToken->tokenName.data);
@@ -1766,7 +1777,7 @@ errorCode parse(list *tokenList) {
                 return returnError;
             }
         }
-        //CHECK IF THERE IS } BEFORE ELSE
+        //check else syntax - check if there is curly bracket before else and if it is written with correct if
         if (equalStrings(lineTable.first->tokenName.data, "}")) {
             if (lineTable.first->nextToken != NULL)
                 if (lineTable.first->nextToken->tokenType == ELSE) {
@@ -1777,7 +1788,7 @@ errorCode parse(list *tokenList) {
                     popToken(&buffer);
                 }
         }
-
+        //call semantic analyser and generator functions
         if (lineTable.first->tokenType != FUNC) {
             returnError = semanticAnalyser(&lineTable, &globalTable, &localTable, currentFunc);
             if (returnError)
