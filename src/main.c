@@ -9,45 +9,47 @@
 // Parser calls generator directly to reduce work. Main will only call function generatorWrite at the end of program translation.
 
 int main() {
+
     string sourceCode;
     list tokenList;
-    FILE *in_file;
-    FILE *output;
-    in_file = fopen("example1.go", "r");
-    output = fopen("output.code", "w");
     initList(&tokenList);
     initString(&sourceCode);
     errorCode out;
 
     char* buffer;
     size_t len;
-    if (in_file) {
-        fseek(in_file, 0, SEEK_END);
-        len = ftell(in_file);
-        fseek(in_file, 0, SEEK_SET);
-        buffer = malloc(len);
-        if (buffer) {
-            fread(buffer, 1, len, in_file);
-        } else
-            return INTERNAL_ERROR;
-        fclose(in_file);
+    fseek(stdin, 0, SEEK_END);
+    len = ftell(stdin) + 1;
+    fseek(stdin, 0, SEEK_SET);
+    buffer = malloc(len);
+    if (buffer) {
+        fread(buffer, 1, len-1, stdin);
+        buffer[len-1] = '\0';
     } else {
         return INTERNAL_ERROR;
     }
 
     out = makeString(buffer, &sourceCode);
-    if (out) return out;
-
-    out = CodeAnalyzer(&tokenList, sourceCode);
-    if (out) return out;
-
-    out = parse(&tokenList);
     if (out) {
-        generatorClear();
+        free(buffer);
         return out;
     }
 
-    generatorWrite(output);
+    out = CodeAnalyzer(&tokenList, sourceCode);
+    if (out) {
+
+        free(buffer);
+        return out;
+    }
+
+    out = parse(&tokenList);
+    if (out) {
+
+        free(buffer);
+        return out;
+    }
+
+    generatorWrite(stdout);
 
     destroyString(&sourceCode);
     free(buffer);

@@ -9,18 +9,22 @@ void initString(string* newString) {
 
 errorCode makeString(const char *content, string* back) {
 
-    if (back->data != NULL) {
-        if (back->data == content)
+    if (content != NULL) {
+        if (back->data != NULL) {
+            if (back->data == content)
+                return OK;
+
+            free(back->data);
+        }
+
+        size_t length = strlen(content);
+        back->data = malloc(sizeof(char) * (length + 1));
+
+        if (back->data) {
+            strcpy(back->data, content);
+            back->len = length;
             return OK;
-
-        free(back->data);
-    }
-
-    size_t length = strlen(content);
-    if ((back->data = malloc(sizeof(char) * (length + 1))) != NULL) {
-        strcpy(back->data, content);
-        back->len = length;
-        return OK;
+        }
     }
     return INTERNAL_ERROR;
 
@@ -28,10 +32,12 @@ errorCode makeString(const char *content, string* back) {
 
 void destroyString(string* s) {
 
-    if (s->data != NULL)
-        free(s->data);
+    if (s != NULL) {
+        if (s->data != NULL)
+            free(s->data);
 
-    s->len = 0;
+        s->len = 0;
+    }
 
 }
 

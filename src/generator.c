@@ -90,8 +90,7 @@ errorCode assignHandle(list *assign, tableNodePtr globalTable, tableNodePtr loca
     return OK;
 }
 
-errorCode
-generatorHandle(list *currentLine, list *tokenList, tableNodePtr globalTable, tableNodePtr localTable, list *ifStack,
+errorCode generatorHandle(list *currentLine, list *tokenList, tableNodePtr globalTable, tableNodePtr localTable, list *ifStack,
                 data *currentFunc) {
 
     errorCode code;
@@ -233,6 +232,16 @@ generatorHandle(list *currentLine, list *tokenList, tableNodePtr globalTable, ta
     return OK;
 }
 
+errorCode transformFloat(string* str) {
+    double number = strtod(str->data, NULL);
+
+    char newFloat[100];
+    sprintf(newFloat, "%a", number);
+    makeString(newFloat, str);
+
+    return OK;
+}
+
 errorCode transformString(string *str) {
 
     string tmp;
@@ -246,6 +255,7 @@ errorCode transformString(string *str) {
     for (size_t i = 0; i < str->len; i++) {
         char c = str->data[i];
         if (c == '\\') {
+            int escape;
             switch (str->data[i+1]) {
                 case 'n':
                     if ((out = addChar(&tmp, '\n')) != OK) return out;
@@ -262,6 +272,11 @@ errorCode transformString(string *str) {
                 case '\"':
                     if ((out = addChar(&tmp, '\"')) != OK) return out;
                     i++;
+                    break;
+                case 'x':
+                    escape = strtol(&str->data[i+2], NULL, 16);
+                    if ((out = addChar(&tmp, (char)escape)) != OK) return out;
+                    i += 3;
                     break;
                 default:
                     return LEXICAL_ERROR;
@@ -360,6 +375,14 @@ errorCode generateMove(token *var) {
 
 errorCode generateArithmetic(token *var, token *symb1, token *symb2, char *frames, char operation) {
     char str[100];
+
+    if (symb1->tokenType == FLOAT_LIT) {
+        transformFloat(&symb1->tokenName);
+    }
+    if (symb2->tokenType == FLOAT_LIT) {
+        transformFloat(&symb1->tokenName);
+    }
+
     switch (operation) {
         case '+':
             if (symb1->tokenType == INT_LIT || symb2->tokenType == INT_LIT) {
@@ -665,7 +688,11 @@ errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
     }
 
     if (symb1->tokenType == FLOAT_LIT) {
+
+        transformFloat(&symb1->tokenName);
+
         if (symb2->tokenType == FLOAT_LIT) {
+            transformFloat(&symb2->tokenName);
             sprintf(str, "LT GF@%s float@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
@@ -712,6 +739,8 @@ errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == IDENT) {
         if (symb2->tokenType == FLOAT_LIT) {
+
+            transformFloat(&symb2->tokenName);
             if (frames[0] == 't') {
                 sprintf(str, "LT GF@%s TF@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                         symb2->tokenName.data);
@@ -791,7 +820,9 @@ errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
     }
 
     if (symb1->tokenType == FLOAT_LIT) {
+        transformFloat(&symb1->tokenName);
         if (symb2->tokenType == FLOAT_LIT) {
+            transformFloat(&symb2->tokenName);
             sprintf(str, "GT GF@%s float@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
@@ -838,6 +869,8 @@ errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == IDENT) {
         if (symb2->tokenType == FLOAT_LIT) {
+
+            transformFloat(&symb2->tokenName);
             if (frames[0] == 't') {
                 sprintf(str, "GT GF@%s TF@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                         symb2->tokenName.data);
@@ -917,7 +950,11 @@ errorCode generateEQ(token *var, token *symb1, token *symb2, char *frames) {
     }
 
     if (symb1->tokenType == FLOAT_LIT) {
+
+        transformFloat(&symb1->tokenName);
         if (symb2->tokenType == FLOAT_LIT) {
+
+            transformFloat(&symb2->tokenName);
             sprintf(str, "EQ GF@%s float@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
@@ -964,6 +1001,8 @@ errorCode generateEQ(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == IDENT) {
         if (symb2->tokenType == FLOAT_LIT) {
+
+            transformFloat(&symb2->tokenName);
             if (frames[0] == 't') {
                 sprintf(str, "EQ GF@%s TF@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                         symb2->tokenName.data);
@@ -1160,6 +1199,7 @@ errorCode generateFunctionCall(data *function, list *argValues) {
                     ADDCHAR(gen.program, str)
                     break;
                 case FLOAT_LIT:
+                    transformFloat(&tmp->tokenName);
                     sprintf(str, "PUSHS float@%s\n", tmp->tokenName.data);
                     ADDCHAR(gen.program, str)
                     break;
@@ -1215,6 +1255,7 @@ errorCode generatePrint(token *tok) {
             sprintf(str, "WRITE string@%s\n", tok->tokenName.data);
             break;
         case FLOAT_LIT:
+            transformFloat(&tok->tokenName);
             sprintf(str, "WRITE float@%s\n", tok->tokenName.data);
             break;
         case IDENT:
@@ -1497,6 +1538,7 @@ errorCode generateExpression(list *expression, tableNodePtr varTable) {
                     destroyString(&tmp);
                     break;
                 case FLOAT_LIT:
+                    transformFloat(&expression->first->tokenName);
                     sprintf(str, "MOVE GF@expVar0 float@%s\n", expression->first->tokenName.data);
                     break;
                 case IDENT:

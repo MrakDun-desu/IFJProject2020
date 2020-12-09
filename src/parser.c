@@ -1126,9 +1126,12 @@ errorCode blockPackage(list *tokenList) {
     token curToken;
     getToken(tokenList, 0, &curToken);
 
+    while (curToken.tokenType == EOL)
+        curToken = *curToken.nextToken;
+
     if (curToken.tokenType != PACKAGE) return SYNTAX_ERROR;
 
-    getToken(tokenList, 1, &curToken);
+    curToken = *curToken.nextToken;
 
     if (strcmp(curToken.tokenName.data, "main") != 0) return SYNTAX_ERROR;
 
@@ -1482,24 +1485,22 @@ errorCode parse(list *tokenList) {
     tableNodePtr localTable;
     initTable(&localTable);
 
-
     list lineTable;
     initList(&lineTable);
 
     token curToken;
     getToken(tokenList, 0, &curToken);
 
-    if (curToken.tokenType == EOL) {
-        while (curToken.tokenType == EOL) {
-            curToken = *curToken.nextToken;
-        }
+    size_t iterationStart = 0;
+    while (curToken.tokenType == EOL) {
+        curToken = *curToken.nextToken;
+        iterationStart++;
     }
 
     while (curToken.tokenType != EOL) {
         addToken(&lineTable, curToken.tokenType, curToken.tokenName.data);
         curToken = *curToken.nextToken;
     }
-
 
     returnError = blockPackage(tokenList);
     if (returnError) {
@@ -1519,7 +1520,7 @@ errorCode parse(list *tokenList) {
 
     token savedToken;
 
-    for (int i = 2; i < tokenList->size; i++) {
+    for (size_t i = 2+iterationStart; i < tokenList->size; i++) {
         getToken(tokenList, i, &curToken);
         initList(&lineTable);
         lineCount++;

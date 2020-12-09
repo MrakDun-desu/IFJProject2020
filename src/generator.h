@@ -125,7 +125,7 @@ generator gen; /// generator that all specified functions will use so program st
     LT TF@out TF@n int@0 \n\
     JUMPIFEQ substr_err TF@out bool@true \n\
     \n\
-    MOVE TF@ret0 string@\\035 \n\
+    MOVE TF@ret0 string@ \n\
     LABEL substr_cyklus \n\
     GETCHAR TF@temp TF@s TF@i \n\
     JUMPIFEQ substr_greater TF@i TF@maxIndex \n\

@@ -10,12 +10,17 @@
 
 void removeChar(char *s, int c) {
 
-    int j, n = strlen(s);
-    for (int i = j = 0; i < n; i++)
-        if (s[i] != c || s[i-1] == '\\')
-            s[j++] = s[i];
+    if (s != NULL) {
+        size_t j, n = strlen(s);
+        for (size_t i = j = 0; i < n; i++) {
+            if (i != 0) {
+                if (s[i] != c || s[i - 1] == '\\')
+                    s[j++] = s[i];
+            }
+        }
 
-    s[j] = '\0';
+        s[j] = '\0';
+    }
 }
 
 int isIntLit(string *lexem) {
@@ -233,7 +238,10 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
         if (stringLoaded) {
             if (currentChar == '"') {
-                addChar(&currentLexem, currentChar);
+                if (addChar(&currentLexem, currentChar)) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
                 stringLoaded = false;
                 if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                     destroyString(&currentLexem);
@@ -247,10 +255,16 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
                 continue;
             }
-            addChar(&currentLexem, currentChar);
+            if (addChar(&currentLexem, currentChar)) {
+                destroyString(&currentLexem);
+                return INTERNAL_ERROR;
+            }
         } else if (isalnum(currentChar) || currentChar == '_' || currentChar == '.') {
             if (currentChar != '\n')
-                addChar(&currentLexem, currentChar);
+                if (addChar(&currentLexem, currentChar)) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
 
         } else if (currentChar == '"') {
             if (currentLexem.len > 0) {
@@ -266,7 +280,10 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                 }
             }
             stringLoaded = true;
-            addChar(&currentLexem, currentChar);
+            if (addChar(&currentLexem, currentChar)) {
+                destroyString(&currentLexem);
+                return INTERNAL_ERROR;
+            }
             continue;
 
         }
@@ -313,7 +330,10 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     }
                 }
 
-                addChar(&currentLexem, currentChar);
+                if (addChar(&currentLexem, currentChar)) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
 
                 if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                     destroyString(&currentLexem);
@@ -339,7 +359,10 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                         return INTERNAL_ERROR;
                     }
                 }
-                addChar(&currentLexem, currentChar);
+                if (addChar(&currentLexem, currentChar)) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
 
                 if (LexemAutomat(sortedList, &currentLexem) == LEXICAL_ERROR) {
                     destroyString(&currentLexem);
@@ -368,12 +391,18 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     }
                 }
 
-                addChar(&currentLexem, currentChar);
+                if (addChar(&currentLexem, currentChar)) {
+                    destroyString(&currentLexem);
+                    return INTERNAL_ERROR;
+                }
 
                 if (currentChar == '=' && i != code.len) {
                     if (code.data[i + 1] == '<' || code.data[i + 1] == '>' || code.data[i + 1] == '=') {
 
-                        addChar(&currentLexem, code.data[i + 1]);
+                        if (addChar(&currentLexem, code.data[i + 1])) {
+                            destroyString(&currentLexem);
+                            return INTERNAL_ERROR;
+                        }
                         i++;
 
                     }
@@ -382,7 +411,10 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     if (i != code.len) {
                         if (code.data[i + 1] == '=') {
 
-                            addChar(&currentLexem, code.data[i + 1]);
+                            if (addChar(&currentLexem, code.data[i + 1])) {
+                                destroyString(&currentLexem);
+                                return INTERNAL_ERROR;
+                            }
                             i++;
                         }
                     }
@@ -391,7 +423,10 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
                     if (i != code.len) {
                         if (code.data[i + 1] == '=') {
 
-                            addChar(&currentLexem, code.data[i + 1]);
+                            if (addChar(&currentLexem, code.data[i + 1])) {
+                                destroyString(&currentLexem);
+                                return INTERNAL_ERROR;
+                            }
                             i++;
                         }
                     }
