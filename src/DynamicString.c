@@ -1,3 +1,10 @@
+/******************************** DynamicString.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Dynamicky alokovany string                                                */
+/*  Vytvoril: Marek Danco xdanco00	                                          */
+/* ************************************************************************** */
+
+
 #include "DynamicString.h"
 
 void initString(string* newString) {
@@ -35,6 +42,7 @@ void destroyString(string* s) {
     if (s != NULL) {
         if (s->data != NULL)
             free(s->data);
+        s->data = NULL;
 
         s->len = 0;
     }

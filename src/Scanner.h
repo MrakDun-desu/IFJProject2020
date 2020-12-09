@@ -1,6 +1,8 @@
-//
-// Created by xolsia00 on 3. 11. 2020.
-//
+/******************************** Scanner.h **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Lexikalny analyzator                                                      */
+/*  Vytvoril: Martin Olsiak xolsia00                                          */
+/* ************************************************************************** */
 
 #include <stdio.h>
 #include "List.h"

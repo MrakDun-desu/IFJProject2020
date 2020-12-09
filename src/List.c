@@ -1,6 +1,8 @@
-//
-// Created by xfudor00 on 28. 10. 2020.
-//
+/******************************** List.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Datova struktura jednosmerne previazaneho zoznamu                         */
+/*  Vytvoril: Frantisek Fudor xfudor00                                        */
+/* ************************************************************************** */
 
 #include "List.h"
 

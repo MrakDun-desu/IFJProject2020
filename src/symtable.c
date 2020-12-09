@@ -1,6 +1,8 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** symtable.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Datova struktura tabulky symbolov                                         */
+/*  Vytvoril: Marek Danco xdanco00                                            */
+/* ************************************************************************** */
 
 #include "symtable.h"
 

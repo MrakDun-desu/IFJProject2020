@@ -1,10 +1,10 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** generator.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Kod na generovanie a pomocne funkcie                                      */
+/*  Vytvorili: Marek Danco xdanco00 Frantisek Fudor xfudor00                  */
+/* ************************************************************************** */
 
 #include "generator.h"
-
-#define ADDCHAR(des_str, src_char) {if(addConstChar(des_str, src_char)) return INTERNAL_ERROR;}
 
 errorCode pregenerateDefvar(list *tokenList, token curToken, size_t i) {
 
@@ -141,7 +141,6 @@ generatorHandle(list *currentLine, list *tokenList, tableNodePtr globalTable, ta
     errorCode code;
     if (currentLine->first != NULL) {
         if (currentLine->first->tokenType == PACKAGE) {
-            gen.program = malloc(sizeof(string));
             generatorInit();
             code = generatorStart();
             if (code) return code;
@@ -522,7 +521,7 @@ errorCode transformString(string *str) {
 
 void generatorInit() {
     initString(gen.program);
-    makeString("", gen.program);
+    makeString(".IFJcode20\n", gen.program);
 }
 
 void generatorClear() {
@@ -533,29 +532,27 @@ void generatorClear() {
 
 errorCode generatorStart() {
     char str[100];
-    sprintf(str, ".IFJcode20\n");
-    ADDCHAR(gen.program, str)
 
     for (size_t i = 0; i < 10; i++) {
         sprintf(str, "DEFVAR GF@expVar%zu\n", i);
-        ADDCHAR(gen.program, str)
+        if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     }
 
     sprintf(str, "JUMP main\n");
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
-    ADDCHAR(gen.program, FUNC_INPUTS)
-    ADDCHAR(gen.program, FUNC_INPUTI)
-    ADDCHAR(gen.program, FUNC_INPUTF)
+    if (addConstChar(gen.program, FUNC_INPUTS)) return INTERNAL_ERROR;
+    if (addConstChar(gen.program, FUNC_INPUTI)) return INTERNAL_ERROR;
+    if (addConstChar(gen.program, FUNC_INPUTF)) return INTERNAL_ERROR;
 
-    ADDCHAR(gen.program, FUNC_INT2FLOAT)
-    ADDCHAR(gen.program, FUNC_FLOAT2INT)
+    if (addConstChar(gen.program, FUNC_INT2FLOAT)) return INTERNAL_ERROR;
+    if (addConstChar(gen.program, FUNC_FLOAT2INT)) return INTERNAL_ERROR;
 
-    ADDCHAR(gen.program, FUNC_LEN)
+    if (addConstChar(gen.program, FUNC_LEN)) return INTERNAL_ERROR;
 
-    ADDCHAR(gen.program, FUNC_SUBSTR)
-    ADDCHAR(gen.program, FUNC_ORD)
-    ADDCHAR(gen.program, FUNC_CHR)
+    if (addConstChar(gen.program, FUNC_SUBSTR)) return INTERNAL_ERROR;
+    if (addConstChar(gen.program, FUNC_ORD)) return INTERNAL_ERROR;
+    if (addConstChar(gen.program, FUNC_CHR)) return INTERNAL_ERROR;
 
     return OK;
 }
@@ -563,7 +560,8 @@ errorCode generatorStart() {
 errorCode generateDefvar(token *var) {
     char str[100];
     sprintf(str, "DEFVAR TF@%s\n", var->tokenName.data);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
+
     return OK;
 }
 
@@ -573,7 +571,7 @@ errorCode generateMove(token *var) {
 
     sprintf(str, "MOVE TF@%s GF@expVar0\n", var->tokenName.data);
 
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     return OK;
 }
@@ -869,7 +867,7 @@ errorCode generateArithmetic(token *var, token *symb1, token *symb2, char *frame
 
     }
 
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     return OK;
 
@@ -1005,7 +1003,7 @@ errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
             }
         }
     }
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1139,7 +1137,7 @@ errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
             }
         }
     }
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1271,7 +1269,7 @@ errorCode generateEQ(token *var, token *symb1, token *symb2, char *frames) {
             }
         }
     }
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1282,7 +1280,7 @@ errorCode generateNOT(token *var) {
     char str[100];
     sprintf(str, "NOT GF@%s GF@%s\n", var->tokenName.data, var->tokenName.data);
 
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1349,7 +1347,7 @@ errorCode generateConcat(token *var, token *symb1, token *symb2, char *frames) {
         }
     }
 
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1360,22 +1358,22 @@ errorCode generateFunctionStart(data *function) {
 
     if (function == NULL) {
         sprintf(str, "LABEL main\nCREATEFRAME\n");
-        ADDCHAR(gen.program, str)
+        if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
         return OK;
 
     } else {
         sprintf(str, "LABEL %s\n", function->id.data);
-        ADDCHAR(gen.program, str)
+        if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
         sprintf(str, "CREATEFRAME\n");
-        ADDCHAR(gen.program, str)
+        if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
         for (size_t i = 0; i < function->parameters->size; i++) {
             token tmp;
             getToken(function->parameters, i, &tmp);
             if (tmp.tokenType == IDENT) {
                 sprintf(str, "DEFVAR TF@%s\n", tmp.tokenName.data);
-                ADDCHAR(gen.program, str)
+                if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
                 sprintf(str, "POPS TF@%s\n", tmp.tokenName.data);
-                ADDCHAR(gen.program, str)
+                if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
             }
         }
         size_t i = 0;
@@ -1384,7 +1382,7 @@ errorCode generateFunctionStart(data *function) {
 
         while (tmpType != TYPE_UNDEFINED) {
             sprintf(str, "DEFVAR TF@ret%zu\n", i);
-            ADDCHAR(gen.program, str)
+            if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
             tmpType = function->types[++i];
         }
     }
@@ -1401,21 +1399,21 @@ errorCode generateFunctionCall(data *function, list *argValues) {
             switch (tmp->tokenType) {
                 case INT_LIT:
                     sprintf(str, "PUSHS int@%s\n", tmp->tokenName.data);
-                    ADDCHAR(gen.program, str);
+                    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
                     break;
                 case STRING_LIT:
                     if (transformString(&tmp->tokenName)) return INTERNAL_ERROR;
                     sprintf(str, "PUSHS string@%s\n", tmp->tokenName.data);
-                    ADDCHAR(gen.program, str)
+                    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
                     break;
                 case FLOAT_LIT:
                     transformFloat(&tmp->tokenName);
                     sprintf(str, "PUSHS float@%s\n", tmp->tokenName.data);
-                    ADDCHAR(gen.program, str)
+                    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
                     break;
                 case IDENT:
                     sprintf(str, "PUSHS TF@%s\n", tmp->tokenName.data);
-                    ADDCHAR(gen.program, str)
+                    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
                     break;
                 default:
                     break;
@@ -1423,10 +1421,10 @@ errorCode generateFunctionCall(data *function, list *argValues) {
         }
     }
     sprintf(str, "PUSHFRAME\n");
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     sprintf(str, "CALL %s\n", function->id.data);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     return OK;
 }
@@ -1438,18 +1436,18 @@ errorCode generateFunctionReturn(list *assignVariables) {
         token *tmp = copyToken(assignVariables, i);
         if (tmp != NULL) {
             sprintf(str, "MOVE LF@%s TF@ret%zu\n", tmp->tokenName.data, i);
-            ADDCHAR(gen.program, str)
+            if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
         }
     }
     sprintf(str, "POPFRAME\n");
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     return OK;
 }
 
 errorCode generateFunctionEnd() {
 
-    ADDCHAR(gen.program, "RETURN\n\n")
+    if (addConstChar(gen.program, "RETURN\n\n")) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1479,22 +1477,22 @@ errorCode generatePrint(token *tok) {
     }
 
 
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     return OK;
 }
 
 ///OUTPUT FUNCTIONS
 
-errorCode generatorWrite(FILE *dest) {
-    fprintf(dest, "%s", gen.program->data);
+errorCode generatorWrite() {
+    printf("%s", gen.program->data);
     return OK;
 }
 
 ///MAIN FUNCTIONS
 
 errorCode generateMainScopeEnd() {
-    ADDCHAR(gen.program, "EXIT int@0\n")
+    if (addConstChar(gen.program, "EXIT int@0\n")) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1508,7 +1506,7 @@ errorCode generateIfStart(list *condition, tableNodePtr varTable, size_t ifCount
     if (out) return out;
 
     sprintf(str, "JUMPIFNEQ else%zu GF@expVar0 bool@true\n", ifCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     return OK;
 }
@@ -1516,16 +1514,16 @@ errorCode generateIfStart(list *condition, tableNodePtr varTable, size_t ifCount
 errorCode generateElse(size_t ifCount) {
     char str[100];
     sprintf(str, "JUMP ifEnd%zu\n", ifCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     sprintf(str, "LABEL else%zu\n", ifCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
 errorCode generateIfEnd(size_t ifCount) {
     char str[100];
     sprintf(str, "LABEL ifEnd%zu\n", ifCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1534,9 +1532,9 @@ errorCode generateIfEnd(size_t ifCount) {
 errorCode generateForPrequel(size_t forCount) {
     char str[100];
     sprintf(str, "JUMP forFirst%zu\n", forCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     sprintf(str, "LABEL forStart%zu\n", forCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1544,13 +1542,13 @@ errorCode generateForStart(list *condition, tableNodePtr varTable, size_t forCou
     char str[100];
     errorCode out;
     sprintf(str, "LABEL forFirst%zu\n", forCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     out = applyPrecedence(condition, varTable);
     if (out) return out;
 
     sprintf(str, "JUMPIFNEQ forEnd%zu GF@expVar0 bool@true\n", forCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
     return OK;
 }
@@ -1558,9 +1556,9 @@ errorCode generateForStart(list *condition, tableNodePtr varTable, size_t forCou
 errorCode generateForEnd(size_t forCount) {
     char str[100];
     sprintf(str, "JUMP forStart%zu\n", forCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     sprintf(str, "LABEL forEnd%zu\n", forCount);
-    ADDCHAR(gen.program, str)
+    if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
     return OK;
 }
 
@@ -1769,7 +1767,7 @@ errorCode generateExpression(list *expression, tableNodePtr varTable) {
                     break;
             }
 
-            ADDCHAR(gen.program, str)
+            if (addConstChar(gen.program, str)) return INTERNAL_ERROR;
 
         }
 

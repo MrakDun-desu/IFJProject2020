@@ -1,6 +1,8 @@
-//
-// Created by xfudor00 on 28. 10. 2020.
-//
+/******************************** List.h **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Datova struktura jednosmerne previazaneho zoznamu                         */
+/*  Vytvoril: Frantisek Fudor xfudor00                                        */
+/* ************************************************************************** */
 
 #ifndef SRC_LIST_H
 #define SRC_LIST_H
@@ -64,8 +66,9 @@ void getToken(list* l, size_t pos, token* t);
 /**
  * @brief Adds token to the end of a list.
  * @param l List into which the token will be added.
- * @param t Token which will be added in to list l.
- * @return If item was added successfully, returns 0, otherwise returns 1.
+ * @param tType Type of the new token.
+ * @param tName Name of the new token.
+ * @return If item was added successfully, returns OK, otherwise INTERNAL_ERROR.
  */
 errorCode addToken(list* l, type tType, char* tName);
 

@@ -1,6 +1,8 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** main.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Hlavny subor na vstup/vystup                                              */
+/*  Vytvoril: Marek Danco xdanco00                                            */
+/* ************************************************************************** */
 
 #include "parser.h"
 #include "Scanner.h"
@@ -42,6 +44,9 @@ int main() {
         return out;
     }
 
+    string prog;
+    gen.program = &prog;
+
     out = parse(&tokenList);
     if (out) {
         generatorClear();
@@ -49,7 +54,7 @@ int main() {
         return out;
     }
 
-    generatorWrite(stdout);
+    printf("%s", gen.program->data);
 
     destroyString(&sourceCode);
     free(buffer);

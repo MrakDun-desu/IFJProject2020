@@ -1,6 +1,8 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** generator.h ****************************************/
+/*  Predmet: IFJ a IAL						                                         */
+/*  Kod na generovanie a pomocne funkcie                                             */
+/*  Vytvorili: Marek Danco xdanco00 Frantisek Fudor xfudor00 Jakub Drobena xdrobe01  */
+/* ********************************************************************************* */
 
 #ifndef SRC_GENERATOR_H
 #define SRC_GENERATOR_H
@@ -237,11 +239,10 @@ errorCode generatorStart();
 void generatorClear();
 
 /**
- * @brief Writes program string into a specified file.
- * @param dest File that string will be written to.
+ * @brief Writes program string into stdout.
  * @return OK if writing was successful, corresponding error code otherwise.
  */
-errorCode generatorWrite(FILE* dest);
+errorCode generatorWrite();
 
 
 /**

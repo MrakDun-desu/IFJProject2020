@@ -1,6 +1,8 @@
-//
-// Created by xdanco00 on 3. 10. 2020.
-//
+/******************************** DynamicString.h **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Dynamicky alokovany string                                                */
+/*  Vytvoril: Marek Danco xdanco00	                                          */
+/* ************************************************************************** */
 
 #ifndef SRC_DYNAMICSTRING_H
 #define SRC_DYNAMICSTRING_H
@@ -95,6 +97,13 @@ errorCode makeLowercase(string* input, string* back);
  */
 errorCode makeUppercase(string* input, string* back);
 
+/**
+ * @brief Helper function for comparing strings.
+ * @param s1 First string to be compared.
+ * @param s2 Second string to be compared.
+ * @return true Strcmp of these strings returns 0.
+ * @return false Strcmp of these strings returns anything else than 0.
+ */
 bool equalStrings(char* s1, char* s2);
 
 #endif //SRC_DYNAMICSTRING_H

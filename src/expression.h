@@ -1,6 +1,8 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** expression.h **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Precedencne spracovanie vyrazov                                           */
+/*  Vytvoril: Marek Danco xdanco00	                                          */
+/* ************************************************************************** */
 
 #ifndef SRC_EXPRESSION_H
 #define SRC_EXPRESSION_H

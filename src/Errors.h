@@ -1,3 +1,9 @@
+/******************************** Errors.h **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Pomocny enum na typy chyb ktore mozu nastat                               */
+/*  Vytvoril: Marek Danco xdanco00	                                          */
+/* ************************************************************************** */
+
 #ifndef SRC_ERRORS_H
 #define SRC_ERRORS_H
 

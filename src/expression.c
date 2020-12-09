@@ -1,6 +1,8 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** expression.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Precedencne spracovanie vyrazov                                           */
+/*  Vytvoril: Marek Danco xdanco00	                                          */
+/* ************************************************************************** */
 
 #include "expression.h"
 

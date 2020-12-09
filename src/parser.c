@@ -1,6 +1,10 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** parser.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Syntakticka a semanticka analyza                                          */
+/*  Vytvorili: Frantisek Fudor xfudor00
+    Marek Danco xdanco00
+    Martin Olsiak xolsia00                                                    */
+/* ************************************************************************** */
 
 #include "parser.h"
 #include <stdlib.h>
@@ -31,9 +35,11 @@ bool checkDatatype(dataType type, token *tok, tableNodePtr varTable) {
 }
 
 errorCode checkFunctionTypes(list *tokenList, data *func, size_t i, tableNodePtr localTable, dataType **back) {
+
     dataType *paramTypes = NULL;
     if (func->parameters != NULL) {
-        paramTypes = malloc(sizeof(dataType) * func->parameters->size / 2);
+        paramTypes = malloc(sizeof(dataType) * (func->parameters->size / 2 + 1));
+        if (!paramTypes) return INTERNAL_ERROR;
     }
     size_t typeCount = 0;
 
@@ -53,6 +59,7 @@ errorCode checkFunctionTypes(list *tokenList, data *func, size_t i, tableNodePtr
                 break;
         }
     }
+    paramTypes[typeCount] = TYPE_UNDEFINED;
     size_t nextCommaCount = 0;
     bool inParams = false;
     token *nextTok = NULL;
@@ -84,6 +91,7 @@ errorCode checkFunctionTypes(list *tokenList, data *func, size_t i, tableNodePtr
         free(paramTypes);
         return PARAMETER_ERROR;
     }
+    free(paramTypes);
 
     *back = func->types;
     return OK;
@@ -101,8 +109,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
         for (token *tok = tokenList->first; tok != NULL; tok = tok->nextToken) {
             if (tok->tokenType == IF)
                 wasIf = true;
-            else if (tok->tokenType ==
-                     FOR) // if we are in for, we can't control, because some variables may not be in symtable
+            else if (tok->tokenType == FOR) // if we are in for, we can't control, because some variables may not be in symtable
                 wasFor = true;
             else if (wasFor && tok->tokenType == SEMICOL)
                 semicolonCount++;
@@ -141,8 +148,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
                             token *prevTok;
                             for (prevTok = tok; prevTok != NULL; prevTok = copyToken(tokenList, tokCounter - count)) {
                                 // run through tokens until we reach something which isn't ")"
-                                if (!equalStrings(prevTok->tokenName.data,
-                                                  ")")) // if token isn't ), that means we got variable or literal
+                                if (!equalStrings(prevTok->tokenName.data, ")")) // if token isn't ), that means we got variable or literal
                                     break;
                                 count++;
                             }
@@ -275,6 +281,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
 
                             decidedType = true; // we are going to add this to symtable, so setting this so we don't do it again
                             dataType *type = malloc(sizeof(dataType) * 2);
+                            if (!type) return INTERNAL_ERROR;
                             bool isVar = false;
                             switch (nextTok->tokenType) { // token type just before the semicolon should only be a literal or identifier
                                 case INT_LIT:
@@ -403,6 +410,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
                     bool isNull = thisSymbol == NULL;
                     if (isNull || scope > thisSymbol->scope || !thisSymbol->defined) {
                         dataType *newType = malloc(sizeof(dataType) * 2);
+                        if (!newType) return INTERNAL_ERROR;
                         for (token *nextTok = tok->nextToken; nextTok != NULL; nextTok = nextTok->nextToken) {
                             // with this cycle, we decide which datatype the variable should be
                             if (nextTok->tokenType == IDENT) {
@@ -439,11 +447,13 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
 
                         if (isNull || thisSymbol->defined) {
                             newType[1] = TYPE_UNDEFINED;
-                            insertNode(localTable, tok->tokenName.data, newType, NULL, scope);
+                            if (insertNode(localTable, tok->tokenName.data, newType, NULL, scope))
+                                return INTERNAL_ERROR;
                         }
                             // scope won't be overwritten, since variable already is in there
                         else {
                             thisSymbol->defined = true;
+                            free(thisSymbol->types);
                             thisSymbol->types = newType;
                             thisSymbol->scope = scope; // scope will be overwritten, since we are defining it again
                         }
@@ -557,6 +567,7 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
                             return SEMANTIC_ERROR;
 
                         nextTypes = malloc(sizeof(dataType) * (nextCommaCount + 2));
+                        if (!nextTypes) return INTERNAL_ERROR;
                         for (size_t j = 0; j < nextCommaCount + 2; j++)
                             nextTypes[j] = TYPE_UNDEFINED;
                         // if there was no function, we need to check next data types term after term
@@ -576,6 +587,10 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
                         }
                     }
                     prevTypes = malloc(sizeof(dataType) * (prevCommaCount + 2));
+                    if (!prevTypes) {
+                        free(nextTypes);
+                        return INTERNAL_ERROR;
+                    }
                     for (size_t j = 0; j < prevCommaCount + 2; j++)
                         prevTypes[j] = TYPE_UNDEFINED;
                     prevTok = copyToken(tokenList, 0); // begin the iteration from start again
@@ -596,10 +611,15 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
 
                     for (size_t j = 0; j < prevCommaCount +
                                            1; j++) { // at the end, iterate one last time to check if data types match
-                        if (nextTypes[j] != prevTypes[j] && prevTypes[j] != TYPE_UNDEFINED)
+                        if (nextTypes[j] != prevTypes[j] && prevTypes[j] != TYPE_UNDEFINED) {
                             // we need to add TYPE_UNDEFINED here in case one of prev identifiers was _ and undefined stayed with it
+                            free(nextTypes);
+                            free(prevTypes);
                             return TYPE_COMPATIBILITY_ERROR;
+                        }
                     }
+                    free(prevTypes);
+                    free(nextTypes);
 
                     break;
                 }
@@ -627,134 +647,337 @@ errorCode semanticAnalyser(list *tokenList, tableNodePtr *globalTable, tableNode
 
 errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
 
+    errorCode out;
+
     ///FUNC INPUTS
     string funcId;
     initString(&funcId);
-    makeString("inputs", &funcId);
+    out = makeString("inputs", &funcId);
+    if (out) return out;
 
     dataType *funcInputsRetTypes = malloc(3 * sizeof(dataType));
+    if (!funcInputsRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcInputsRetTypes[0] = TYPE_STRING;
     funcInputsRetTypes[1] = TYPE_INT;
     funcInputsRetTypes[2] = TYPE_UNDEFINED;
 
     list *funcInputsParams = malloc(sizeof(list));
+    if (!funcInputsParams) {
+        free(funcInputsRetTypes);
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     initList(funcInputsParams);
 
-    insertNode(globalTable, funcId.data, funcInputsRetTypes, funcInputsParams, 0);
+    out = insertNode(globalTable, funcId.data, funcInputsRetTypes, funcInputsParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        free(funcInputsRetTypes);
+        free(funcInputsParams);
+        destroyString(&funcId);
+        return out;
+    }
 
     ///FUNC INPUTI
-    makeString("inputi", &funcId);
+    out = makeString("inputi", &funcId);
+    if (out) return out;
 
     dataType *funcInputiRetTypes = malloc(3 * sizeof(dataType));
+    if (!funcInputiRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcInputiRetTypes[0] = TYPE_INT;
     funcInputiRetTypes[1] = TYPE_INT;
     funcInputiRetTypes[2] = TYPE_UNDEFINED;
 
     list *funcInputiParams = malloc(sizeof(list));
+    if (!funcInputiParams) {
+        destroyString(&funcId);
+        free(funcInputiRetTypes);
+    }
     initList(funcInputiParams);
 
-    insertNode(globalTable, funcId.data, funcInputiRetTypes, funcInputiParams, 0);
+    out = insertNode(globalTable, funcId.data, funcInputiRetTypes, funcInputiParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        free(funcInputiRetTypes);
+        free(funcInputiParams);
+        destroyString(&funcId);
+        return out;
+    }
 
     ///FUNC INPUTF
-    makeString("inputf", &funcId);
+    out = makeString("inputf", &funcId);
+    if (out) return out;
 
     dataType *funcInputfRetTypes = malloc(3 * sizeof(dataType));
+    if (!funcInputfRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcInputfRetTypes[0] = TYPE_INT;
     funcInputfRetTypes[1] = TYPE_INT;
     funcInputfRetTypes[2] = TYPE_UNDEFINED;
 
     list *funcInputfParams = malloc(sizeof(list));
+    if (!funcInputfParams) {
+        destroyString(&funcId);
+        free(funcInputfRetTypes);
+    }
     initList(funcInputfParams);
 
-    insertNode(globalTable, funcId.data, funcInputfRetTypes, funcInputfParams, 0);
+    out = insertNode(globalTable, funcId.data, funcInputfRetTypes, funcInputfParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        free(funcInputfRetTypes);
+        free(funcInputfParams);
+        destroyString(&funcId);
+        return out;
+    }
 
     ///FUNC INT2FLOAT
-    makeString("int2float", &funcId);
+    out = makeString("int2float", &funcId);
+    if (out) return out;
 
     dataType *funcInt2FloatRetTypes = malloc(2 * sizeof(dataType));
+    if (!funcInt2FloatRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcInt2FloatRetTypes[0] = TYPE_FLOAT;
     funcInt2FloatRetTypes[1] = TYPE_UNDEFINED;
 
     list *funcInt2FloatParams = malloc(sizeof(list));
+    if (!funcInt2FloatParams) {
+        destroyString(&funcId);
+        free(funcInt2FloatRetTypes);
+    }
     initList(funcInt2FloatParams);
 
     string funcParamId;
     initString(&funcParamId);
-    makeString("i", &funcParamId);
+    out = makeString("i", &funcParamId);
+    if (out) {
+        destroyString(&funcId);
+        destroyString(&funcParamId);
+        free(funcInt2FloatRetTypes);
+        free(funcInt2FloatParams);
+        return out;
+    }
 
     token funcParam;
     funcParam.tokenType = IDENT;
     funcParam.tokenName = funcParamId;
 
-    addToken(funcInt2FloatParams, funcParam.tokenType, funcParam.tokenName.data);
+    out = addToken(funcInt2FloatParams, funcParam.tokenType, funcParam.tokenName.data);
+    if (out) {
+        destroyString(&funcId);
+        destroyString(&funcParamId);
+        free(funcInt2FloatRetTypes);
+        deleteList(funcInt2FloatParams);
+        free(funcInt2FloatParams);
+        return out;
+    }
 
-    makeString("int", &funcParamId);
+    out = makeString("int", &funcParamId);
+    if (out) {
+        destroyString(&funcId);
+        destroyString(&funcParamId);
+        free(funcInt2FloatRetTypes);
+        deleteList(funcInt2FloatParams);
+        free(funcInt2FloatParams);
+        return out;
+    }
 
     funcParam.tokenType = INT;
     funcParam.tokenName = funcParamId;
-    addToken(funcInt2FloatParams, funcParam.tokenType, funcParam.tokenName.data);
+    out = addToken(funcInt2FloatParams, funcParam.tokenType, funcParam.tokenName.data);
+    if (out) {
+        destroyString(&funcId);
+        destroyString(&funcParamId);
+        free(funcInt2FloatRetTypes);
+        deleteList(funcInt2FloatParams);
+        free(funcInt2FloatParams);
+        return out;
+    }
 
-    insertNode(globalTable, funcId.data, funcInt2FloatRetTypes, funcInt2FloatParams, 0);
+    out = insertNode(globalTable, funcId.data, funcInt2FloatRetTypes, funcInt2FloatParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        deleteList(funcInt2FloatParams);
+        destroyString(&funcParamId);
+        free(funcInt2FloatParams);
+        free(funcInt2FloatRetTypes);
+        destroyString(&funcId);
+        return out;
+    }
 
     ///FUNC FLOAT2INT
-    makeString("float2int", &funcId);
+    out = makeString("float2int", &funcId);
+    if (out) return out;
 
     dataType *funcFloat2IntRetTypes = malloc(2 * sizeof(dataType));
+    if (!funcFloat2IntRetTypes) {
+        destroyString(&funcParamId);
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcFloat2IntRetTypes[0] = TYPE_INT;
     funcFloat2IntRetTypes[1] = TYPE_UNDEFINED;
 
     list *funcFloat2IntParams = malloc(sizeof(list));
+    if (!funcFloat2IntParams) {
+        destroyString(&funcParamId);
+        destroyString(&funcId);
+        free(funcFloat2IntRetTypes);
+    }
     initList(funcFloat2IntParams);
 
-    makeString("f", &funcParamId);
+    out = makeString("f", &funcParamId);
+    if (out) {
+        destroyString(&funcParamId);
+        free(funcFloat2IntRetTypes);
+        free(funcInt2FloatParams);
+        destroyString(&funcId);
+        return out;
+    }
 
     funcParam.tokenType = IDENT;
     funcParam.tokenName = funcParamId;
 
-    addToken(funcFloat2IntParams, funcParam.tokenType, funcParam.tokenName.data);
+    out = addToken(funcFloat2IntParams, funcParam.tokenType, funcParam.tokenName.data);
+    if (out) {
+        destroyString(&funcParamId);
+        free(funcFloat2IntRetTypes);
+        deleteList(funcFloat2IntParams);
+        free(funcInt2FloatParams);
+        destroyString(&funcId);
+        return out;
+    }
 
-    makeString("float64", &funcParamId);
+    out = makeString("float64", &funcParamId);
+    if (out) {
+        destroyString(&funcParamId);
+        free(funcFloat2IntRetTypes);
+        deleteList(funcFloat2IntParams);
+        free(funcInt2FloatParams);
+        destroyString(&funcId);
+        return out;
+    }
 
     funcParam.tokenType = FLOAT;
     funcParam.tokenName = funcParamId;
 
-    addToken(funcFloat2IntParams, funcParam.tokenType, funcParam.tokenName.data);
-    insertNode(globalTable, funcId.data, funcFloat2IntRetTypes, funcFloat2IntParams, 0);
+    out = addToken(funcFloat2IntParams, funcParam.tokenType, funcParam.tokenName.data);
+    if (out) {
+        destroyString(&funcParamId);
+        free(funcFloat2IntRetTypes);
+        deleteList(funcFloat2IntParams);
+        free(funcInt2FloatParams);
+        destroyString(&funcId);
+        return out;
+    }
+    out = insertNode(globalTable, funcId.data, funcFloat2IntRetTypes, funcFloat2IntParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        destroyString(&funcParamId);
+        free(funcFloat2IntRetTypes);
+        deleteList(funcFloat2IntParams);
+        free(funcInt2FloatParams);
+        destroyString(&funcId);
+        return out;
+    }
 
     ///FUNC LEN
-    makeString("len", &funcId);
+    out = makeString("len", &funcId);
+    if (out) return out;
 
     dataType *funcLenRetTypes = malloc(2 * sizeof(dataType));
+    if (!funcLenRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcLenRetTypes[0] = TYPE_INT;
     funcLenRetTypes[1] = TYPE_UNDEFINED;
 
     list *funcLenParams = malloc(sizeof(list));
+    if (!funcLenParams) {
+        destroyString(&funcId);
+        free(funcLenRetTypes);
+    }
     initList(funcLenParams);
 
-    makeString("s", &funcParamId);
+    out = makeString("s", &funcParamId);
+    if (out) {
+        free(funcLenParams);
+        free(funcLenRetTypes);
+        destroyString(&funcId);
+        return out;
+    }
 
     funcParam.tokenType = IDENT;
     funcParam.tokenName = funcParamId;
 
-    addToken(funcLenParams, funcParam.tokenType, funcParam.tokenName.data);
+    out = addToken(funcLenParams, funcParam.tokenType, funcParam.tokenName.data);
+    if (out) {
+        deleteList(funcLenParams);
+        free(funcLenParams);
+        free(funcLenRetTypes);
+        destroyString(&funcId);
+        return out;
+    }
 
-    makeString("string", &funcParamId);
+    out = makeString("string", &funcParamId);
+    if (out) {
+        deleteList(funcLenParams);
+        free(funcLenParams);
+        free(funcLenRetTypes);
+        destroyString(&funcId);
+        destroyString(&funcParamId);
+        return out;
+    }
 
     funcParam.tokenType = STRING;
     funcParam.tokenName = funcParamId;
 
     addToken(funcLenParams, funcParam.tokenType, funcParam.tokenName.data);
-    insertNode(globalTable, funcId.data, funcLenRetTypes, funcLenParams, 0);
+    out = insertNode(globalTable, funcId.data, funcLenRetTypes, funcLenParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        free(funcLenRetTypes);
+        deleteList(funcLenParams);
+        free(funcLenParams);
+        return out;
+    }
 
     ///FUNC SUBSTR
-    makeString("substr", &funcId);
+    out = makeString("substr", &funcId);
+    if (out) return out;
 
     dataType *funcSubstrRetTypes = malloc(3 * sizeof(dataType));
+    if (!funcSubstrRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcSubstrRetTypes[0] = TYPE_STRING;
     funcSubstrRetTypes[1] = TYPE_INT;
     funcSubstrRetTypes[2] = TYPE_UNDEFINED;
 
     list *funcSubstrParams = malloc(sizeof(list));
+    if (!funcSubstrParams) {
+        destroyString(&funcId);
+        free(funcSubstrRetTypes);
+    }
     initList(funcSubstrParams);
 
     makeString("s", &funcParamId);
@@ -805,17 +1028,34 @@ errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
     funcParam.tokenName = funcParamId;
     addToken(funcSubstrParams, funcParam.tokenType, funcParam.tokenName.data);
 
-    insertNode(globalTable, funcId.data, funcSubstrRetTypes, funcSubstrParams, 0);
+    out = insertNode(globalTable, funcId.data, funcSubstrRetTypes, funcSubstrParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        free(funcSubstrRetTypes);
+        deleteList(funcSubstrParams);
+        free(funcSubstrParams);
+        return out;
+    }
 
     ///FUNC ORD
-    makeString("ord", &funcId);
+    out = makeString("ord", &funcId);
+    if (out) return out;
 
     dataType *funcOrdRetTypes = malloc(3 * sizeof(dataType));
+    if (!funcOrdRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcOrdRetTypes[0] = TYPE_INT;
     funcOrdRetTypes[1] = TYPE_INT;
     funcOrdRetTypes[2] = TYPE_UNDEFINED;
 
     list *funcOrdParams = malloc(sizeof(list));
+    if (!funcOrdParams) {
+        destroyString(&funcId);
+        free(funcOrdRetTypes);
+    }
     initList(funcOrdParams);
 
     makeString("s", &funcParamId);
@@ -848,17 +1088,34 @@ errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
     funcParam.tokenName = funcParamId;
     addToken(funcOrdParams, funcParam.tokenType, funcParam.tokenName.data);
 
-    insertNode(globalTable, funcId.data, funcOrdRetTypes, funcOrdParams, 0);
+    out = insertNode(globalTable, funcId.data, funcOrdRetTypes, funcOrdParams, 0);
+
+    destroyString(&funcId);
+    if (out) {
+        free(funcOrdRetTypes);
+        deleteList(funcOrdParams);
+        free(funcOrdParams);
+        return out;
+    }
 
     ///FUNC CHR
-    makeString("chr", &funcId);
+    out = makeString("chr", &funcId);
+    if (out) return out;
 
     dataType *funcChrRetTypes = malloc(3 * sizeof(dataType));
+    if (!funcChrRetTypes) {
+        destroyString(&funcId);
+        return INTERNAL_ERROR;
+    }
     funcChrRetTypes[0] = TYPE_STRING;
     funcChrRetTypes[1] = TYPE_INT;
     funcChrRetTypes[2] = TYPE_UNDEFINED;
 
     list *funcChrParams = malloc(sizeof(list));
+    if (!funcChrParams) {
+        destroyString(&funcId);
+        free(funcChrRetTypes);
+    }
     initList(funcChrParams);
 
     makeString("i", &funcParamId);
@@ -873,9 +1130,15 @@ errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
     funcParam.tokenName = funcParamId;
     addToken(funcChrParams, funcParam.tokenType, funcParam.tokenName.data);
 
-    insertNode(globalTable, funcId.data, funcChrRetTypes, funcChrParams, 0);
+    out = insertNode(globalTable, funcId.data, funcChrRetTypes, funcChrParams, 0);
 
     destroyString(&funcId);
+    if (out) {
+        free(funcChrRetTypes);
+        deleteList(funcChrParams);
+        free(funcChrParams);
+        return out;
+    }
 
     size_t length = tokenList->size;
 
@@ -906,6 +1169,7 @@ errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
                     token param;
 
                     list *parameters = malloc(sizeof(list)); // create the list for storing parameters
+                    if (!parameters) return INTERNAL_ERROR;
                     initList(parameters); //list parametrov
 
                     getToken(tokenList, i, &param); // FUNC IDENT ( *IDENT* ...
@@ -916,7 +1180,8 @@ errorCode fillSymtable(tableNodePtr *globalTable, list *tokenList) {
                                 case IDENT: // if this token is identifier
                                     if (param.nextToken->tokenType == INT || param.nextToken->tokenType == STRING ||
                                         param.nextToken->tokenType == FLOAT) { // next token can be only a datatype
-                                        addToken(parameters, param.tokenType, param.tokenName.data);
+                                        out = addToken(parameters, param.tokenType, param.tokenName.data);
+                                        if (out) return out;
                                         i++;
                                         getToken(tokenList, i, &param);
                                     } else {
@@ -1446,21 +1711,15 @@ errorCode blockFunctionDeclare(token curToken) {
     return OK;
 
 }
-//prints out error message - prints number of line and line itself
-void errorPrint(list *lineTable, int lineCount) {
-
-    fprintf(stderr, "SYNTAX_ERROR on line %d \n ", lineCount);
-    token curToken = *lineTable->first;
-    for (size_t i = 0; i < lineTable->size; i++) {
-        fprintf(stderr, "%s ", curToken.tokenName.data);
-        if (curToken.nextToken == NULL) break;
-        curToken = *curToken.nextToken;
-    }
-}
-
 
 errorCode parse(list *tokenList) {
 
+    if (tokenList->first == NULL) {
+        string* s = malloc(sizeof(string));
+        gen.program = s;
+        generatorInit();
+        return OK;
+    }
     tableNodePtr globalTable;
     data *currentFunc = NULL;
     int lineCount = 0;
@@ -1504,13 +1763,11 @@ errorCode parse(list *tokenList) {
     //check if is - package main
     returnError = blockPackage(tokenList);
     if (returnError) {
-        errorPrint(&lineTable, lineCount);
         return returnError;
     }
     //check if there is no curly bracket missing
     returnError = blockBrackets(tokenList);
     if (returnError != OK) {
-        errorPrint(&lineTable, lineCount);
         return returnError;
     }
     //give first line to the generator
@@ -1541,7 +1798,6 @@ errorCode parse(list *tokenList) {
         //check if there is curly bracket at the end of the line of if and for commands
         if (lineTable.first->tokenType == FOR || lineTable.first->tokenType == IF)
             if (lineTable.last->tokenType != BRACKET_CURLY || !equalStrings(lineTable.last->tokenName.data, "{")) {
-                errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
             }
 
@@ -1554,7 +1810,6 @@ errorCode parse(list *tokenList) {
         if (lineTable.first->tokenType == IF) {
             returnError = blockExpression(*lineTable.first->nextToken, false, false);
             if (returnError) {
-                errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
             }
             ifCount++;
@@ -1578,7 +1833,6 @@ errorCode parse(list *tokenList) {
             int closedBracket = 0;
             while (openBracket != closedBracket) {
                 if (curToken.nextToken == NULL) {
-                    errorPrint(&lineTable, lineCount);
                     return SYNTAX_ERROR;
                 }
                 curToken = *curToken.nextToken;
@@ -1602,7 +1856,6 @@ errorCode parse(list *tokenList) {
             free(ifName);
 
             if (curToken.nextToken->tokenType != ELSE) {
-                errorPrint(&lineTable, lineCount);
                 return SYNTAX_ERROR;
             }
 
@@ -1626,21 +1879,18 @@ errorCode parse(list *tokenList) {
             //check for definition
             returnError = blockDefinition(tempToken, true);
             if (returnError) {
-                errorPrint(&lineTable, lineCount);
                 return returnError;
-            };
+            }
 
             while (tempToken.tokenType != SEMICOL) {
                 if (tempToken.nextToken == NULL) {
-                    errorPrint(&lineTable, lineCount);
                     return SYNTAX_ERROR;
-                };
+                }
                 tempToken = *tempToken.nextToken;
             }
             //check for expression
             returnError = blockExpression(*tempToken.nextToken, true, false);
             if (returnError) {
-                errorPrint(&lineTable, lineCount);
                 return returnError;
             }
 
@@ -1651,7 +1901,6 @@ errorCode parse(list *tokenList) {
             //check for assign command
             returnError = blockAssign(*tempToken.nextToken, true);
             if (returnError) {
-                errorPrint(&lineTable, lineCount);
                 return returnError;
             }
         }
@@ -1660,7 +1909,6 @@ errorCode parse(list *tokenList) {
             if (lineTable.first->nextToken->tokenType != EOL) {
                 returnError = blockExpression(*lineTable.first->nextToken, false, true);
                 if (returnError) {
-                    errorPrint(&lineTable, lineCount);
                     return returnError;
                 }
             }
@@ -1687,7 +1935,6 @@ errorCode parse(list *tokenList) {
 
                     returnError = blockFunctionCall(*tempToken.nextToken);
                     if (returnError) {
-                        errorPrint(&lineTable, lineCount);
                         return returnError;
                     }
 
@@ -1696,7 +1943,6 @@ errorCode parse(list *tokenList) {
                 else {
                     returnError = blockDefinition(*lineTable.first, false);
                     if (returnError) {
-                        errorPrint(&lineTable, lineCount);
                         return returnError;
                     }
                 }
@@ -1715,7 +1961,6 @@ errorCode parse(list *tokenList) {
                     tempToken.nextToken->nextToken->tokenType == BRACKET_ROUND) {
                     returnError = blockFunctionCall(*tempToken.nextToken);
                     if (returnError) {
-                        errorPrint(&lineTable, lineCount);
                         return returnError;
                     }
 
@@ -1724,7 +1969,6 @@ errorCode parse(list *tokenList) {
                 else {
                     returnError = blockAssign(*lineTable.first, false);
                     if (returnError) {
-                        errorPrint(&lineTable, lineCount);
                         return returnError;
                     }
                 }
@@ -1735,7 +1979,6 @@ errorCode parse(list *tokenList) {
             else {
                 returnError = blockFunctionCall(*lineTable.first);
                 if (returnError) {
-                    errorPrint(&lineTable, lineCount);
                     return returnError;
                 }
 
@@ -1773,7 +2016,6 @@ errorCode parse(list *tokenList) {
 
             returnError = blockFunctionDeclare(*lineTable.first->nextToken);
             if (returnError) {
-                errorPrint(&lineTable, lineCount);
                 return returnError;
             }
         }
@@ -1782,7 +2024,6 @@ errorCode parse(list *tokenList) {
             if (lineTable.first->nextToken != NULL)
                 if (lineTable.first->nextToken->tokenType == ELSE) {
                     if ((size_t)atoi(buffer.first->tokenName.data) != i + 1 - (lineTable.size - 1)) {
-                        errorPrint(&lineTable, lineCount);
                         return SYNTAX_ERROR;
                     }
                     popToken(&buffer);

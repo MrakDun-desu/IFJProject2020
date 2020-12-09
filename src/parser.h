@@ -1,6 +1,10 @@
-//
-// Created by xdanco00 on 12. 11. 2020.
-//
+/******************************** parser.c **********************************/
+/*  Predmet: IFJ a IAL						                                  */
+/*  Syntakticka a semanticka analyza                                          */
+/*  Vytvorili: Frantisek Fudor xfudor00
+    Marek Danco xdanco00
+    Martin Olsiak xolsia00                                                    */
+/* ************************************************************************** */
 
 #ifndef SRC_PARSER_H
 #define SRC_PARSER_H
