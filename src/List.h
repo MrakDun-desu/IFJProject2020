@@ -67,12 +67,29 @@ void getToken(list* l, size_t pos, token* t);
  * @param t Token which will be added in to list l.
  * @return If item was added successfully, returns 0, otherwise returns 1.
  */
-int addToken(list* l, type tType, char* tName);
+errorCode addToken(list* l, type tType, char* tName);
 
+/**
+ * @brief Pushes token to the start of list as if to a stack.
+ * @param l List into which the token will be pushed.
+ * @param tok Token which contains data that will be pushed (will be copied by value).
+ * @return Error code OK if pushing was successful, INTERNAL_ERROR otherwise.
+ */
 errorCode pushToken(list *l, token *tok);
 
+/**
+ * @brief Returns first token from the list as if from stack and deletes it from it.
+ * @param l List from which the token will be popped.
+ * @return Token which was formerly first in the list.
+ */
 token* popToken(list *l);
 
+/**
+ * @brief Copies the pointer to token in position pos.
+ * @param l List from which the token will be copied.
+ * @param pos Position in the list from which the token will be copied.
+ * @return Pointer to the token.
+ */
 token* copyToken(list* l, size_t pos);
 
 #endif //SRC_LIST_H

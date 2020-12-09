@@ -23,6 +23,9 @@ void deleteList(list* l){
 }
 
 void getToken(list* l, size_t pos, token* t){
+    if (t == NULL) {
+        return;
+    }
     if(pos >= l->size)
         t = NULL;
     else {
@@ -32,16 +35,16 @@ void getToken(list* l, size_t pos, token* t){
     }
 }
 
-int addToken(list* l, type tType, char* tName ){
+errorCode addToken(list* l, type tType, char* tName ){
 
     token *tNew;
     tNew = malloc(sizeof(token));
-    if(tNew == NULL){
+    if(!tNew){
         return INTERNAL_ERROR;
     }
     tNew->tokenType = tType;
     initString(&tNew->tokenName);
-    makeString(tName, &tNew->tokenName);
+    if (makeString(tName, &tNew->tokenName)) return INTERNAL_ERROR;
     tNew->nextToken = NULL;
 
     if(l->last != NULL){

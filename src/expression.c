@@ -19,17 +19,20 @@ bool isLarger(char op1, char op2) {
     return false;
 }
 
-size_t evalExpression(list* tokenList, list* outList, size_t pos) {
+errorCode evalExpression(list* tokenList, list* outList, size_t* pos) {
     list helpList;
     initList(&helpList);
     bool justReturned = false;
-    for (size_t i = pos; i < tokenList->size; i++) {
+    for (size_t i = *pos; i < tokenList->size; i++) {
         token* tok;
         tok = copyToken(tokenList, i);
         if (justReturned) {
             while (helpList.first != NULL && isLarger(helpList.first->tokenName.data[0], tok->tokenName.data[0])) {
                 token* helpToken = popToken(&helpList);
-                addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                if (addToken(outList, helpToken->tokenType, helpToken->tokenName.data)) {
+                    deleteList(&helpList);
+                    return INTERNAL_ERROR;
+                }
                 destroyString(&helpToken->tokenName);
                 free(helpToken);
             }
@@ -44,28 +47,50 @@ size_t evalExpression(list* tokenList, list* outList, size_t pos) {
                 while (helpList.first != NULL &&
                        isLarger(helpList.first->tokenName.data[0], tok->nextToken->tokenName.data[0])) {
                     token *helpToken = popToken(&helpList);
-                    addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                    if (addToken(outList, helpToken->tokenType, helpToken->tokenName.data)) {
+                        destroyString(&helpToken->tokenName);
+                        free(helpToken);
+                        deleteList(&helpList);
+                        return INTERNAL_ERROR;
+                    }
                     destroyString(&helpToken->tokenName);
                     free(helpToken);
                 }
             } else {
                 while (helpList.first != NULL) {
                     token *helpToken = popToken(&helpList);
-                    addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                    if (addToken(outList, helpToken->tokenType, helpToken->tokenName.data)) {
+                        destroyString(&helpToken->tokenName);
+                        free(helpToken);
+                        deleteList(&helpList);
+                        return INTERNAL_ERROR;
+                    }
                     destroyString(&helpToken->tokenName);
                     free(helpToken);
                 }
             }
         } else if (tok->tokenType == COMP_OPERATOR ||
             tok->tokenType == ARIT_OPERATOR) {
-            pushToken(&helpList, tok);
+            if (pushToken(&helpList, tok)) {
+                deleteList(&helpList);
+                return INTERNAL_ERROR;
+            }
         } else if (equalStrings(tok->tokenName.data, "(")) {
-            i = evalExpression(tokenList, outList, i+1);
+            i++;
+            if (evalExpression(tokenList, outList, &i)) {
+                deleteList(&helpList);
+                return INTERNAL_ERROR;
+            }
             justReturned = true;
         } else if (equalStrings(tok->tokenName.data, ")")) {
             while(helpList.first != NULL) {
                 token* helpToken = popToken(&helpList);
-                addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+                if (addToken(outList, helpToken->tokenType, helpToken->tokenName.data)) {
+                    destroyString(&helpToken->tokenName);
+                    free(helpToken);
+                    deleteList(&helpList);
+                    return INTERNAL_ERROR;
+                }
                 destroyString(&helpToken->tokenName);
                 free(helpToken);
             }
@@ -74,7 +99,12 @@ size_t evalExpression(list* tokenList, list* outList, size_t pos) {
     }
     while(helpList.first != NULL) {
         token* helpToken = popToken(&helpList);
-        addToken(outList, helpToken->tokenType, helpToken->tokenName.data);
+        if (addToken(outList, helpToken->tokenType, helpToken->tokenName.data)) {
+            destroyString(&helpToken->tokenName);
+            free(helpToken);
+            deleteList(&helpList);
+            return INTERNAL_ERROR;
+        }
         destroyString(&helpToken->tokenName);
         free(helpToken);
     }
@@ -87,12 +117,8 @@ errorCode applyPrecedence(list* tokenList, tableNodePtr varTable) {
     initList(&outList);
 
     size_t pos = 0;
-    if (evalExpression(tokenList, &outList, pos) != tokenList->size) return INTERNAL_ERROR;
-
-    /*for (token* tok = copyToken(&outList, 0); tok != NULL; tok = tok->nextToken) {
-        printf("%s ", tok->tokenName.data);
-    }
-    printf("\n");*/
+    if (evalExpression(tokenList, &outList, &pos)) return INTERNAL_ERROR;
+    if (pos != tokenList->size) return INTERNAL_ERROR;
 
     if (generateExpression(&outList, varTable)) return INTERNAL_ERROR;
 
