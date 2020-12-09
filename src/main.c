@@ -44,7 +44,7 @@ int main() {
 
     out = parse(&tokenList);
     if (out) {
-
+        generatorClear();
         free(buffer);
         return out;
     }

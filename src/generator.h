@@ -201,6 +201,16 @@ generator gen; /// generator that all specified functions will use so program st
  */
 void generatorInit();
 
+/**
+ * @brief Handles a list of tokens and generates code from them.
+ * @param currentLine Current line of tokens that is used for generating.
+ * @param tokenList Whole token list (needed if we are in the start of function and need to pregenerate defvars).
+ * @param globalTable Global table of program for identifying functions.
+ * @param localTable Local table of program for identifying variables.
+ * @param ifStack Stack of ifs and fors so we know which numbers to give to generator.
+ * @param currentFunc Pointer to current function so we know if we need to exit the program or just return.
+ * @return OK if all allocation has been successful, corresponding error code otherwise.
+ */
 errorCode generatorHandle(list* currentLine, list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, list* ifStack, data* currentFunc);
 
 /**
@@ -225,9 +235,6 @@ errorCode generatorStart();
  * @brief Empties the program string and sets all the helper variables to zero.
  */
 void generatorClear();
-
-errorCode generatorHandle(list* currentLine, list* tokenList, tableNodePtr globalTable, tableNodePtr localTable, list* ifStack, data* currentFunc);
-
 
 /**
  * @brief Writes program string into a specified file.
@@ -267,7 +274,7 @@ errorCode generateFunctionEnd();
 /**
  * @brief Generates call of function and everything that goes before it.
  * @param function Pointer to function data.
- * @param argValues Pointer to list of tokens, that are passed as arguments to function.
+ * @param argValues Pointer to list of tokens that are passed as arguments to function.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateFunctionCall(data* function, list* argValues);
@@ -285,14 +292,15 @@ errorCode generateFunctionCall(data* function, list* argValues);
 /**
  * @brief Generates returning from the function (moving the values from TF@ ret variables to assignVariables).
  * @param function Pointer to function data (so generator knows how many return types there are).
- * @param assignVariables Pointer to list of tokens that will receive return data from functions
- * @return
+ * @param assignVariables Pointer to list of tokens that will receive return data from functions.
+ * @return OK if allocation was successful, corresponding error code otherwise.
  */
-errorCode generateFunctionReturn(data* function, list* assignVariables);
+errorCode generateFunctionReturn(list* assignVariables);
 
 /**
  * @brief Generates start of if else sequence (condition should be send to expression.c for parsing and generation of code).
  * @param condition Pointer to list of tokens that are an if condition.
+ * @param varTable Local variable table of functions, is used in condition generating.
  * @param ifCount Number of the if, used for label generation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
@@ -336,7 +344,9 @@ errorCode generateForPrequel(size_t forCount);
 
 /**
  * @brief Generates the start of for sequence (creating bools, creating two starting labels, checking condition and jump).
- * @param level Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
+ * @param condition Pointer to list of tokens that are for condition.
+ * @param varTable Local variable table of functions, is used in condition generating.
+ * @param forCount Number of the for, used for label generation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCount);
@@ -363,7 +373,7 @@ errorCode generateForStart(list* condition, tableNodePtr varTable, size_t forCou
 
 /**
  * @brief Generates the end of for sequence.
- * @param forCount Level at which the for sequence is (0 if directly in function). Should be used when naming jump labels to avoid duplicates.
+ * @param forCount Number of the for, used for label generation.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateForEnd(size_t forCount);
@@ -382,13 +392,19 @@ errorCode generateDefvar(token* var);
  */
 errorCode generateMove(token* var);
 
+/**
+ * @brief Generates the write command for a token.
+ * @param tok Token which will be printed.
+ * @return OK if allocation was successful, corresponding error code otherwise.
+ */
 errorCode generatePrint(token* tok);
 
 /**
  * @brief Generates the arithmetic command (command is determined by char).
- * @param var Variable that should store the result of addition.
- * @param symb1 First symbol in the addition.
- * @param symb2 Second symbol in the addition.
+ * @param var Variable that should store the result of command.
+ * @param symb1 First symbol in the command.
+ * @param symb2 Second symbol in the command.
+ * @param frames String that tells the program in which frames the variables are.
  * @param operation Operation which is to be performed. (Can be + - * / %). / is for idiv, % is for div.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
@@ -399,6 +415,7 @@ errorCode generateArithmetic(token* var, token* symb1, token* symb2, char* frame
  * @param var Variable that should store the result of LT.
  * @param symb1 First symbol in the LT.
  * @param symb2 Second symbol in the LT.
+ * @param frames String that tells the program in which frames the variables are.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateLT(token* var, token* symb1, token* symb2, char* frames);
@@ -408,6 +425,7 @@ errorCode generateLT(token* var, token* symb1, token* symb2, char* frames);
  * @param var Variable that should store the result of GT.
  * @param symb1 First symbol in the GT.
  * @param symb2 Second symbol in the GT.
+ * @param frames String that tells the program in which frames the variables are.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateGT(token* var, token* symb1, token* symb2, char* frames);
@@ -417,6 +435,7 @@ errorCode generateGT(token* var, token* symb1, token* symb2, char* frames);
  * @param var Variable that should store the result of EQ.
  * @param symb1 First symbol in the EQ.
  * @param symb2 Second symbol in the EQ.
+ * @param frames String that tells the program in which frames the variables are.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateEQ(token* var, token* symb1, token* symb2, char* frames);
@@ -433,6 +452,7 @@ errorCode generateNOT(token* var);
  * @param var Variable that should store the result of concatenation.
  * @param symb1 First string in the concatenation.
  * @param symb2 Second string in the concatenation.
+ * @param frames String that tells the program in which frames the variables are.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateConcat(token* var, token* symb1, token* symb2, char* frames);
@@ -440,6 +460,7 @@ errorCode generateConcat(token* var, token* symb1, token* symb2, char* frames);
 /**
  * @brief Generates expression from rightly ordered token list.
  * @param expression Token list which contains expression.
+ * @param varTable Local table of variables for deciding expression type.
  * @return OK if allocation was successful, corresponding error code otherwise.
  */
 errorCode generateExpression(list* expression, tableNodePtr varTable); // funkcia pre xdanco00

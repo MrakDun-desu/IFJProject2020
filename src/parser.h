@@ -19,7 +19,7 @@ size_t scope;
  * @param tokenList List of tokens that is to be analysed (Always the whole line).
  * @param globalTable Global table of symbols (functions).
  * @param localTable Local table of symbols (variables).
- * @param data Function that we are currently in (for checking return types).
+ * @param function Function that we are currently in (for checking return types).
  * @return Error code that represents if discrepancy has been found. Can be OK or between 2 and 9.
  */
 errorCode semanticAnalyser(list* tokenList, tableNodePtr* globalTable, tableNodePtr* localTable, data* function); /// xdanco00

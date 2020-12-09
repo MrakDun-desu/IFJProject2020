@@ -94,10 +94,11 @@ errorCode evalExpression(list* tokenList, list* outList, size_t* pos) {
                 destroyString(&helpToken->tokenName);
                 free(helpToken);
             }
-            return i;
+            *pos = i;
+            return OK;
         }
     }
-    while(helpList.first != NULL) {
+    while (helpList.first != NULL) {
         token* helpToken = popToken(&helpList);
         if (addToken(outList, helpToken->tokenType, helpToken->tokenName.data)) {
             destroyString(&helpToken->tokenName);
@@ -108,7 +109,8 @@ errorCode evalExpression(list* tokenList, list* outList, size_t* pos) {
         destroyString(&helpToken->tokenName);
         free(helpToken);
     }
-    return tokenList->size;
+    *pos = tokenList->size;
+    return OK;
 }
 
 errorCode applyPrecedence(list* tokenList, tableNodePtr varTable) {

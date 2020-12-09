@@ -7,11 +7,10 @@
 #include "DynamicString.h"
 
 /**
- * @brief Analyzes code symbol by symbol and saves them into string
- * @param sortedList List pointer where analyzed lexems are stored
- * @param code List pointer where code is stored
+ * @brief Analyzes code symbol by symbol and saves them into list.
+ * @param sortedList List pointer where analyzed lexems will be stored.
+ * @param code String of the code.
  */
-
 errorCode CodeAnalyzer(list *sortedList, string code);
 
 

@@ -27,7 +27,7 @@ int isIntLit(string *lexem) {
     if (lexem->len < 1) {
         return 1;
     }
-    for (int i = 0; i < lexem->len; i++) {
+    for (size_t i = 0; i < lexem->len; i++) {
         if (isdigit(lexem->data[i]) == 0)
             return 1;
     }
@@ -41,7 +41,7 @@ int isFloatLit(string *lexem) {
     }
 
     int dotCount = 0;
-    for (int i = 0; i < lexem->len; i++) {
+    for (size_t i = 0; i < lexem->len; i++) {
         if (isdigit(lexem->data[i]) == 0 && lexem->data[i] != '.') return 1;
 
         if (lexem->data[i] == '.') {
@@ -57,7 +57,7 @@ int isIdent(string *lexem) {
     if (isdigit(lexem->data[0]) != 0)
         return 0;
 
-    for (int i = 0; i < lexem->len - 1; i++) {
+    for (size_t i = 0; i < lexem->len - 1; i++) {
         if (isalnum(lexem->data[i]) == 0 && lexem->data[i] != '_')
             return 0;
     }
@@ -201,7 +201,7 @@ errorCode CodeAnalyzer(list *sortedList, string code) {
 
 
     //read code char by char
-    for (int i = 0; i < code.len; i++) {
+    for (size_t i = 0; i < code.len; i++) {
 
         currentChar = code.data[i];
 

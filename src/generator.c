@@ -24,13 +24,20 @@ errorCode pregenerateDefvar(list *tokenList, token curToken, size_t i) {
                 }
             }
             if (!wasDefined && localToken.tokenType == IDENT) {
-                if (addToken(&localList, localToken.tokenType, localToken.tokenName.data)) return INTERNAL_ERROR;
-                generateDefvar(&localToken);
+                if (addToken(&localList, localToken.tokenType, localToken.tokenName.data)) {
+                    deleteList(&localList);
+                    return INTERNAL_ERROR;
+                }
+                if (generateDefvar(&localToken)) {
+                    deleteList(&localList);
+                    return INTERNAL_ERROR;
+                }
             }
         }
 
         i++;
     }
+    deleteList(&localList);
 
 
     return OK;
@@ -43,6 +50,7 @@ errorCode assignHandle(list *assign, tableNodePtr globalTable, tableNodePtr loca
         initList(&vars);
         list expression;
         initList(&expression);
+        errorCode code;
 
         bool wasAssign = false;
         bool wasFunction = false;
@@ -52,24 +60,52 @@ errorCode assignHandle(list *assign, tableNodePtr globalTable, tableNodePtr loca
             if (tok->tokenType == ASIGN_OPERATOR) {
                 wasAssign = true;
             } else if (!wasAssign && tok->tokenType == IDENT && !equalStrings(tok->tokenName.data, "_")) {
-                addToken(&vars, tok->tokenType, tok->tokenName.data);
+                if ((code = addToken(&vars, tok->tokenType, tok->tokenName.data)) != OK) {
+                    deleteList(&vars);
+                    deleteList(&expression);
+                    return code;
+                }
             } else if (wasAssign && tok->tokenType == COMMA) {
                 if (!equalStrings(copyToken(&vars, commaCounter)->tokenName.data, "_")) {
-                    applyPrecedence(&expression, localTable);
-                    generateMove(copyToken(&vars, commaCounter));
+                    if ((code = applyPrecedence(&expression, localTable)) != OK) {
+                        deleteList(&vars);
+                        deleteList(&expression);
+                        return code;
+                    }
+                    if ((code = generateMove(copyToken(&vars, commaCounter))) != OK) {
+                        deleteList(&vars);
+                        deleteList(&expression);
+                        return code;
+                    }
                 }
                 deleteList(&expression);
                 commaCounter++;
             } else if (wasAssign && copyNode(&globalTable, tok->tokenName.data) == NULL) {
-                addToken(&expression, tok->tokenType, tok->tokenName.data);
+                if ((code = addToken(&expression, tok->tokenType, tok->tokenName.data)) != OK) {
+                    deleteList(&vars);
+                    deleteList(&expression);
+                    return code;
+                }
             } else if (wasAssign && copyNode(&globalTable, tok->tokenName.data) != NULL) {
                 for (token *arg = tok->nextToken; arg != NULL; arg = arg->nextToken) {
                     if (arg->tokenType != COMMA && arg->tokenType != BRACKET_ROUND) {
-                        addToken(&expression, arg->tokenType, arg->tokenName.data);
+                        if ((code = addToken(&expression, arg->tokenType, arg->tokenName.data)) != OK) {
+                            deleteList(&vars);
+                            deleteList(&expression);
+                            return code;
+                        }
                     }
                 }
-                generateFunctionCall(copyNode(&globalTable, tok->tokenName.data), &expression);
-                generateFunctionReturn(copyNode(&globalTable, tok->tokenName.data), &vars);
+                if ((code = generateFunctionCall(copyNode(&globalTable, tok->tokenName.data), &expression)) != OK) {
+                    deleteList(&vars);
+                    deleteList(&expression);
+                    return code;
+                }
+                if ((code = generateFunctionReturn(&vars)) != OK) {
+                    deleteList(&vars);
+                    deleteList(&expression);
+                    return code;
+                }
                 wasFunction = true;
                 break;
             }
@@ -77,8 +113,16 @@ errorCode assignHandle(list *assign, tableNodePtr globalTable, tableNodePtr loca
 
         if (!wasFunction) {
             if (!equalStrings(copyToken(&vars, commaCounter)->tokenName.data, "_")) {
-                applyPrecedence(&expression, localTable);
-                generateMove(copyToken(&vars, commaCounter));
+                if ((code = applyPrecedence(&expression, localTable)) != OK) {
+                    deleteList(&vars);
+                    deleteList(&expression);
+                    return code;
+                }
+                if ((generateMove(copyToken(&vars, commaCounter))) != OK) {
+                    deleteList(&vars);
+                    deleteList(&expression);
+                    return code;
+                }
             }
             deleteList(&expression);
         }
@@ -90,7 +134,8 @@ errorCode assignHandle(list *assign, tableNodePtr globalTable, tableNodePtr loca
     return OK;
 }
 
-errorCode generatorHandle(list *currentLine, list *tokenList, tableNodePtr globalTable, tableNodePtr localTable, list *ifStack,
+errorCode
+generatorHandle(list *currentLine, list *tokenList, tableNodePtr globalTable, tableNodePtr localTable, list *ifStack,
                 data *currentFunc) {
 
     errorCode code;
@@ -128,26 +173,41 @@ errorCode generatorHandle(list *currentLine, list *tokenList, tableNodePtr globa
             } else if (ifStack->first->tokenType == IF) {
                 if (currentLine->first->nextToken->tokenType == ELSE) {
                     int ifCount = atoi(ifStack->first->tokenName.data);
-                    generateElse(ifCount);
+                    code = generateElse(ifCount);
+                    if (code) return code;
                 } else {
                     int ifCount = atoi(ifStack->first->tokenName.data);
-                    generateIfEnd(ifCount);
-                    popToken(ifStack);
+                    code = generateIfEnd(ifCount);
+                    if (code) return code;
+                    token *temp = popToken(ifStack);
+                    destroyString(&temp->tokenName);
+                    free(temp);
                 }
             } else {
                 int forCount = atoi(ifStack->first->tokenName.data);
-                generateForEnd(forCount);
-                popToken(ifStack);
+                code = generateForEnd(forCount);
+                if (code) return code;
+                token *temp = popToken(ifStack);
+                destroyString(&temp->tokenName);
+                free(temp);
             }
         } else if (currentLine->first->tokenType == IF) {
             list condition;
             initList(&condition);
             for (token *temp = currentLine->first->nextToken;
                  temp != NULL && temp->tokenType != BRACKET_CURLY; temp = temp->nextToken) {
-                addToken(&condition, temp->tokenType, temp->tokenName.data);
+                code = addToken(&condition, temp->tokenType, temp->tokenName.data);
+                if (code) {
+                    deleteList(&condition);
+                    return code;
+                }
             }
             int ifCount = atoi(ifStack->first->tokenName.data);
-            generateIfStart(&condition, localTable, ifCount);
+            code = generateIfStart(&condition, localTable, ifCount);
+            if (code) {
+                deleteList(&condition);
+                return code;
+            }
             deleteList(&condition);
 
         } else if (currentLine->first->tokenType == FOR) {
@@ -162,36 +222,85 @@ errorCode generatorHandle(list *currentLine, list *tokenList, tableNodePtr globa
                  tok != NULL && tok->tokenType != BRACKET_CURLY; tok = tok->nextToken) {
                 if (tok->tokenType == SEMICOL) {
                     if (semicolCount == 0) {
-                        assignHandle(&assign, globalTable, localTable);
+                        code = assignHandle(&assign, globalTable, localTable);
+                        if (code) {
+                            deleteList(&assign);
+                            deleteList(&condition);
+                            return code;
+                        }
                         deleteList(&assign);
                         generateForPrequel(forCounter);
                     }
                     semicolCount++;
                 } else if (semicolCount == 0) {
-                    if (tok->tokenType != FOR)
-                        addToken(&assign, tok->tokenType, tok->tokenName.data);
+                    if (tok->tokenType != FOR) {
+                        code = addToken(&assign, tok->tokenType, tok->tokenName.data);
+                        if (code) {
+                            deleteList(&assign);
+                            deleteList(&condition);
+                            return code;
+                        }
+                    }
                 } else if (semicolCount == 1) {
-                    addToken(&condition, tok->tokenType, tok->tokenName.data);
+                    code = addToken(&condition, tok->tokenType, tok->tokenName.data);
+                    if (code) {
+                        deleteList(&assign);
+                        deleteList(&condition);
+                        return code;
+                    }
                 } else if (semicolCount == 2) {
-                    addToken(&assign, tok->tokenType, tok->tokenName.data);
+                    code = addToken(&assign, tok->tokenType, tok->tokenName.data);
+                    if (code) {
+                        deleteList(&assign);
+                        deleteList(&condition);
+                        return code;
+                    }
                 }
             }
-            assignHandle(&assign, globalTable, localTable);
+            code = assignHandle(&assign, globalTable, localTable);
+            if (code) {
+                deleteList(&assign);
+                deleteList(&condition);
+                return code;
+            }
+
             deleteList(&assign);
 
-            generateForStart(&condition, localTable, forCounter);
+            code = generateForStart(&condition, localTable, forCounter);
+            if (code) {
+                deleteList(&assign);
+                deleteList(&condition);
+                return code;
+            }
             deleteList(&condition);
+            deleteList(&assign);
 
         } else if (copyNode(&globalTable, currentLine->first->tokenName.data) != NULL) {
             list args;
             initList(&args);
-            generateFunctionCall(copyNode(&globalTable, currentLine->first->tokenName.data), &args);
+            for (token *tok = currentLine->first->nextToken; tok != NULL && !equalStrings(tok->tokenName.data, ")");) {
+                if (tok->tokenType == IDENT || tok->tokenType == INT_LIT || tok->tokenType == STRING_LIT ||
+                    tok->tokenType == FLOAT_LIT) {
+                    code = addToken(&args, tok->tokenType, tok->tokenName.data);
+                    if (code) {
+                        deleteList(&args);
+                        return code;
+                    }
+                }
+            }
+            code = generateFunctionCall(copyNode(&globalTable, currentLine->first->tokenName.data), &args);
+            if (code) {
+                deleteList(&args);
+                return code;
+            }
+            deleteList(&args);
         } else if (equalStrings(currentLine->first->tokenName.data, "print")) {
             for (token *arg = currentLine->first->nextToken; arg != NULL; arg = arg->nextToken) {
                 if (equalStrings(arg->tokenName.data, ")")) break;
                 else if (arg->tokenType == INT_LIT || arg->tokenType == STRING_LIT || arg->tokenType == FLOAT_LIT ||
                          arg->tokenType == IDENT) {
-                    generatePrint(arg);
+                    code = generatePrint(arg);
+                    if (code) return code;
                 }
             }
         } else if (currentLine->first->tokenType == RETURN) {
@@ -203,28 +312,63 @@ errorCode generatorHandle(list *currentLine, list *tokenList, tableNodePtr globa
             ret.tokenType = IDENT;
             ret.nextToken = NULL;
             char retName[50];
-            for (token* tok = currentLine->first->nextToken; tok != NULL; tok = tok->nextToken) {
+            for (token *tok = currentLine->first->nextToken; tok != NULL; tok = tok->nextToken) {
                 if (tok->tokenType == COMMA) {
-                    applyPrecedence(&exp, localTable);
+                    code = applyPrecedence(&exp, localTable);
+                    if (code) {
+                        deleteList(&exp);
+                        return code;
+                    }
                     deleteList(&exp);
                     sprintf(retName, "ret%zu", commaCounter);
-                    makeString(retName, &ret.tokenName);
-                    generateMove(&ret);
+                    code = makeString(retName, &ret.tokenName);
+                    if (code) {
+                        destroyString(&ret.tokenName);
+                        deleteList(&exp);
+                        return code;
+                    }
+                    code = generateMove(&ret);
+                    if (code) {
+                        deleteList(&exp);
+                        destroyString(&ret.tokenName);
+                        return code;
+                    }
                     commaCounter++;
                 } else if (tok->tokenType != EOL) {
-                    addToken(&exp, tok->tokenType, tok->tokenName.data);
+                    code = addToken(&exp, tok->tokenType, tok->tokenName.data);
+                    if (code) {
+                        destroyString(&ret.tokenName);
+                        deleteList(&exp);
+                        return code;
+                    }
                 }
             }
-            applyPrecedence(&exp, localTable);
+            code = applyPrecedence(&exp, localTable);
+            if (code) {
+                destroyString(&ret.tokenName);
+                deleteList(&exp);
+                return code;
+            }
             deleteList(&exp);
             sprintf(retName, "ret%zu", commaCounter);
-            makeString(retName, &ret.tokenName);
-            generateMove(&ret);
+            code = makeString(retName, &ret.tokenName);
+            if (code) {
+                destroyString(&ret.tokenName);
+                deleteList(&exp);
+                return code;
+            }
+            code = generateMove(&ret);
+            if (code) {
+                destroyString(&ret.tokenName);
+                deleteList(&exp);
+                return code;
+            }
 
             destroyString(&ret.tokenName);
             deleteList(&exp);
         } else if (currentLine->first->tokenType != EOL) {
-            assignHandle(currentLine, globalTable, localTable);
+            code = assignHandle(currentLine, globalTable, localTable);
+            if (code) return code;
         }
 
     }
@@ -232,12 +376,12 @@ errorCode generatorHandle(list *currentLine, list *tokenList, tableNodePtr globa
     return OK;
 }
 
-errorCode transformFloat(string* str) {
+errorCode transformFloat(string *str) {
     double number = strtod(str->data, NULL);
 
     char newFloat[100];
     sprintf(newFloat, "%a", number);
-    makeString(newFloat, str);
+    if (makeString(newFloat, str)) return INTERNAL_ERROR;
 
     return OK;
 }
@@ -246,66 +390,129 @@ errorCode transformString(string *str) {
 
     string tmp;
     initString(&tmp);
-    makeString("", &tmp);
+    if (makeString("", &tmp)) return INTERNAL_ERROR;
     string tmp2;
     initString(&tmp2);
-    makeString("", &tmp2);
+    if (makeString("", &tmp2)) {
+        destroyString(&tmp);
+        return INTERNAL_ERROR;
+    }
     errorCode out;
     char tmpStr[100];
     for (size_t i = 0; i < str->len; i++) {
         char c = str->data[i];
         if (c == '\\') {
             int escape;
-            switch (str->data[i+1]) {
+            switch (str->data[i + 1]) {
                 case 'n':
-                    if ((out = addChar(&tmp, '\n')) != OK) return out;
+                    if ((out = addChar(&tmp, '\n')) != OK) {
+                        destroyString(&tmp);
+                        destroyString(&tmp2);
+                        return out;
+                    }
                     i++;
                     break;
                 case '\\':
-                    if ((out = addChar(&tmp, '\\')) != OK) return out;
+                    if ((out = addChar(&tmp, '\\')) != OK) {
+                        destroyString(&tmp);
+                        destroyString(&tmp2);
+                        return out;
+                    }
                     i++;
                     break;
                 case 't':
-                    if ((out = addChar(&tmp, '\t')) != OK) return out;
+                    if ((out = addChar(&tmp, '\t')) != OK) {
+                        destroyString(&tmp);
+                        destroyString(&tmp2);
+                        return out;
+                    }
                     i++;
                     break;
                 case '\"':
-                    if ((out = addChar(&tmp, '\"')) != OK) return out;
+                    if ((out = addChar(&tmp, '\"')) != OK) {
+                        destroyString(&tmp);
+                        destroyString(&tmp2);
+                        return out;
+                    }
                     i++;
                     break;
                 case 'x':
-                    escape = strtol(&str->data[i+2], NULL, 16);
-                    if ((out = addChar(&tmp, (char)escape)) != OK) return out;
+                    escape = strtol(&str->data[i + 2], NULL, 16);
+                    if ((out = addChar(&tmp, (char) escape)) != OK) {
+                        destroyString(&tmp);
+                        destroyString(&tmp2);
+                        return out;
+                    }
                     i += 3;
                     break;
                 default:
                     return LEXICAL_ERROR;
             }
         } else {
-            if ((out = addChar(&tmp, c)) != OK) return out;
+            if ((out = addChar(&tmp, c)) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
         }
     }
 
     for (size_t i = 0; i < tmp.len; i++) {
         char c = tmp.data[i];
         if (c < 33) {
-            if ((out = addChar(&tmp2, 92)) != OK) return out;
-            if ((out = addChar(&tmp2, '0')) != OK) return out;
+            if ((out = addChar(&tmp2, 92)) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
+            if ((out = addChar(&tmp2, '0')) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
             if (c < 10) {
-                if ((out = addChar(&tmp2, '0')) != OK) return out;
+                if ((out = addChar(&tmp2, '0')) != OK) {
+                    destroyString(&tmp);
+                    destroyString(&tmp2);
+                    return out;
+                }
             }
             sprintf(tmpStr, "%d", c);
-            if ((out = addConstChar(&tmp2, tmpStr)) != OK) return out;
+            if ((out = addConstChar(&tmp2, tmpStr)) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
         } else if (c == 35 || c == 92) {
-            if ((out = addChar(&tmp2, 92)) != OK) return out;
-            if ((out = addChar(&tmp2, '0')) != OK) return out;
+            if ((out = addChar(&tmp2, 92)) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
+            if ((out = addChar(&tmp2, '0')) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
             sprintf(tmpStr, "%d", c);
-            if ((out = addConstChar(&tmp2, tmpStr)) != OK) return out;
+            if ((out = addConstChar(&tmp2, tmpStr)) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
         } else {
-            if ((out = addChar(&tmp2, c)) != OK) return out;
+            if ((out = addChar(&tmp2, c)) != OK) {
+                destroyString(&tmp);
+                destroyString(&tmp2);
+                return out;
+            }
         }
     }
-    if ((out = makeString(tmp2.data, str)) != OK) return out;
+    if ((out = makeString(tmp2.data, str)) != OK) {
+        destroyString(&tmp);
+        destroyString(&tmp2);
+        return out;
+    }
     destroyString(&tmp2);
     destroyString(&tmp);
     return OK;
@@ -375,12 +582,15 @@ errorCode generateMove(token *var) {
 
 errorCode generateArithmetic(token *var, token *symb1, token *symb2, char *frames, char operation) {
     char str[100];
+    errorCode out;
 
     if (symb1->tokenType == FLOAT_LIT) {
-        transformFloat(&symb1->tokenName);
+        out = transformFloat(&symb1->tokenName);
+        if (out) return out;
     }
     if (symb2->tokenType == FLOAT_LIT) {
-        transformFloat(&symb1->tokenName);
+        out = transformFloat(&symb1->tokenName);
+        if (out) return out;
     }
 
     switch (operation) {
@@ -669,7 +879,7 @@ errorCode generateArithmetic(token *var, token *symb1, token *symb2, char *frame
 
 errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
 
-
+    errorCode out;
     char str[100];
     if (symb1->tokenType == INT_LIT) {
         if (symb2->tokenType == INT_LIT) {
@@ -689,7 +899,8 @@ errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == FLOAT_LIT) {
 
-        transformFloat(&symb1->tokenName);
+        out = transformFloat(&symb1->tokenName);
+        if (out) return out;
 
         if (symb2->tokenType == FLOAT_LIT) {
             transformFloat(&symb2->tokenName);
@@ -710,37 +921,36 @@ errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == STRING_LIT) {
 
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data, &tmp1);
-        transformString(&tmp1);
+        out = transformString(&symb1->tokenName);
+        if (out) return out;
 
         if (symb2->tokenType == STRING_LIT) {
 
-            string tmp2;
-            initString(&tmp2);
-            makeString(symb2->tokenName.data, &tmp2);
-            transformString(&tmp2);
+            out = transformString(&symb2->tokenName);
+            if (out) return out;
 
-            sprintf(str, "LT GF@%s string@%s string@%s\n", var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "LT GF@%s string@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                    symb2->tokenName.data);
 
-            destroyString(&tmp2);
         }
         if (symb2->tokenType == IDENT) {
             if (frames[1] == 't') {
-                sprintf(str, "LT GF@%s string@%s TF@%s\n", var->tokenName.data, tmp1.data, symb2->tokenName.data);
+                sprintf(str, "LT GF@%s string@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
             if (frames[1] == 'g') {
-                sprintf(str, "LT GF@%s string@%s GF@%s\n", var->tokenName.data, tmp1.data, symb2->tokenName.data);
+                sprintf(str, "LT GF@%s string@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
         }
-        destroyString(&tmp1);
     }
 
     if (symb1->tokenType == IDENT) {
         if (symb2->tokenType == FLOAT_LIT) {
 
-            transformFloat(&symb2->tokenName);
+            out = transformFloat(&symb2->tokenName);
+            if (out) return out;
+
             if (frames[0] == 't') {
                 sprintf(str, "LT GF@%s TF@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                         symb2->tokenName.data);
@@ -752,18 +962,17 @@ errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
         }
 
         if (symb2->tokenType == STRING_LIT) {
-            string tmp;
-            initString(&tmp);
-            makeString(symb2->tokenName.data, &tmp);
-            transformString(&tmp);
+            out = transformString(&symb2->tokenName);
+            if (out) return out;
 
             if (frames[0] == 't') {
-                sprintf(str, "LT GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+                sprintf(str, "LT GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
             if (frames[0] == 'g') {
-                sprintf(str, "LT GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+                sprintf(str, "LT GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
-            destroyString(&tmp);
         }
 
         if (symb2->tokenType == INT_LIT) {
@@ -802,6 +1011,7 @@ errorCode generateLT(token *var, token *symb1, token *symb2, char *frames) {
 
 errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
 
+    errorCode out;
     char str[100];
     if (symb1->tokenType == INT_LIT) {
         if (symb2->tokenType == INT_LIT) {
@@ -820,9 +1030,14 @@ errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
     }
 
     if (symb1->tokenType == FLOAT_LIT) {
-        transformFloat(&symb1->tokenName);
+
+        out = transformFloat(&symb1->tokenName);
+        if (out) return out;
+
         if (symb2->tokenType == FLOAT_LIT) {
-            transformFloat(&symb2->tokenName);
+            out = transformFloat(&symb2->tokenName);
+            if (out) return out;
+
             sprintf(str, "GT GF@%s float@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
@@ -840,37 +1055,35 @@ errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == STRING_LIT) {
 
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data, &tmp1);
-        transformString(&tmp1);
+        out = transformString(&symb1->tokenName);
+        if (out) return out;
 
         if (symb2->tokenType == STRING_LIT) {
 
-            string tmp2;
-            initString(&tmp2);
-            makeString(symb2->tokenName.data, &tmp2);
-            transformString(&tmp2);
+            out = transformString(&symb2->tokenName);
+            if (out) return out;
 
-            sprintf(str, "GT GF@%s string@%s string@%s\n", var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "GT GF@%s string@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                    symb2->tokenName.data);
 
-            destroyString(&tmp2);
         }
         if (symb2->tokenType == IDENT) {
             if (frames[1] == 't') {
-                sprintf(str, "GT GF@%s string@%s TF@%s\n", var->tokenName.data, tmp1.data, symb2->tokenName.data);
+                sprintf(str, "GT GF@%s string@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
             if (frames[1] == 'g') {
-                sprintf(str, "GT GF@%s string@%s GF@%s\n", var->tokenName.data, tmp1.data, symb2->tokenName.data);
+                sprintf(str, "GT GF@%s string@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
         }
-        destroyString(&tmp1);
     }
 
     if (symb1->tokenType == IDENT) {
         if (symb2->tokenType == FLOAT_LIT) {
 
-            transformFloat(&symb2->tokenName);
+            out = transformFloat(&symb2->tokenName);
+            if (out) return out;
             if (frames[0] == 't') {
                 sprintf(str, "GT GF@%s TF@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                         symb2->tokenName.data);
@@ -882,18 +1095,18 @@ errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
         }
 
         if (symb2->tokenType == STRING_LIT) {
-            string tmp;
-            initString(&tmp);
-            makeString(symb2->tokenName.data, &tmp);
-            transformString(&tmp);
+
+            out = transformString(&symb2->tokenName);
+            if (out) return out;
 
             if (frames[0] == 't') {
-                sprintf(str, "GT GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+                sprintf(str, "GT GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
             if (frames[0] == 'g') {
-                sprintf(str, "GT GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+                sprintf(str, "GT GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
-            destroyString(&tmp);
         }
 
         if (symb2->tokenType == INT_LIT) {
@@ -932,6 +1145,7 @@ errorCode generateGT(token *var, token *symb1, token *symb2, char *frames) {
 
 errorCode generateEQ(token *var, token *symb1, token *symb2, char *frames) {
 
+    errorCode out;
     char str[100];
     if (symb1->tokenType == INT_LIT) {
         if (symb2->tokenType == INT_LIT) {
@@ -951,10 +1165,12 @@ errorCode generateEQ(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == FLOAT_LIT) {
 
-        transformFloat(&symb1->tokenName);
+        out = transformFloat(&symb1->tokenName);
+        if (out) return out;
         if (symb2->tokenType == FLOAT_LIT) {
 
-            transformFloat(&symb2->tokenName);
+            out = transformFloat(&symb2->tokenName);
+            if (out) return out;
             sprintf(str, "EQ GF@%s float@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                     symb2->tokenName.data);
         }
@@ -972,37 +1188,35 @@ errorCode generateEQ(token *var, token *symb1, token *symb2, char *frames) {
 
     if (symb1->tokenType == STRING_LIT) {
 
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data, &tmp1);
-        transformString(&tmp1);
+        out = transformString(&symb1->tokenName);
+        if (out) return out;
 
         if (symb2->tokenType == STRING_LIT) {
 
-            string tmp2;
-            initString(&tmp2);
-            makeString(symb2->tokenName.data, &tmp2);
-            transformString(&tmp2);
+            out = transformString(&symb2->tokenName);
+            if (out) return out;
 
-            sprintf(str, "EQ GF@%s string@%s string@%s\n", var->tokenName.data, tmp1.data, tmp2.data);
+            sprintf(str, "EQ GF@%s string@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                    symb2->tokenName.data);
 
-            destroyString(&tmp2);
         }
         if (symb2->tokenType == IDENT) {
             if (frames[1] == 't') {
-                sprintf(str, "EQ GF@%s string@%s TF@%s\n", var->tokenName.data, tmp1.data, symb2->tokenName.data);
+                sprintf(str, "EQ GF@%s string@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
             if (frames[1] == 'g') {
-                sprintf(str, "EQ GF@%s string@%s GF@%s\n", var->tokenName.data, tmp1.data, symb2->tokenName.data);
+                sprintf(str, "EQ GF@%s string@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
         }
-        destroyString(&tmp1);
     }
 
     if (symb1->tokenType == IDENT) {
         if (symb2->tokenType == FLOAT_LIT) {
 
-            transformFloat(&symb2->tokenName);
+            out = transformFloat(&symb2->tokenName);
+            if (out) return out;
             if (frames[0] == 't') {
                 sprintf(str, "EQ GF@%s TF@%s float@%s\n", var->tokenName.data, symb1->tokenName.data,
                         symb2->tokenName.data);
@@ -1014,18 +1228,17 @@ errorCode generateEQ(token *var, token *symb1, token *symb2, char *frames) {
         }
 
         if (symb2->tokenType == STRING_LIT) {
-            string tmp;
-            initString(&tmp);
-            makeString(symb2->tokenName.data, &tmp);
-            transformString(&tmp);
+            out = transformString(&symb2->tokenName);
+            if (out) return out;
 
             if (frames[0] == 't') {
-                sprintf(str, "EQ GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+                sprintf(str, "EQ GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
             if (frames[0] == 'g') {
-                sprintf(str, "EQ GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+                sprintf(str, "EQ GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                        symb2->tokenName.data);
             }
-            destroyString(&tmp);
         }
 
         if (symb2->tokenType == INT_LIT) {
@@ -1077,18 +1290,17 @@ errorCode generateNOT(token *var) {
 
 errorCode generateConcat(token *var, token *symb1, token *symb2, char *frames) {
 
+    errorCode out;
     char str[100];
     if (symb1->tokenType == STRING_LIT && symb2->tokenType == STRING_LIT) {
-        string tmp1;
-        initString(&tmp1);
-        makeString(symb1->tokenName.data, &tmp1);
-        transformString(&tmp1);
-        string tmp2;
-        initString(&tmp2);
-        makeString(symb2->tokenName.data, &tmp2);
-        transformString(&tmp2);
 
-        sprintf(str, "CONCAT GF@%s string@%s string@%s\n", var->tokenName.data, tmp1.data, tmp2.data);
+        out = transformString(&symb1->tokenName);
+        if (out) return out;
+        out = transformString(&symb2->tokenName);
+        if (out) return out;
+
+        sprintf(str, "CONCAT GF@%s string@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                symb2->tokenName.data);
 
     }
     if (symb1->tokenType == IDENT && symb2->tokenType == IDENT) {
@@ -1111,32 +1323,30 @@ errorCode generateConcat(token *var, token *symb1, token *symb2, char *frames) {
         }
     }
     if (symb1->tokenType == IDENT && symb2->tokenType == STRING_LIT) {
-        string tmp;
-        initString(&tmp);
-        makeString(symb2->tokenName.data, &tmp);
-        transformString(&tmp);
+        out = transformString(&symb2->tokenName);
+        if (out) return out;
 
         if (frames[0] == 't') {
-            sprintf(str, "CONCAT GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+            sprintf(str, "CONCAT GF@%s TF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                    symb2->tokenName.data);
         }
         if (frames[0] == 'g') {
-            sprintf(str, "CONCAT GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data, tmp.data);
+            sprintf(str, "CONCAT GF@%s GF@%s string@%s\n", var->tokenName.data, symb1->tokenName.data,
+                    symb2->tokenName.data);
         }
-        destroyString(&tmp);
     }
     if (symb1->tokenType == STRING_LIT && symb2->tokenType == IDENT) {
-        string tmp;
-        initString(&tmp);
-        makeString(symb1->tokenName.data, &tmp);
-        transformString(&tmp);
+        out = transformString(&symb1->tokenName);
+        if (out) return out;
 
         if (frames[1] == 't') {
-            sprintf(str, "CONCAT GF@%s string@%s TF@%s\n", var->tokenName.data, tmp.data, symb2->tokenName.data);
+            sprintf(str, "CONCAT GF@%s string@%s TF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                    symb2->tokenName.data);
         }
         if (frames[1] == 'g') {
-            sprintf(str, "CONCAT GF@%s string@%s GF@%s\n", var->tokenName.data, tmp.data, symb2->tokenName.data);
+            sprintf(str, "CONCAT GF@%s string@%s GF@%s\n", var->tokenName.data, symb1->tokenName.data,
+                    symb2->tokenName.data);
         }
-        destroyString(&tmp);
     }
 
     ADDCHAR(gen.program, str)
@@ -1221,7 +1431,7 @@ errorCode generateFunctionCall(data *function, list *argValues) {
     return OK;
 }
 
-errorCode generateFunctionReturn(data *function, list *assignVariables) {
+errorCode generateFunctionReturn(list *assignVariables) {
     char str[100];
 
     for (size_t i = 0; i < assignVariables->size; i++) {
@@ -1245,17 +1455,20 @@ errorCode generateFunctionEnd() {
 
 errorCode generatePrint(token *tok) {
     char str[100];
+    errorCode out;
 
     switch (tok->tokenType) {
         case INT_LIT:
             sprintf(str, "WRITE int@%s\n", tok->tokenName.data);
             break;
         case STRING_LIT:
-            if (transformString(&tok->tokenName)) return INTERNAL_ERROR;
+            out = transformString(&tok->tokenName);
+            if (out) return out;
             sprintf(str, "WRITE string@%s\n", tok->tokenName.data);
             break;
         case FLOAT_LIT:
-            transformFloat(&tok->tokenName);
+            out = transformFloat(&tok->tokenName);
+            if (out) return out;
             sprintf(str, "WRITE float@%s\n", tok->tokenName.data);
             break;
         case IDENT:
@@ -1289,8 +1502,10 @@ errorCode generateMainScopeEnd() {
 
 errorCode generateIfStart(list *condition, tableNodePtr varTable, size_t ifCount) {
     char str[100];
+    errorCode out;
 
-    applyPrecedence(condition, varTable);
+    out = applyPrecedence(condition, varTable);
+    if (out) return out;
 
     sprintf(str, "JUMPIFNEQ else%zu GF@expVar0 bool@true\n", ifCount);
     ADDCHAR(gen.program, str)
@@ -1327,10 +1542,12 @@ errorCode generateForPrequel(size_t forCount) {
 
 errorCode generateForStart(list *condition, tableNodePtr varTable, size_t forCount) {
     char str[100];
+    errorCode out;
     sprintf(str, "LABEL forFirst%zu\n", forCount);
     ADDCHAR(gen.program, str)
 
-    applyPrecedence(condition, varTable);
+    out = applyPrecedence(condition, varTable);
+    if (out) return out;
 
     sprintf(str, "JUMPIFNEQ forEnd%zu GF@expVar0 bool@true\n", forCount);
     ADDCHAR(gen.program, str)
@@ -1350,42 +1567,43 @@ errorCode generateForEnd(size_t forCount) {
 errorCode
 decideOperation(token *var, token *first, token *second, token *operation, char *scopes, dataType expressionType) {
 
+    errorCode out = OK;
     if (equalStrings(operation->tokenName.data, "+")) {
         if (expressionType != TYPE_STRING) {
-            if (generateArithmetic(var, first, second, scopes, '+'))
-                return INTERNAL_ERROR;
+            out = generateArithmetic(var, first, second, scopes, '+');
         } else {
-            if (generateConcat(var, first, second, scopes))
-                return INTERNAL_ERROR;
+            out = generateConcat(var, first, second, scopes);
         }
     } else if (equalStrings(operation->tokenName.data, "-")) {
-        if (generateArithmetic(var, first, second, scopes, '-')) return INTERNAL_ERROR;
+        out = generateArithmetic(var, first, second, scopes, '-');
     } else if (equalStrings(operation->tokenName.data, "*")) {
-        if (generateArithmetic(var, first, second, scopes, '*')) return INTERNAL_ERROR;
+        out = generateArithmetic(var, first, second, scopes, '*');
     } else if (equalStrings(operation->tokenName.data, "/")) {
         if (expressionType == TYPE_INT) {
-            if (generateArithmetic(var, first, second, scopes, '/'))
-                return INTERNAL_ERROR;
-        } else if (generateArithmetic(var, first, second, scopes, '%')) {
-            return INTERNAL_ERROR;
+            out = generateArithmetic(var, first, second, scopes, '/');
+        } else {
+            out = generateArithmetic(var, first, second, scopes, '%');
         }
     } else if (equalStrings(operation->tokenName.data, ">")) {
-        if (generateGT(var, first, second, scopes)) return INTERNAL_ERROR;
+        out = generateGT(var, first, second, scopes);
     } else if (equalStrings(operation->tokenName.data, "<")) {
-        if (generateLT(var, first, second, scopes)) return INTERNAL_ERROR;
+        out = generateLT(var, first, second, scopes);
     } else if (equalStrings(operation->tokenName.data, ">=")) {
-        if (generateLT(var, first, second, scopes)) return INTERNAL_ERROR;
-        if (generateNOT(var)) return INTERNAL_ERROR;
+        out = generateLT(var, first, second, scopes);
+        if (out) return out;
+        out = generateNOT(var);
     } else if (equalStrings(operation->tokenName.data, "<=")) {
-        if (generateGT(var, first, second, scopes)) return INTERNAL_ERROR;
-        if (generateNOT(var)) return INTERNAL_ERROR;
+        out = generateGT(var, first, second, scopes);
+        if (out) return out;
+        out = generateNOT(var);
     } else if (equalStrings(operation->tokenName.data, "==")) {
-        if (generateEQ(var, first, second, scopes)) return INTERNAL_ERROR;
+        out = generateEQ(var, first, second, scopes);
     } else if (equalStrings(operation->tokenName.data, "!=")) {
-        if (generateEQ(var, first, second, scopes)) return INTERNAL_ERROR;
-        if (generateNOT(var)) return INTERNAL_ERROR;
+        out = generateEQ(var, first, second, scopes);
+        if (out) return out;
+        out = generateNOT(var);
     }
-    return OK;
+    return out;
 }
 
 void freeVarVals(token *varVals[10]) {
@@ -1399,6 +1617,7 @@ void freeVarVals(token *varVals[10]) {
 
 errorCode generateExpression(list *expression, tableNodePtr varTable) {
 
+    errorCode out;
     bool usedTokens[expression->size];
     for (size_t i = 0; i < expression->size; i++) usedTokens[i] = false;
     dataType expressionType;
@@ -1482,9 +1701,10 @@ errorCode generateExpression(list *expression, tableNodePtr varTable) {
                                 }
                                 free(newName);
 
-                                if (decideOperation(varVals[usedVars], first, second, tok, "tt", expressionType)) {
+                                out = decideOperation(varVals[usedVars], first, second, tok, "tt", expressionType);
+                                if (out) {
                                     freeVarVals(varVals);
-                                    return INTERNAL_ERROR;
+                                    return out;
                                 }
                                 usedVars++;
                                 break;
@@ -1494,10 +1714,11 @@ errorCode generateExpression(list *expression, tableNodePtr varTable) {
                 }
                 if (second == NULL) {
                     usedVars--;
-                    if (decideOperation(varVals[usedVars - 1], varVals[usedVars - 1], varVals[usedVars], tok, "gg",
-                                        expressionType)) {
+                    out = decideOperation(varVals[usedVars - 1], varVals[usedVars - 1], varVals[usedVars], tok, "gg",
+                                        expressionType);
+                    if (out) {
                         freeVarVals(varVals);
-                        return INTERNAL_ERROR;
+                        return out;
                     }
                     destroyString(&varVals[usedVars]->tokenName);
                     free(varVals[usedVars]);
@@ -1505,16 +1726,18 @@ errorCode generateExpression(list *expression, tableNodePtr varTable) {
                 } else if (first == NULL) {
                     first = copyToken(expression, i - 1);
                     if (second == first) {
-                        if (decideOperation(varVals[usedVars - 1], varVals[usedVars - 1], second, tok, "gt",
-                                            expressionType)) {
+                        out = decideOperation(varVals[usedVars - 1], varVals[usedVars - 1], second, tok, "gt",
+                                            expressionType);
+                        if (out) {
                             freeVarVals(varVals);
-                            return INTERNAL_ERROR;
+                            return out;
                         }
                     } else {
-                        if (decideOperation(varVals[usedVars - 1], second, varVals[usedVars - 1], tok, "tg",
-                                            expressionType)) {
+                        out = decideOperation(varVals[usedVars - 1], second, varVals[usedVars - 1], tok, "tg",
+                                            expressionType);
+                        if (out) {
                             freeVarVals(varVals);
-                            return INTERNAL_ERROR;
+                            return out;
                         }
                     }
                 }
@@ -1525,20 +1748,18 @@ errorCode generateExpression(list *expression, tableNodePtr varTable) {
 
         if (!wasOperator) {
             char str[100];
-            string tmp;
             switch (expression->first->tokenType) {
                 case INT_LIT:
                     sprintf(str, "MOVE GF@expVar0 int@%s\n", expression->first->tokenName.data);
                     break;
                 case STRING_LIT:
-                    initString(&tmp);
-                    makeString(expression->first->tokenName.data, &tmp);
-                    transformString(&tmp);
-                    sprintf(str, "MOVE GF@expVar0 string@%s\n", tmp.data);
-                    destroyString(&tmp);
+                    out = transformString(&expression->first->tokenName);
+                    if (out) return out;
+                    sprintf(str, "MOVE GF@expVar0 string@%s\n", expression->first->tokenName.data);
                     break;
                 case FLOAT_LIT:
-                    transformFloat(&expression->first->tokenName);
+                    out = transformFloat(&expression->first->tokenName);
+                    if (out) return out;
                     sprintf(str, "MOVE GF@expVar0 float@%s\n", expression->first->tokenName.data);
                     break;
                 case IDENT:
@@ -1549,8 +1770,6 @@ errorCode generateExpression(list *expression, tableNodePtr varTable) {
             }
 
             ADDCHAR(gen.program, str)
-
-            return OK;
 
         }
 
